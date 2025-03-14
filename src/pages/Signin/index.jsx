@@ -18,54 +18,56 @@ const Signin = () => {
 
   const handleLogin = async (event) => {
     event.preventDefault();
-  
+
     const loginData = {
       login: loginInput,        // Seu campo de login
       senhaUsuario: senha,      // Campo de senha
     };
-  
+
     try {
       const response = await axios.post("http://localhost:8080/auth/login", loginData);
-  
+
       if (response.data && response.data.token) {
         const token = response.data.token;
-  
+
+        // Exibe o token no console
+        console.log("Token: ", token);
+
         // Armazenando o token no localStorage
         localStorage.setItem("token", token);
-  
+
         // Configura o cabeçalho Authorization com o Bearer Token
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  
+
         // Chama a função de login do contexto
         login(token);
-  
+
         // Exibe mensagem de sucesso
-        setSuccessMessage("Login feito com sucesso!");
-        
-        
-  
+
+
         // Redireciona para a página principal após o login bem-sucedido
-        //setTimeout(() => navigate("/home"), 2000); // Aguarda 2 segundos antes de redirecionar
-        navigate("/home");
-        
+        setTimeout(() => {
+          navigate("/home");
+        }, 2000);
+
       } else {
         setError("Falha ao obter o token. Verifique as credenciais.");
-        setSuccessMessage(""); // Limpa a mensagem de sucesso se houver erro
+
       }
     } catch (error) {
-      // Verifique a resposta do erro
       if (error.response) {
         console.error("Erro na resposta do backend:", error.response.data);
         console.error("Status:", error.response.status);
         setError("Erro de autenticação. Verifique suas credenciais.");
-        setSuccessMessage(""); // Limpa a mensagem de sucesso se houver erro
+
       } else {
         console.error("Erro ao realizar login:", error.message);
         setError("Erro ao tentar se conectar com o servidor.");
-        setSuccessMessage(""); // Limpa a mensagem de sucesso se houver erro
+
       }
     }
   };
+
 
   return (
     <C.Container>
