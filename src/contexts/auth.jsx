@@ -1,65 +1,38 @@
-import { createContext, useEffect, useState } from "react";
-import api from "../services/api";
+// src/contexts/auth.js
+import React, { createContext, useState, useEffect } from "react";
+import axios from "axios";
 
-export const AuthContext = createContext({});
+// Criando o contexto de autenticação
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState();
+  const [token, setToken] = useState(localStorage.getItem("token") || null);
 
+  // Sempre que o token mudar, configura no Axios
   useEffect(() => {
-    const userToken = localStorage.getItem("user_token");
-
-    if (userToken) {
-      setUser(JSON.parse(userToken));
-    }
-  }, []);
-
-  const signin = async (email, password) => {
-    try {
-      const response = await api.post("/signin", { email, password });
-      const { token } = response.data;
-
-      if (token) {
-        localStorage.setItem("user_token", JSON.stringify({ email, token }));
-        setUser({ email });
-        return null;
-      }
-    } catch (error) {
-      console.error(error);
-      return "Erro ao realizar login";
-    }
-  };
-
-  const signup = (email, password) => {
-    const usersStorage = JSON.parse(localStorage.getItem("users_bd"));
-    const hasUser = usersStorage?.filter((user) => user.email === email);
-
-    if (hasUser?.length) {
-      return "Já tem uma conta com esse E-mail";
-    }
-
-    let newUser;
-
-    if (usersStorage) {
-      newUser = [...usersStorage, { email, password }];
+    if (token) {
+      // Configura o token nas requisições
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     } else {
-      newUser = [{ email, password }];
+      // Caso o token não exista, não configura o cabeçalho
+      delete axios.defaults.headers.common["Authorization"];
     }
+  }, [token]);
 
-    localStorage.setItem("users_bd", JSON.stringify(newUser));
-
-    return;
+  // Função de login, que define o token
+  const login = (newToken) => {
+    setToken(newToken);
+    localStorage.setItem("token", newToken);
   };
 
-  const signout = () => {
-    setUser(null);
-    localStorage.removeItem("user_token");
+  // Função de logout, que limpa o token
+  const logout = () => {
+    setToken(null);
+    localStorage.removeItem("token");
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, signed: !!user, signin, signup, signout }}
-    >
+    <AuthContext.Provider value={{ token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

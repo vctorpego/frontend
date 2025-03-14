@@ -8,7 +8,9 @@ const Home = () => {
   const { signout } = useAuth();
   const navigate = useNavigate();
 
+  console.log()
   return (
+
     <C.Container>
       <C.Title>Home</C.Title>
       <Button Text="Sair" onClick={() => [signout(), navigate("/")]}>
@@ -16,6 +18,7 @@ const Home = () => {
       </Button>
     </C.Container>
   );
+
 };
 
 export default Home;
