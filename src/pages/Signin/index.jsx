@@ -1,4 +1,3 @@
-// src/pages/Signin/index.jsx
 import React, { useState } from "react";
 import axios from 'axios';
 import Input from "../../components/Input";
@@ -42,32 +41,22 @@ const Signin = () => {
         // Chama a função de login do contexto
         login(token);
 
-        // Exibe mensagem de sucesso
-
-
         // Redireciona para a página principal após o login bem-sucedido
-        setTimeout(() => {
-          navigate("/home");
-        }, 2000);
-
+        navigate("/home");
       } else {
-        setError("Falha ao obter o token. Verifique as credenciais.");
-
+        setError("Erro de autenticação. Verifique suas credenciais.");
       }
     } catch (error) {
       if (error.response) {
         console.error("Erro na resposta do backend:", error.response.data);
         console.error("Status:", error.response.status);
         setError("Erro de autenticação. Verifique suas credenciais.");
-
       } else {
         console.error("Erro ao realizar login:", error.message);
         setError("Erro ao tentar se conectar com o servidor.");
-
       }
     }
   };
-
 
   return (
     <C.Container>
