@@ -29,8 +29,6 @@ const Signin = () => {
       if (response.data && response.data.token) {
         const token = response.data.token;
 
-        // Exibe o token no console
-        console.log("Token: ", token);
 
         // Armazenando o token no localStorage
         localStorage.setItem("token", token);
@@ -75,7 +73,6 @@ const Signin = () => {
           onChange={(e) => [setSenha(e.target.value), setError("")]} // Limpa a mensagem de erro
         />
         {error && <C.labelError>{error}</C.labelError>} {/* Mensagem de erro */}
-        {successMessage && <C.labelSuccess>{successMessage}</C.labelSuccess>} {/* Mensagem de sucesso */}
         <Button Text="Entrar" onClick={handleLogin} />
         <C.LabelSignup>
           Não tem uma conta?
