@@ -1,3 +1,4 @@
+// src/contexts/auth.js
 import React, { createContext, useState, useEffect } from "react";
 import axios from "axios";
 
@@ -25,13 +26,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Função de logout, que limpa o token
-  const logout = () => {
+  const signout = () => {
     setToken(null);
     localStorage.removeItem("token");
   };
 
   return (
-    <AuthContext.Provider value={{ token, login, logout }}>
+    <AuthContext.Provider value={{ token, login, signout }}>
       {children}
     </AuthContext.Provider>
   );
