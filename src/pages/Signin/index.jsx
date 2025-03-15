@@ -57,31 +57,34 @@ const Signin = () => {
   };
 
   return (
-    <C.Container>
-      <C.Label>LOGIN</C.Label>
-      <C.Content>
-        <Input
-          type="text"
-          placeholder="Digite seu Login"
-          value={loginInput}
-          onChange={(e) => [setLogin(e.target.value), setError("")]} // Limpa a mensagem de erro
-        />
-        <Input
-          type="password"
-          placeholder="Digite sua Senha"
-          value={senha}
-          onChange={(e) => [setSenha(e.target.value), setError("")]} // Limpa a mensagem de erro
-        />
-        {error && <C.labelError>{error}</C.labelError>} {/* Mensagem de erro */}
-        <Button Text="Entrar" onClick={handleLogin} />
-        <C.LabelSignup>
-          Não tem uma conta?
-          <C.Strong>
-            <Link to="/signup">&nbsp;Registre-se</Link>
-          </C.Strong>
-        </C.LabelSignup>
-      </C.Content>
-    </C.Container>
+<C.Container>
+  <C.Label>LOGIN</C.Label>
+  <C.Content>
+    <Input
+      type="text"
+      placeholder="Digite seu Login"
+      value={loginInput}
+      onChange={(e) => [setLogin(e.target.value), setError("")]} // Limpa a mensagem de erro
+    />
+    <Input
+      type="password"
+      placeholder="Digite sua Senha"
+      value={senha}
+      onChange={(e) => [setSenha(e.target.value), setError("")]} // Limpa a mensagem de erro
+    />
+    {error && <C.labelError>{error}</C.labelError>} {/* Mensagem de erro */}
+    <Button Text="Entrar" onClick={handleLogin} />
+    {/* 
+      <C.LabelSignup>
+        Não tem uma conta?
+        <C.Strong>
+          <Link to="/signup">&nbsp;Registre-se</Link>
+        </C.Strong>
+      </C.LabelSignup>
+    */}
+  </C.Content>
+</C.Container>
+
   );
 };
 
