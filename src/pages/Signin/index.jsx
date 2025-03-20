@@ -74,14 +74,6 @@ const Signin = () => {
     />
     {error && <C.labelError>{error}</C.labelError>} {/* Mensagem de erro */}
     <Button Text="Entrar" onClick={handleLogin} />
-    {/* 
-      <C.LabelSignup>
-        Não tem uma conta?
-        <C.Strong>
-          <Link to="/signup">&nbsp;Registre-se</Link>
-        </C.Strong>
-      </C.LabelSignup>
-    */}
   </C.Content>
 </C.Container>
 

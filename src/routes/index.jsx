@@ -20,6 +20,18 @@ const RoutesApp = () => {
             path="/home"
             element={token ? <Home /> : <Navigate to="/auth/login" />}
           />
+          <Route
+            exact
+            path="/clientes"
+            element={token ? <ListagemClientes /> : <Navigate to="/auth/login" />}
+          />
+
+          <Route
+            exact
+            path="/produtos"
+            element={token ? <ListagemProdutos /> : <Navigate to="/auth/login" />}
+          />
+
 
           {/* Rota pública */}
           <Route path="/" element={<Signin />} />

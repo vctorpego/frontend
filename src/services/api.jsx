@@ -32,8 +32,6 @@ export const login = async (login, senhaUsuario) => {
   }
 };
 
-
-
 export const signup = async (userData) => {
   try {
     const response = await api.post('/signup', userData);
