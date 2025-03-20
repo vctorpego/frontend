@@ -5,6 +5,8 @@ import useAuth from "../hooks/useAuth"; // Importando o hook de autenticação
 import Home from "../pages/Home";
 import Signin from "../pages/Signin";
 import Signup from "../pages/Signup";
+import ListagemClientes from "../pages/ListagemClientes";
+import ListagemProdutos from "../pages/ListagemProdutos";
 import { Navigate } from "react-router-dom";
 
 const RoutesApp = () => {

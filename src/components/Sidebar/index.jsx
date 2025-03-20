@@ -1,5 +1,5 @@
 import React from "react";
-import { CupSoda, Dashboard, Box, Users, ShoppingCart, DollarSign, FileText, User, ArrowRightCircle, LogOut } from "lucide-react";
+import { CupSoda, LayoutDashboard , Box, Users, ShoppingCart, DollarSign, FileText, User, ArrowRightCircle, LogOut } from "lucide-react";
 import * as C from "./styles";  // Importando os estilos
 
 const Sidebar = ({ user, handleLogout }) => {
@@ -11,7 +11,7 @@ const Sidebar = ({ user, handleLogout }) => {
       </C.Logo>
       
       <C.Menu>
-        <C.MenuItem> <Dashboard size={20} /> Dashboard </C.MenuItem>
+        <C.MenuItem> <LayoutDashboard  size={20} /> LayoutDashboard  </C.MenuItem>
         <C.MenuItem> <Box size={20} /> Produtos </C.MenuItem>
         <C.MenuItem> <Users size={20} /> Fornecedores </C.MenuItem>
         <C.MenuItem> <Users size={20} /> Clientes </C.MenuItem>
