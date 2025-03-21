@@ -66,7 +66,7 @@ const ListagemClientes = () => {
     setClienteExcluir(null);
   };
 
-  const columns = ["Nome", "ID", "Saldo", "Status", "Valor Gasto", "Ultima Compra"];  // Colunas da tabela
+  const columns = ["Cliente", "ID", "Saldo", "Limite", "Valor Gasto", "Ultima Compra"];  // Colunas da tabela
 
   return (
     <C.Container>

@@ -11,7 +11,8 @@ const Grid = ({ data, columns, handleDelete, handleEdit }) => {
     "ID": "idCliente",
     "Data de Nascimento": "dtNascCliente",  
     "Ultima Compra": "ultimaCompraCliente",
-    "Saldo": "saldoCliente"
+    "Saldo": "saldoCliente",
+    "Limite": "limiteCliente"
   };
 
   return (
