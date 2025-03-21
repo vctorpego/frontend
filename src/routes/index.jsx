@@ -7,6 +7,7 @@ import Signin from "../pages/Signin";
 import Signup from "../pages/Signup";
 import ListagemClientes from "../pages/ListagemClientes";
 import ListagemProdutos from "../pages/ListagemProdutos";
+import AddProduto from "../pages/AddProduto"; // Importando a nova página
 import { Navigate } from "react-router-dom";
 
 const RoutesApp = () => {
@@ -34,6 +35,11 @@ const RoutesApp = () => {
             element={token ? <ListagemProdutos /> : <Navigate to="/auth/login" />}
           />
 
+          <Route
+            exact
+            path="/produto/adicionar"
+            element={token ? <AddProduto /> : <Navigate to="/auth/login" />}
+          />
 
           {/* Rota pública */}
           <Route path="/" element={<Signin />} />
