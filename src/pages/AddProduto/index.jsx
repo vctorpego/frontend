@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { Container, Title, Form, Input, Button, Label } from './styles';  // Importando os estilos
+import { Container, Title, Form, Input, Button, Label } from '../AddCliente/styles';  // Importando os estilos
 
 const AddProduto = () => {
   const [nomeProduto, setNomeProduto] = useState("");  // Nome do produto

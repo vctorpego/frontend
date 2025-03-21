@@ -7,7 +7,8 @@ import Signin from "../pages/Signin";
 import Signup from "../pages/Signup";
 import ListagemClientes from "../pages/ListagemClientes";
 import ListagemProdutos from "../pages/ListagemProdutos";
-import AddProduto from "../pages/AddProduto"; // Importando a nova página
+import AddProduto from "../pages/AddProduto"; // Importando a página AddProduto
+import AddCliente from "../pages/AddCliente"; // Importando a página AddCliente
 import { Navigate } from "react-router-dom";
 import SwaggerPage from "../pages/Swagger"; // Importando a página Swagger
 
@@ -34,6 +35,13 @@ const RoutesApp = () => {
             exact
             path="/produto"
             element={token ? <ListagemProdutos /> : <Navigate to="/auth/login" />}
+          />
+
+          {/* Adicionando a rota para adicionar cliente */}
+          <Route
+            exact
+            path="/cliente/adicionar"
+            element={token ? <AddCliente /> : <Navigate to="/auth/login" />}
           />
 
           <Route
