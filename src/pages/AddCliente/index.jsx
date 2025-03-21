@@ -8,7 +8,6 @@ const AddCliente = () => {
   const [saldoCliente, setSaldoCliente] = useState("");  // Saldo do cliente
   const [limiteCliente, setLimiteCliente] = useState("");  // Limite de crédito
   const [dtNascCliente, setDtNascCliente] = useState("");  // Data de nascimento
-  const [faturaCliente, setFaturaCliente] = useState("");  // Fatura do cliente
   const navigate = useNavigate();
 
   // Função para lidar com o envio do formulário
@@ -17,7 +16,7 @@ const AddCliente = () => {
     console.log("Formulário enviado");
 
     // Verifica se todos os campos foram preenchidos
-    if (!nomeCliente || !saldoCliente || !limiteCliente || !dtNascCliente || !faturaCliente) {
+    if (!nomeCliente || !saldoCliente || !limiteCliente || !dtNascCliente) {
       alert("Por favor, preencha todos os campos.");
       return;
     }

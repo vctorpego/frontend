@@ -5,10 +5,10 @@ import * as C from "./styles";
 const Grid = ({ data, columns, handleDelete, handleEdit }) => {
   console.log(data);
 
-  // Mapeamento das colunas para as propriedades dos produtos
+  // Mapeamento das colunas para as propriedades dos clientes
   const columnMap = {
     "Cliente": "nomeCliente",  
-    "ID": "idCliente",
+    "ID": "idCliente",  // Mudado para refletir a propriedade correta do cliente
     "Data de Nascimento": "dtNascCliente",  
     "Ultima Compra": "ultimaCompraCliente",
     "Saldo": "saldoCliente",
@@ -22,27 +22,30 @@ const Grid = ({ data, columns, handleDelete, handleEdit }) => {
           {columns.map((column, index) => (
             <C.TableHeader key={index}>{column}</C.TableHeader>
           ))}
-          <C.TableHeader>Ações</C.TableHeader>
+          <C.TableHeader>Ações</C.TableHeader> {/* Adicionando cabeçalho de ações */}
         </tr>
       </thead>
       <tbody>
         {data.length > 0 ? (
-          data.map((produto) => (
-            <tr key={produto.idProduto}>
+          data.map((cliente) => (  // Renomeado para cliente em vez de produto
+            <tr key={cliente.idCliente}>  
               {columns.map((column) => (
                 <C.TableCell key={column}>
-                  {produto?.[columnMap[column]] ?? "-"} {/* Mapeia o campo da coluna para o objeto produto */}
+                  {cliente?.[columnMap[column]] ?? "-"}  {/* Mapeia o campo da coluna para o objeto cliente */}
                 </C.TableCell>
               ))}
               <C.TableCell>
+                {/* Botão de edição */}
                 <button
-                  onClick={() => handleEdit(produto.idProduto)}
+                  onClick={() => handleEdit(cliente.idCliente)}  // Usando idCliente
                   style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                 >
                   <Edit style={{ color: 'blue', fontSize: '18px' }} />
                 </button>
+
+                {/* Botão de exclusão */}
                 <button
-                  onClick={() => handleDelete(produto.idProduto)}
+                  onClick={() => handleDelete(cliente.idCliente)}  // Usando idCliente
                   style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                 >
                   <Trash2 style={{ color: 'red', fontSize: '18px' }} />
@@ -52,7 +55,7 @@ const Grid = ({ data, columns, handleDelete, handleEdit }) => {
           ))
         ) : (
           <tr>
-            <C.TableCell colSpan={columns.length + 1}>Nenhum produto encontrado.</C.TableCell>
+            <C.TableCell colSpan={columns.length + 1}>Nenhum cliente encontrado.</C.TableCell> {/* Alterado para cliente */}
           </tr>
         )}
       </tbody>

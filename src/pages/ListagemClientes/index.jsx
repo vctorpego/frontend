@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import jwt_decode from "jwt-decode";
 import Grid from "../../components/GridCliente"; // Tabela com os clientes
 import Sidebar from "../../components/Sidebar";  // Sidebar com menu
 import SearchBar from "../../components/SearchBar"; //Barra de pesquisa
@@ -16,73 +17,70 @@ const ListagemClientes = () => {
   const navigate = useNavigate();
 
   // Função para obter o token e verificar se é válido
-    const getToken = () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        console.warn("Token não encontrado. Redirecionando para login...");
-        navigate("/auth/login");
+  const getToken = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.warn("Token não encontrado. Redirecionando para login...");
+      navigate("/auth/login");
+      return null;
+    }
+
+    // Verificar se o token está expirado
+    try {
+      const decoded = jwt_decode(token); // Decodifica o token
+      const currentTime = Date.now() / 1000; // Tempo atual em segundos
+
+      // Se o token estiver expirado
+      if (decoded.exp < currentTime) {
+        console.warn("Token expirado. Redirecionando para login...");
+        localStorage.removeItem("token"); // Remove o token expirado
+        navigate("/auth/login"); // Redireciona para o login
         return null;
       }
-  
-      // Verificar se o token está expirado
-      try {
-        const decoded = jwt_decode(token); // Decodifica o token
-        const currentTime = Date.now() / 1000; // Tempo atual em segundos
-  
-        // Se o token estiver expirado
-        if (decoded.exp < currentTime) {
-          console.warn("Token expirado. Redirecionando para login...");
-          localStorage.removeItem("token"); // Remove o token expirado
-          navigate("/auth/login"); // Redireciona para o login
-          return null;
-        }
-      } catch (error) {
-        console.error("Erro ao decodificar o token:", error);
-        localStorage.removeItem("token");
-        navigate("/auth/login");
-        return null;
-      }
-  
-      return token;
+    } catch (error) {
+      console.error("Erro ao decodificar o token:", error);
+      localStorage.removeItem("token");
+      navigate("/auth/login");
+      return null;
+    }
+
+    return token;
+  };
+
+  // Configuração das requisições com o token
+  const getRequestConfig = () => {
+    const token = getToken();
+    if (!token) return {}; // Retorna objeto vazio caso não tenha token
+    return {
+      headers: { Authorization: `Bearer ${token}` },
     };
-  
-    // Configuração das requisições com o token
-    const getRequestConfig = () => {
-      const token = getToken();
-      if (!token) return {}; // Retorna objeto vazio caso não tenha token
-      return {
-        headers: { Authorization: `Bearer ${token}` },
-      };
-    };
-  
-    useEffect(() => {
-      const token = getToken();
-      if (!token) return;
-  
-  
-      // Requisição para buscar os produtos
-      axios
-        .get("http://localhost:8080/cliente", getRequestConfig())
-        .then(({ data }) => {
-          console.log("Clientes carregados:", data); // Verificando os dados dos produtos
-          setProdutos(data);
-        })
-        .catch((err) => {
-          console.error("Erro ao buscar clientes", err);
-        });
-    }, [navigate]);
-  
+  };
+
+  // Função para buscar clientes
+  const fetchClientes = () => {
+    const token = getToken();
+    if (!token) return;
+
+    // Requisição para buscar os clientes
+    axios
+      .get("http://localhost:8080/cliente", getRequestConfig())
+      .then(({ data }) => {
+        console.log("Clientes carregados:", data); // Verificando os dados dos produtos
+        setClientes(data);
+      })
+      .catch((err) => {
+        console.error("Erro ao buscar clientes", err);
+      });
+  };
+
+  useEffect(() => {
+    fetchClientes(); // Carrega os clientes assim que a página for montada
+  }, [navigate]);
 
   const filterClientes = () => {
     if (!searchQuery) return clientes; // Retorna todos os clientes se a pesquisa estiver vazia
 
-    // Depuração: Veja como os clientes estão sendo filtrados
-
-    
-    // Caso tenha uma consulta, filtra pelos cliente que contém o nome pesquisado
     return clientes.filter((cliente) => {
-
-      // Agora verificamos o campo nomeCliente com o que foi digitado
       return cliente.nomeCliente && cliente.nomeCliente.toLowerCase().includes(searchQuery.toLowerCase());
     });
   };
@@ -94,15 +92,26 @@ const ListagemClientes = () => {
   };
 
   const handleConfirmDelete = async () => {
+    console.log("Tentando excluir cliente com ID:", clienteExcluir);
+
+    if (!clienteExcluir) {
+      console.error("ID do cliente é inválido.");
+      return;
+    }
+
     try {
-      await axios.delete(`http://localhost:8080/cliente/${clienteExcluir}`, {
+      // Requisição de exclusão do cliente
+      const response = await axios.delete(`http://localhost:8080/cliente/${clienteExcluir}`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}` // Envia o token para autenticação
-        }
+          Authorization: `Bearer ${localStorage.getItem('token')}`, // Envia o token para autenticação
+        },
       });
-      setClientes((prevClientes) =>
-        prevClientes.filter((cliente) => cliente.id !== clienteExcluir)
-      );
+      console.log("Cliente excluído:", response.data);
+
+      // Atualiza a lista de clientes após a exclusão
+      fetchClientes();  // Chama a função para buscar os clientes atualizados
+
+      // Fecha o modal e limpa o cliente a ser excluído
       setOpenModalExcluir(false);
       setClienteExcluir(null);
     } catch (error) {
@@ -123,7 +132,6 @@ const ListagemClientes = () => {
 
   return (
     <C.Container>
-      {/* Sidebar com dados do usuário */}
       <Sidebar user={user} />
 
       <C.Content>
