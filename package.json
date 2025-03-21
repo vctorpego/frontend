@@ -13,11 +13,12 @@
     "axios": "^1.8.3",
     "jwt-decode": "^2.2.0",
     "lucide-react": "^0.483.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-feather": "^2.0.10",
     "react-router-dom": "^7.3.0",
-    "styled-components": "^6.1.15"
+    "styled-components": "^6.1.15",
+    "swagger-ui-react": "^5.20.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
