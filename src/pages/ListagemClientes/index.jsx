@@ -23,11 +23,18 @@ const ListagemClientes = () => {
 
     // Buscar clientes
     axios
-      .get("http://localhost:8080/cliente")
+      .get("http://localhost:8080/cliente", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}` // Autenticação com token
+        }
+      })
       .then(({ data }) => setClientes(data))
       .catch((err) => {
-        console.error("Erro ao buscar clientes", err);
-        //navigate("/auth/login");  // Redireciona se der erro
+        console.error("Erro ao buscar clientes", err.response ? err.response.data : err.message);
+        // Caso haja erro no backend (como token expirado ou falha de autenticação), redireciona para login
+        if (err.response && err.response.status === 401) {
+          navigate("/auth/login");
+        }
       });
   }, []);  // Executa uma vez quando o componente é montado
 
@@ -39,7 +46,11 @@ const ListagemClientes = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await axios.delete(`http://localhost:8080/cliente/${clienteExcluir}`);
+      await axios.delete(`http://localhost:8080/cliente/${clienteExcluir}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}` // Envia o token para autenticação
+        }
+      });
       setClientes((prevClientes) =>
         prevClientes.filter((cliente) => cliente.id !== clienteExcluir)
       );

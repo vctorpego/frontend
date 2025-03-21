@@ -1,109 +1,117 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 
 export const Container = styled.div`
   display: flex;
-  margin-top: 20px;
-`;
-
-export const Sidebar = styled.div`
-  width: 10%;  // A sidebar vai ocupar 10% da largura da tela
-  background-color: #f4f4f4;
-  padding: 20px;
+  height: 100vh; /* Garante que a página ocupe toda a altura da tela */
 `;
 
 export const Content = styled.div`
-  width: 90%;  // O conteúdo vai ocupar os 90% restantes
+  margin-left: 250px; /* Sidebar tem 250px de largura */
   padding: 20px;
-  background-color: #fff;
+  width: 100%;
+  overflow: auto;
 `;
 
 export const Title = styled.h2`
   font-size: 24px;
+  font-weight: bold;
   color: #333;
+  margin-bottom: 20px;
 `;
 
 export const TableContainer = styled.div`
-  margin-top: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
 `;
 
-export const Grid = styled.div`
+export const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  background-color: #fff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-top: 20px;
+  text-align: left;
+  margin: 20px 0;
 `;
 
-export const TableHeader = styled.th`
+export const TableHeader = styled.thead`
   background-color: #f4f4f4;
-  padding: 10px;
-  font-weight: bold;
-  text-align: left;
-  color: #333;
 `;
 
-export const TableCell = styled.td`
-  padding: 10px;
-  text-align: left;
+export const TableRow = styled.tr`
   border-bottom: 1px solid #ddd;
 `;
 
-export const ButtonDelete = styled.button`
-  background-color: #e74c3c;
+export const TableCell = styled.td`
+  padding: 12px;
+  text-align: left;
+  font-size: 16px;
+  color: #555;
+`;
+
+export const TableHeaderCell = styled.th`
+  padding: 12px;
+  text-align: left;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+`;
+
+export const ButtonExcluir = styled.button`
+  background-color: #f44336;
   color: #fff;
-  padding: 5px 10px;
   border: none;
-  cursor: pointer;
+  padding: 8px 16px;
   font-size: 14px;
   border-radius: 4px;
+  cursor: pointer;
   &:hover {
-    background-color: #c0392b;
+    background-color: #d32f2f;
   }
 `;
 
-export const ButtonEdit = styled.button`
-  background-color: #3498db;
-  color: #fff;
-  padding: 5px 10px;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  border-radius: 4px;
-  &:hover {
-    background-color: #2980b9;
-  }
-`;
-
-export const ModalWrapper = styled.div`
+export const ModalContainer = styled.div`
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: ${({ open }) => (open ? "flex" : "none")};
+  width: 100vw;
+  height: 100vh;
+  display: ${(props) => (props.open ? 'flex' : 'none')};
   justify-content: center;
   align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
 `;
 
 export const ModalContent = styled.div`
-  background-color: #fff;
+  background-color: white;
   padding: 20px;
-  border-radius: 5px;
-  width: 300px;
+  border-radius: 8px;
+  max-width: 400px;
+  width: 100%;
   text-align: center;
 `;
 
 export const ModalButton = styled.button`
-  background-color: transparent;
+  background-color: #4caf50;
   color: white;
+  padding: 10px 20px;
+  margin: 10px 0;
   border: none;
-  padding: 10px;
-  font-size: 14px;
-  cursor: pointer;
   border-radius: 4px;
-  margin-top: 10px;
+  cursor: pointer;
   &:hover {
-    background-color: transparent;
+    background-color: #45a049;
+  }
+`;
+
+export const ModalCloseButton = styled.button`
+  background-color: #ccc;
+  color: #fff;
+  padding: 8px 16px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  &:hover {
+    background-color: #bbb;
   }
 `;
