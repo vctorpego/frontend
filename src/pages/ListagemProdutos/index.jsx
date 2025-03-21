@@ -3,6 +3,7 @@ import axios from "axios";
 import jwt_decode from "jwt-decode"; // Importando o jwt-decode para decodificar o token
 import Grid from "../../components/Grid"; // Tabela com os produtos
 import Sidebar from "../../components/Sidebar"; // Sidebar com menu
+import SearchBar from "../../components/SearchBar"; // Importando o novo componente
 import ModalExcluir from "../../components/ModalExcluir"; // Modal de confirmação de exclusão
 import { useNavigate } from "react-router-dom"; // Navegação
 import * as C from "./styles"; // Importando os estilos
@@ -130,21 +131,7 @@ const ListagemProdutos = () => {
       <C.Content>
         <C.Title>Lista de Produtos</C.Title>
         
-        {/* Barra de pesquisa */}
-        <input
-          type="text"
-          placeholder="Digite um produto"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)} // Atualiza o estado da pesquisa
-          style={{
-            padding: "10px",
-            fontSize: "14px",
-            marginBottom: "20px",
-            width: "300px",
-            borderRadius: "5px",
-            border: "1px solid #ccc"
-          }}
-        />
+        <SearchBar input={searchQuery} setInput={setSearchQuery} />
         
         <button
           onClick={handleAddProduto}
