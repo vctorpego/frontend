@@ -24,13 +24,13 @@ const RoutesApp = () => {
           />
           <Route
             exact
-            path="/clientes"
+            path="/cliente"
             element={token ? <ListagemClientes /> : <Navigate to="/auth/login" />}
           />
 
           <Route
             exact
-            path="/produtos"
+            path="/produto"
             element={token ? <ListagemProdutos /> : <Navigate to="/auth/login" />}
           />
 

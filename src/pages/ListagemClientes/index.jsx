@@ -23,11 +23,11 @@ const ListagemClientes = () => {
 
     // Buscar clientes
     axios
-      .get("http://localhost:8080/clientes")
+      .get("http://localhost:8080/cliente")
       .then(({ data }) => setClientes(data))
       .catch((err) => {
         console.error("Erro ao buscar clientes", err);
-        navigate("/auth/login");  // Redireciona se der erro
+        //navigate("/auth/login");  // Redireciona se der erro
       });
   }, []);  // Executa uma vez quando o componente é montado
 
@@ -39,7 +39,7 @@ const ListagemClientes = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await axios.delete(`http://localhost:8080/clientes/${clienteExcluir}`);
+      await axios.delete(`http://localhost:8080/cliente/${clienteExcluir}`);
       setClientes((prevClientes) =>
         prevClientes.filter((cliente) => cliente.id !== clienteExcluir)
       );

@@ -17,17 +17,17 @@ const ListagemProdutos = () => {
   useEffect(() => {
     // Buscar dados do usuário
     axios
-      .get("http://localhost:8800/usuario")  // Supondo que exista uma rota de usuário
+      .get("http://localhost:8080/usuario")  // Supondo que exista uma rota de usuário
       .then(({ data }) => setUser(data))
       .catch((err) => console.error("Erro ao buscar dados do usuário:", err));
 
     // Buscar produtos
     axios
-      .get("http://localhost:8800/produtos")
+      .get("http://localhost:8080/produto")
       .then(({ data }) => setProdutos(data))
       .catch((err) => {
         console.error("Erro ao buscar produtos", err);
-        navigate("/auth/login");  // Redireciona se der erro
+        //navigate("/auth/login");  // Redireciona se der erro
       });
   }, []);  // Executa uma vez quando o componente é montado
 
@@ -39,7 +39,7 @@ const ListagemProdutos = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await axios.delete(`http://localhost:8800/produtos/${produtoExcluir}`);
+      await axios.delete(`http://localhost:8080/produto/${produtoExcluir}`);
       setProdutos((prevProdutos) =>
         prevProdutos.filter((produto) => produto.id !== produtoExcluir)
       );
