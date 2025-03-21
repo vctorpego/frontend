@@ -1,24 +1,22 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import jwt_decode from "jwt-decode";
-import Grid from "../../components/Grid";
-import Sidebar from "../../components/Sidebar";
-import SearchBar from "../../components/SearchBar";
+import jwt_decode from "jwt-decode"; // Importando o jwt-decode para decodificar o token
+import Grid from "../../components/GridProduto"; // Tabela com os produtos
+import Sidebar from "../../components/Sidebar"; // Sidebar com menu
 import ModalExcluir from "../../components/ModalExcluir"; // Modal de confirmação de exclusão
-import ModalEditar from "../../components/ModalEditar"; // Modal de edição
-import { useNavigate } from "react-router-dom";
-import * as C from "./styles";
+import { useNavigate } from "react-router-dom"; // Navegação
+import * as C from "./styles"; // Importando os estilos
+import SearchBar from "../../components/SearchBar";
 
 const ListagemProdutos = () => {
-  const [produtos, setProdutos] = useState([]);
-  const [user, setUser] = useState(null);
-  const [openModalExcluir, setOpenModalExcluir] = useState(false);
-  const [openModalEditar, setOpenModalEditar] = useState(false); // Estado para o modal de editar
-  const [produtoExcluir, setProdutoExcluir] = useState(null);
-  const [produtoEditar, setProdutoEditar] = useState(null); // Produto a ser editado
-  const [searchQuery, setSearchQuery] = useState("");
+  const [produtos, setProdutos] = useState([]); // Lista de produtos
+  const [user, setUser] = useState(null); // Dados do usuário
+  const [openModalExcluir, setOpenModalExcluir] = useState(false); // Estado para modal
+  const [produtoExcluir, setProdutoExcluir] = useState(null); // Produto a ser excluído
+  const [searchQuery, setSearchQuery] = useState(""); // Estado da busca
   const navigate = useNavigate();
 
+  // Função para obter o token e verificar se é válido
   const getToken = () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -27,13 +25,16 @@ const ListagemProdutos = () => {
       return null;
     }
 
+    // Verificar se o token está expirado
     try {
-      const decoded = jwt_decode(token);
-      const currentTime = Date.now() / 1000;
+      const decoded = jwt_decode(token); // Decodifica o token
+      const currentTime = Date.now() / 1000; // Tempo atual em segundos
+
+      // Se o token estiver expirado
       if (decoded.exp < currentTime) {
         console.warn("Token expirado. Redirecionando para login...");
-        localStorage.removeItem("token");
-        navigate("/auth/login");
+        localStorage.removeItem("token"); // Remove o token expirado
+        navigate("/auth/login"); // Redireciona para o login
         return null;
       }
     } catch (error) {
@@ -46,9 +47,10 @@ const ListagemProdutos = () => {
     return token;
   };
 
+  // Configuração das requisições com o token
   const getRequestConfig = () => {
     const token = getToken();
-    if (!token) return {};
+    if (!token) return {}; // Retorna objeto vazio caso não tenha token
     return {
       headers: { Authorization: `Bearer ${token}` },
     };
@@ -58,9 +60,12 @@ const ListagemProdutos = () => {
     const token = getToken();
     if (!token) return;
 
+
+    // Requisição para buscar os produtos
     axios
       .get("http://localhost:8080/produto", getRequestConfig())
       .then(({ data }) => {
+        console.log("Produtos carregados:", data); // Verificando os dados dos produtos
         setProdutos(data);
       })
       .catch((err) => {
@@ -68,12 +73,19 @@ const ListagemProdutos = () => {
       });
   }, [navigate]);
 
+  // Função de filtragem
   const filterProdutos = () => {
-    if (!searchQuery) return produtos;
+    if (!searchQuery) return produtos; // Retorna todos os produtos se a pesquisa estiver vazia
 
-    return produtos.filter((produto) =>
-      produto.nomeProduto.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Depuração: Veja como os produtos estão sendo filtrados
+
+    
+    // Caso tenha uma consulta, filtra pelos produtos que contém o nome pesquisado
+    return produtos.filter((produto) => {
+
+      // Agora verificamos o campo nomeProduto com o que foi digitado
+      return produto.nomeProduto && produto.nomeProduto.toLowerCase().includes(searchQuery.toLowerCase());
+    });
   };
 
   const handleDeleteProduto = (produtoId) => {
@@ -96,7 +108,7 @@ const ListagemProdutos = () => {
       setOpenModalExcluir(false);
       setProdutoExcluir(null);
     } catch (error) {
-      console.error("Erro ao excluir produto", error);
+
     }
   };
 
@@ -105,46 +117,12 @@ const ListagemProdutos = () => {
     setProdutoExcluir(null);
   };
 
-  // Função para abrir o modal de edição
-  const handleEditProduto = (produto) => {
-    setProdutoEditar(produto); // Setar o produto a ser editado
-    setOpenModalEditar(true); // Abrir o modal de edição
+  // Função para redirecionar para a página de adicionar produto
+  const handleAddProduto = () => {
+    navigate("/produto/adicionar"); // Substitua por sua rota para adicionar produto
   };
 
-  // Função que trata a atualização do produto
-  const handleUpdateProduto = async (produtoAtualizado) => {
-    try {
-      const token = getToken();
-      if (!token) return;
-
-      const response = await axios.put(
-        `http://localhost:8080/produto/${produtoAtualizado.idProduto}`,
-        produtoAtualizado,
-        getRequestConfig()
-      );
-
-      // Atualiza o estado com o produto editado
-      setProdutos((prevProdutos) =>
-        prevProdutos.map((produto) =>
-          produto.idProduto === produtoAtualizado.idProduto
-            ? { ...produto, ...produtoAtualizado }
-            : produto
-        )
-      );
-
-      // Fecha o modal de edição após a atualização
-      setOpenModalEditar(false);
-      setProdutoEditar(null);
-    } catch (error) {
-      console.error("Erro ao atualizar produto", error);
-    }
-  };
-
-  const handleCloseModalEditar = () => {
-    setOpenModalEditar(false);
-    setProdutoEditar(null);
-  };
-
+  // Atualize a lista de colunas conforme necessário
   const columns = ["Nome", "ID", "Preço de Custo", "Preço", "Estoque", "Código de Barras"];
 
   return (
@@ -153,10 +131,26 @@ const ListagemProdutos = () => {
       <C.Content>
         <C.Title>Lista de Produtos</C.Title>
         
+        {/* Barra de pesquisa */}
+        {/* <input
+          type="text"
+          placeholder="Digite um produto"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)} // Atualiza o estado da pesquisa
+          style={{
+            padding: "10px",
+            fontSize: "14px",
+            marginBottom: "20px",
+            width: "300px",
+            borderRadius: "5px",
+            border: "1px solid #ccc"
+          }}
+        /> */}
+
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
         
         <button
-          onClick={() => navigate("/produto/adicionar")}
+          onClick={handleAddProduto}
           style={{
             position: "absolute",
             top: "20px",
@@ -172,14 +166,15 @@ const ListagemProdutos = () => {
           Adicionar Produto
         </button>
         
+        {/* Verificar se a lista de produtos está vazia */}
         {produtos.length === 0 ? (
           <p>Nenhum produto encontrado.</p>
         ) : (
           <Grid
-            data={filterProdutos()}
+            data={filterProdutos()} // Filtra os produtos com base na pesquisa
             columns={columns}
             handleDelete={handleDeleteProduto}
-            handleEdit={handleEditProduto} // Passando a função de editar
+            handleEdit={() => {}}
           />
         )}
 
@@ -187,14 +182,6 @@ const ListagemProdutos = () => {
           open={openModalExcluir}
           onClose={handleCloseModal}
           onConfirm={handleConfirmDelete}
-        />
-
-        {/* Modal de Edição */}
-        <ModalEditar
-          open={openModalEditar}
-          onClose={handleCloseModalEditar}
-          produto={produtoEditar} // Passando o produto para o modal
-          onSave={handleUpdateProduto} // Função para salvar as edições
         />
       </C.Content>
     </C.Container>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Grid from "../../components/Grid"; // Tabela com os clientes
+import Grid from "../../components/GridCliente"; // Tabela com os clientes
 import Sidebar from "../../components/Sidebar";  // Sidebar com menu
 import ModalExcluir from "../../components/ModalExcluir"; // Modal de confirmação de exclusão
 import { useNavigate } from "react-router-dom";  // Navegação

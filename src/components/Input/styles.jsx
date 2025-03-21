@@ -7,6 +7,6 @@ export const Input = styled.input`
   border-radius: 5px;
   font-size: 16px;
 
-  background-color: #f0f2f5;
+  background-color: transparent;
   border: none;
 `;

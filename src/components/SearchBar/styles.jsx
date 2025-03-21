@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { Search } from "lucide-react";
 
 export const InputWrapper = styled.div`
   width: 100%;
@@ -13,7 +14,7 @@ export const InputWrapper = styled.div`
 `;
 
 export const SearchIcon = styled(Search)`
-  color: royalblue;
+  color: #007bff;
   font-size: 20px;
   margin-right: 10px;
 `;
