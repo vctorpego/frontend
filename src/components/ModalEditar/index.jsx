@@ -1,20 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import * as C from "./styles";
 import { Edit } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Modal from "../Modal"; // Reutilizando o componente Modal
-import Input from "../Input"; // Componente de input reutilizável
 
-const ModalEditar = ({ produto, onClose, onSave, open }) => {
-  const [produtoEditado, setProdutoEditado] = useState(produto || {});
+const ModalEditar = ({ produto, onClose, open }) => {
+  const navigate = useNavigate();
 
-  // Atualiza os dados do produto quando o modal é aberto
   useEffect(() => {
-    setProdutoEditado(produto);
+    if (!produto) return;
   }, [produto]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setProdutoEditado((prev) => ({ ...prev, [name]: value }));
+  const handleRedirect = () => {
+    navigate(`/editar-produto/${produto.idProduto}`);
   };
 
   return (
@@ -24,30 +22,12 @@ const ModalEditar = ({ produto, onClose, onSave, open }) => {
         <C.Message>
           <h3>Editar Produto</h3>
           {/* Exibe o nome do produto sendo editado */}
-          <p>Produto: <strong>{produtoEditado?.nome}</strong></p>
-          <p>Altere as informações do produto abaixo:</p>
+          <p>Produto: <strong>{produto?.nomeProduto}</strong></p>
+          <p>Redirecionando para a tela de edição...</p>
         </C.Message>
-        
-        <div>
-          <Input
-            type="text"
-            placeholder="Preço de Venda"
-            value={produtoEditado?.precoProduto}
-            name="precoProduto"
-            onChange={handleChange}
-          />
-          <Input
-            type="text"
-            placeholder="Preço de Custo"
-            value={produtoEditado?.valorDeCustoProduto}
-            name="valorDeCustoProduto"
-            onChange={handleChange}
-          />
-          {/* Outros campos podem ser adicionados conforme necessário */}
-        </div>
 
         <C.Buttons>
-          <button className="save" onClick={() => onSave(produtoEditado)}>Salvar</button>
+          <button className="edit" onClick={handleRedirect}>Editar</button>
           <button className="cancel" onClick={onClose}>Cancelar</button>
         </C.Buttons>
       </C.Container>
