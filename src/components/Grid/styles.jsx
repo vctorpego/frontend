@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 // Estilo para a tabela
-export const Grid = styled.table`
+export const StyledTable = styled.table`
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;

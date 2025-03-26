@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode"; // Importando o jwt-decode para decodificar o token
-import Grid from "../../components/Grid"; // Tabela com os produtos
+import Grid from "../../components/Grid"; // Tabela com as contas
 import Sidebar from "../../components/Sidebar"; // Sidebar com menu
 import ModalExcluir from "../../components/ModalExcluir"; // Modal de confirmação de exclusão
 import { useNavigate } from "react-router-dom"; // Navegação
 import * as C from "./styles"; // Importando os estilos
 import SearchBar from "../../components/SearchBar";
 
-const ListagemProdutos = () => {
-  const [produtos, setProdutos] = useState([]); // Lista de produtos
+const Pagamentos = () => {
+  const [contas, setContas] = useState([]); // Lista de contas
   const [user, setUser] = useState(null); // Dados do usuário
   const [openModalExcluir, setOpenModalExcluir] = useState(false); // Estado para modal
-  const [produtoExcluir, setProdutoExcluir] = useState(null); // Produto a ser excluído
+  const [contaExcluir, setContaExcluir] = useState(null); // Conta a ser excluída
   const [searchQuery, setSearchQuery] = useState(""); // Estado da busca
   const navigate = useNavigate();
 
@@ -60,36 +60,30 @@ const ListagemProdutos = () => {
     const token = getToken();
     if (!token) return;
 
-
-    // Requisição para buscar os produtos
+    // Requisição para buscar as contas
     axios
-      .get("http://localhost:8080/produto", getRequestConfig())
+      .get("http://localhost:8080/controlecontas", getRequestConfig())
       .then(({ data }) => {
-        console.log("Produtos carregados:", data); // Verificando os dados dos produtos
-        setProdutos(data);
+        console.log("Contas carregadas:", data); // Verificando os dados das contas
+        setContas(data);
       })
       .catch((err) => {
-        console.error("Erro ao buscar produtos", err);
+        console.error("Erro ao buscar contas", err);
       });
   }, [navigate]);
 
   // Função de filtragem
-  const filterProdutos = () => {
-    if (!searchQuery) return produtos; // Retorna todos os produtos se a pesquisa estiver vazia
+  const filterContas = () => {
+    if (!searchQuery) return contas; // Retorna todas as contas se a pesquisa estiver vazia
 
-    // Depuração: Veja como os produtos estão sendo filtrados
-
-    
-    // Caso tenha uma consulta, filtra pelos produtos que contém o nome pesquisado
-    return produtos.filter((produto) => {
-
-      // Agora verificamos o campo nomeProduto com o que foi digitado
-      return produto.nomeProduto && produto.nomeProduto.toLowerCase().includes(searchQuery.toLowerCase());
+    // Caso tenha uma consulta, filtra pelas contas que contêm o nome pesquisado
+    return contas.filter((conta) => {
+      return conta.nomeConta && conta.nomeConta.toLowerCase().includes(searchQuery.toLowerCase());
     });
   };
 
-  const handleDeleteProduto = (produtoId) => {
-    setProdutoExcluir(produtoId);
+  const handleDeleteConta = (contaId) => {
+    setContaExcluir(contaId);
     setOpenModalExcluir(true);
   };
 
@@ -99,58 +93,43 @@ const ListagemProdutos = () => {
       if (!token) return;
 
       await axios.delete(
-        `http://localhost:8080/produto/${produtoExcluir}`,
+        `http://localhost:8080/controlecontas/${contaExcluir}`,
         getRequestConfig()
       );
-      setProdutos((prevProdutos) =>
-        prevProdutos.filter((produto) => produto.idProduto !== produtoExcluir)
+      setContas((prevContas) =>
+        prevContas.filter((conta) => conta.idConta !== contaExcluir)
       );
       setOpenModalExcluir(false);
-      setProdutoExcluir(null);
+      setContaExcluir(null);
     } catch (error) {
-
+      console.error("Erro ao excluir a conta:", error);
     }
   };
 
   const handleCloseModal = () => {
     setOpenModalExcluir(false);
-    setProdutoExcluir(null);
+    setContaExcluir(null);
   };
 
-  // Função para redirecionar para a página de adicionar produto
-  const handleAddProduto = () => {
-    navigate("/produto/adicionar"); // Substitua por sua rota para adicionar produto
+  // Função para redirecionar para a página de adicionar conta
+  const handleAddConta = () => {
+    navigate("/conta/adicionar"); // Substitua por sua rota para adicionar conta
   };
 
   // Atualize a lista de colunas conforme necessário
-  const columns = ["Nome", "ID", "Preço de Custo", "Preço", "Estoque", "Código de Barras"];
+  const columns = ["ID", "Empresa", "Data de Compra", "Valor", "Vencimento", "Status"];
 
   return (
     <C.Container>
       <Sidebar user={user} />
       <C.Content>
-        <C.Title>Lista de Produtos</C.Title>
-        
-        {/* Barra de pesquisa */}
-        {/* <input
-          type="text"
-          placeholder="Digite um produto"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)} // Atualiza o estado da pesquisa
-          style={{
-            padding: "10px",
-            fontSize: "14px",
-            marginBottom: "20px",
-            width: "300px",
-            borderRadius: "5px",
-            border: "1px solid #ccc"
-          }}
-        /> */}
+        <C.Title>Lista de Contas</C.Title>
 
+        {/* Barra de pesquisa */}
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
-        
+
         <button
-          onClick={handleAddProduto}
+          onClick={handleAddConta}
           style={{
             position: "absolute",
             top: "20px",
@@ -163,25 +142,24 @@ const ListagemProdutos = () => {
             cursor: "pointer",
           }}
         >
-          Adicionar Produto
+          Adicionar Conta
         </button>
-        
-        {/* Verificar se a lista de produtos está vazia */}
-        {produtos.length === 0 ? (
-          <p>Nenhum produto encontrado.</p>
+
+        {/* Verificar se a lista de contas está vazia */}
+        {contas.length === 0 ? (
+          <p>Nenhuma conta encontrada.</p>
         ) : (
           <Grid
-            data={filterProdutos()} // Filtra os produtos com base na pesquisa
+            data={filterContas()} // Filtra as contas com base na pesquisa
             columns={columns}
             columnMap={{
-              "Nome": "nomeProduto",         // Nome do Produto
-              "ID": "idProduto",             // ID do Produto
-              "Preço de Custo": "valorDeCustoProduto",  // Preço de Custo
-              "Preço": "precoProduto",       // Preço
-              "Estoque": "quantProduto",     // Quantidade (Estoque)
-              "Código de Barras": "codigoBarrasProduto", // Código de Barras
+              "ID": "idContaControleContas",      
+              "Data de Compra": "dtPagamentoControleConta",
+              "Valor": "valorControleContas",
+              "Vencimento": "dtVencimentoControleContas",
+              "Status": "statusConta",
             }} // Certifique-se de mapear os atributos corretamente
-            handleDelete={handleDeleteProduto}
+            handleDelete={handleDeleteConta}
             handleEdit={() => {}}
           />
         )}
@@ -196,4 +174,4 @@ const ListagemProdutos = () => {
   );
 };
 
-export default ListagemProdutos;
+export default Pagamentos;

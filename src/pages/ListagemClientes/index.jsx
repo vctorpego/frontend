@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
-import Grid from "../../components/GridCliente"; // Tabela com os clientes
+import Grid from "../../components/Grid"; // Tabela com os clientes
 import Sidebar from "../../components/Sidebar";  // Sidebar com menu
 import SearchBar from "../../components/SearchBar"; //Barra de pesquisa
 import ModalExcluir from "../../components/ModalExcluir"; // Modal de confirmação de exclusão
@@ -154,12 +154,25 @@ const ListagemClientes = () => {
         >
           Adicionar Cliente
         </button>
-        <Grid
-          data={filterClientes()}
-          columns={columns}
-          handleDelete={handleDeleteCliente}
-          handleEdit={() => {}}
-        />
+
+        {clientes.length === 0 ? (
+          <p>Nenhum cliente encontrado.</p>
+        ) : (
+          <Grid
+            data={filterClientes()}
+            columns={columns}
+            columnMap={{"Cliente": "nomeCliente",  
+                "ID": "idCliente",  // Mudado para refletir a propriedade correta do cliente
+                "Data de Nascimento": "dtNascCliente",  
+                "Ultima Compra": "ultimaCompraCliente",
+                "Saldo": "saldoCliente",
+                "Limite": "limiteCliente",
+              }}
+            handleDelete={handleDeleteCliente}
+            handleEdit={() => {}}
+          />
+        )}  
+
         <ModalExcluir
           open={openModalExcluir}
           onClose={handleCloseModal}
