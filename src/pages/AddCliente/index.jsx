@@ -17,7 +17,7 @@ const AddCliente = () => {
     console.log("Formulário enviado");
 
     // Verifica se todos os campos foram preenchidos
-    if (!nomeCliente || !saldoCliente || !limiteCliente || !dtNascCliente || !faturaCliente) {
+    if (!nomeCliente || !saldoCliente || !limiteCliente || !dtNascCliente) {
       alert("Por favor, preencha todos os campos.");
       return;
     }
