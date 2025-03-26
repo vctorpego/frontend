@@ -153,11 +153,12 @@ const Pagamentos = () => {
             data={filterContas()} // Filtra as contas com base na pesquisa
             columns={columns}
             columnMap={{
-              "ID": "idContaControleContas",      
-              "Data de Compra": "dtPagamentoControleConta",
+              "ID": "idContaControleContas",    
+              "Empresa": "fornecedor.nomeSocialFornecedor",  //Asumindo que o nome social do fornecedor é o nome da empresa
+              "Data de Compra": "dtPagamentoControleContas",
               "Valor": "valorControleContas",
               "Vencimento": "dtVencimentoControleContas",
-              "Status": "statusConta",
+              "Status": "statusControleContas",
             }} // Certifique-se de mapear os atributos corretamente
             handleDelete={handleDeleteConta}
             handleEdit={() => {}}

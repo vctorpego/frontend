@@ -3,6 +3,10 @@ import { Edit, Trash2 } from "lucide-react";
 import * as C from "./styles"; // Importando os estilos do arquivo separado
 
 const Grid = ({ data, columns, columnMap, handleDelete, handleEdit }) => {
+  const getNestedValue = (obj, path) => {
+    return path.split(".").reduce((acc, key) => acc?.[key], obj) ?? "-";
+  };
+
   return (
     <C.StyledTable>
       <thead>
@@ -19,14 +23,14 @@ const Grid = ({ data, columns, columnMap, handleDelete, handleEdit }) => {
             <tr key={rowIndex}>
               {columns.map((column, colIndex) => (
                 <C.TableCell key={colIndex} align="center">
-                  {item?.[columnMap[column]] ?? "-"}
+                  {getNestedValue(item, columnMap[column])}
                 </C.TableCell>
               ))}
               <C.TableCell align="center">
-                <C.ActionButton onClick={() => handleEdit(item.id)}>
+                <C.ActionButton onClick={() => handleEdit(item.idContaControleContas || item.id)}>
                   <Edit style={{ color: "blue" }} />
                 </C.ActionButton>
-                <C.ActionButton onClick={() => handleDelete(item.id)}>
+                <C.ActionButton onClick={() => handleDelete(item.idContaControleContas || item.id)}>
                   <Trash2 style={{ color: "red" }} />
                 </C.ActionButton>
               </C.TableCell>
