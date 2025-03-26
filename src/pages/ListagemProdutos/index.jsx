@@ -7,13 +7,11 @@ import ModalExcluir from "../../components/ModalExcluir"; // Modal de confirmaç
 import { useNavigate } from "react-router-dom"; // Navegação
 import * as C from "./styles"; // Importando os estilos
 import SearchBar from "../../components/SearchBar";
-import ModalEditar from "../../components/ModalEditar";
 
 const ListagemProdutos = () => {
   const [produtos, setProdutos] = useState([]); // Lista de produtos
   const [user, setUser] = useState(null); // Dados do usuário
   const [openModalExcluir, setOpenModalExcluir] = useState(false); // Estado para modal
-  const [openModalEditar, setOpenModalEditar] = useState(false); // Estado para modal
   const [produtoExcluir, setProdutoExcluir] = useState(null); // Produto a ser excluído
   const [searchQuery, setSearchQuery] = useState(""); // Estado da busca
   const navigate = useNavigate();
@@ -127,10 +125,6 @@ const ListagemProdutos = () => {
   // Atualize a lista de colunas conforme necessário
   const columns = ["Nome", "ID", "Preço de Custo", "Preço", "Estoque", "Código de Barras"];
 
-  const handleEditProduto = (produtoId) => {
-    navigate('/produto/editar/${produtoId}');
-  };
-
   return (
     <C.Container>
       <Sidebar user={user} />
@@ -188,7 +182,7 @@ const ListagemProdutos = () => {
               "Código de Barras": "codigoBarrasProduto", // Código de Barras
             }} // Certifique-se de mapear os atributos corretamente
             handleDelete={handleDeleteProduto}
-            handleEdit={handleEditProduto}
+            handleEdit={() => {}}
           />
         )}
 
@@ -197,8 +191,6 @@ const ListagemProdutos = () => {
           onClose={handleCloseModal}
           onConfirm={handleConfirmDelete}
         />
-
-
       </C.Content>
     </C.Container>
   );
