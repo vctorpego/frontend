@@ -3,8 +3,13 @@ import { Edit, Trash2 } from "lucide-react";
 import * as C from "./styles"; // Importando os estilos do arquivo separado
 
 const Grid = ({ data, columns, columnMap, handleDelete, handleEdit }) => {
+  // Função para acessar valores aninhados no objeto com validações
   const getNestedValue = (obj, path) => {
-    return path.split(".").reduce((acc, key) => acc?.[key], obj) ?? "-";
+    if (typeof path === 'string' && path.trim()) {
+      // Verifica se o caminho é uma string válida e não está vazio
+      return path.split(".").reduce((acc, key) => acc?.[key], obj) ?? "-";
+    }
+    return "-"; // Retorna "-" se o caminho não for válido
   };
 
   return (

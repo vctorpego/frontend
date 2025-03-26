@@ -37,6 +37,9 @@ const Pagamentos = () => {
         navigate("/auth/login"); // Redireciona para o login
         return null;
       }
+
+      // Caso o token seja válido, setar as informações do usuário
+      setUser(decoded); // Armazena as informações do usuário decodificado
     } catch (error) {
       console.error("Erro ao decodificar o token:", error);
       localStorage.removeItem("token");
@@ -117,7 +120,7 @@ const Pagamentos = () => {
   };
 
   // Atualize a lista de colunas conforme necessário
-  const columns = ["ID", "Empresa", "Data de Compra", "Valor", "Vencimento", "Status"];
+  const columns = ["ID", "Empresa", "Data de Pagamento", "Valor", "Vencimento", "Status"];
 
   return (
     <C.Container>
@@ -155,7 +158,7 @@ const Pagamentos = () => {
             columnMap={{
               "ID": "idContaControleContas",    
               "Empresa": "fornecedor.nomeSocialFornecedor",  //Asumindo que o nome social do fornecedor é o nome da empresa
-              "Data de Compra": "dtPagamentoControleContas",
+              "Data de Pagamento": "dtPagamentoControleContas",
               "Valor": "valorControleContas",
               "Vencimento": "dtVencimentoControleContas",
               "Status": "statusControleContas",

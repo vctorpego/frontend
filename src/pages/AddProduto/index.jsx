@@ -1,76 +1,76 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { Container, Title, Form, Input, Button, Label } from '../AddCliente/styles';  // Importando os estilos
+import jwtDecode from "jwt-decode"; // Importa a biblioteca para decodificar o token
+import { Container, Title, Form, Input, Button, Label } from '../AddCliente/styles';  
 
 const AddProduto = () => {
-  const [nomeProduto, setNomeProduto] = useState("");  // Nome do produto
-  const [precoCusto, setPrecoCusto] = useState("");  // Preço de custo
-  const [precoVenda, setPrecoVenda] = useState("");  // Preço de venda
-  const [estoque, setEstoque] = useState("");  // Quantidade em estoque
+  const [nomeProduto, setNomeProduto] = useState("");
+  const [precoCusto, setPrecoCusto] = useState("");
+  const [precoVenda, setPrecoVenda] = useState("");
+  const [estoque, setEstoque] = useState("");
   const navigate = useNavigate();
 
-  // Função para lidar com o envio do formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Formulário enviado");
 
-    // Verifica se todos os campos foram preenchidos
     if (!nomeProduto || !precoCusto || !precoVenda || !estoque) {
       alert("Por favor, preencha todos os campos.");
       return;
     }
 
-    // Obtendo o token do localStorage
     const token = localStorage.getItem("token");
-
 
     if (!token) {
       alert("Você precisa estar logado!");
-      navigate("auth/login"); // Redireciona para a página de login
+      navigate("/auth/login");
       return;
     }
 
     try {
+      // Decodifica o token para verificar a expiração
+      const decodedToken = jwtDecode(token);
+      const currentTime = Date.now() / 1000; // Tempo atual em segundos
 
-      // Requisição para adicionar o produto com o token no cabeçalho
+      if (decodedToken.exp < currentTime) {
+        alert("Token expirado. Faça login novamente.");
+        localStorage.removeItem("token");
+        navigate("/auth/login");
+        return;
+      }
+
       const response = await axios.post(
-        "http://localhost:8080/produto", 
-        { 
-          nomeProduto, 
-          precoProduto: precoVenda,  // Renomeei para corresponder ao JSON
-          valorDeCustoProduto: precoCusto,  // Renomeei para corresponder ao JSON
-          quantProduto: estoque,  // Renomeei para corresponder ao JSON
+        "http://localhost:8080/produto",
+        {
+          nomeProduto,
+          precoProduto: precoVenda,
+          valorDeCustoProduto: precoCusto,
+          quantProduto: estoque,
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`,  // Adicionando o token no cabeçalho
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
-
-
-      // Se a criação foi bem-sucedida, mostra o alerta e redireciona para a lista de produtos
       if (response.status === 200) {
-        alert("Produto adicionado com sucesso!"); 
-        // Redireciona para a rota de produtos após o alerta
+        alert("Produto adicionado com sucesso!");
         setTimeout(() => {
-          navigate("/produto"); // Redireciona para a rota de produtos após o alerta
-        }, 1500);  // Delay de 1.5 segundos para mostrar o alerta antes do redirecionamento
+          navigate("/produto");
+        }, 1500);
       }
     } catch (error) {
       console.error("Erro ao adicionar o produto:", error);
 
       if (error.response) {
-        // Verifica se o erro é devido ao produto já existir
         if (error.response.status === 409) {
           alert("Erro: O Produto já está cadastrado no sistema.");
         } else if (error.response.status === 401) {
-          // Se o erro for 401 (token inválido ou expirado)
-          alert("Token inválido ou expirado. Por favor, faça login novamente.");
-          localStorage.removeItem("token");  // Remove o token inválido do localStorage
-          navigate("auth/login");  // Redireciona para a página de login
+          alert("Token inválido ou expirado. Faça login novamente.");
+          localStorage.removeItem("token");
+          navigate("/auth/login");
         } else if (error.response.status === 500) {
           alert("Erro interno do servidor. Tente novamente mais tarde.");
         } else {
@@ -91,7 +91,7 @@ const AddProduto = () => {
           <Input
             type="text"
             value={nomeProduto}
-            onChange={(e) => setNomeProduto(e.target.value)} // Atualizando o valor do estado
+            onChange={(e) => setNomeProduto(e.target.value)}
             placeholder="Nome do Produto"
             required
           />

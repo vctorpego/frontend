@@ -2,17 +2,17 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import Grid from "../../components/Grid"; // Tabela com os clientes
-import Sidebar from "../../components/Sidebar";  // Sidebar com menu
-import SearchBar from "../../components/SearchBar"; //Barra de pesquisa
+import Sidebar from "../../components/Sidebar"; // Sidebar com menu
+import SearchBar from "../../components/SearchBar"; // Barra de pesquisa
 import ModalExcluir from "../../components/ModalExcluir"; // Modal de confirmação de exclusão
-import { useNavigate } from "react-router-dom";  // Navegação
-import * as C from "./styles";  // Importando os estilos
+import { useNavigate } from "react-router-dom"; // Navegação
+import * as C from "./styles"; // Importando os estilos
 
 const ListagemClientes = () => {
-  const [clientes, setClientes] = useState([]);  // Lista de clientes
-  const [user, setUser] = useState(null);  // Dados do usuário
-  const [openModalExcluir, setOpenModalExcluir] = useState(false);  // Estado para modal
-  const [clienteExcluir, setClienteExcluir] = useState(null);  // Cliente a ser excluído
+  const [clientes, setClientes] = useState([]); // Lista de clientes
+  const [user, setUser] = useState(null); // Dados do usuário
+  const [openModalExcluir, setOpenModalExcluir] = useState(false); // Estado para modal
+  const [clienteExcluir, setClienteExcluir] = useState(null); // Cliente a ser excluído
   const [searchQuery, setSearchQuery] = useState(""); // Estado da busca
   const navigate = useNavigate();
 
@@ -47,6 +47,19 @@ const ListagemClientes = () => {
     return token;
   };
 
+  // Função para obter dados do usuário (se necessário)
+  const getUserData = () => {
+    const token = getToken();
+    if (token) {
+      const decoded = jwt_decode(token);
+      setUser(decoded); // Armazena os dados do usuário
+    }
+  };
+
+  useEffect(() => {
+    getUserData(); // Obtém os dados do usuário ao montar o componente
+  }, []);
+
   // Configuração das requisições com o token
   const getRequestConfig = () => {
     const token = getToken();
@@ -65,7 +78,7 @@ const ListagemClientes = () => {
     axios
       .get("http://localhost:8080/cliente", getRequestConfig())
       .then(({ data }) => {
-        console.log("Clientes carregados:", data); // Verificando os dados dos produtos
+        console.log("Clientes carregados:", data); // Verificando os dados dos clientes
         setClientes(data);
       })
       .catch((err) => {
@@ -77,11 +90,15 @@ const ListagemClientes = () => {
     fetchClientes(); // Carrega os clientes assim que a página for montada
   }, [navigate]);
 
+  // Filtra os clientes com base na consulta de pesquisa
   const filterClientes = () => {
     if (!searchQuery) return clientes; // Retorna todos os clientes se a pesquisa estiver vazia
 
     return clientes.filter((cliente) => {
-      return cliente.nomeCliente && cliente.nomeCliente.toLowerCase().includes(searchQuery.toLowerCase());
+      return (
+        cliente.nomeCliente &&
+        cliente.nomeCliente.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     });
   };
 
@@ -103,13 +120,13 @@ const ListagemClientes = () => {
       // Requisição de exclusão do cliente
       const response = await axios.delete(`http://localhost:8080/cliente/${clienteExcluir}`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`, // Envia o token para autenticação
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Envia o token para autenticação
         },
       });
       console.log("Cliente excluído:", response.data);
 
       // Atualiza a lista de clientes após a exclusão
-      fetchClientes();  // Chama a função para buscar os clientes atualizados
+      fetchClientes(); // Chama a função para buscar os clientes atualizados
 
       // Fecha o modal e limpa o cliente a ser excluído
       setOpenModalExcluir(false);
@@ -128,7 +145,14 @@ const ListagemClientes = () => {
     navigate("/cliente/adicionar");
   };
 
-  const columns = ["Cliente", "ID", "Saldo", "Limite", "Valor Gasto", "Ultima Compra"];  // Colunas da tabela
+  const columns = [
+    "Cliente", 
+    "ID", 
+    "Saldo", 
+    "Limite", 
+    "Valor Gasto", 
+    "Ultima Compra"
+  ]; // Colunas da tabela
 
   return (
     <C.Container>
@@ -161,17 +185,18 @@ const ListagemClientes = () => {
           <Grid
             data={filterClientes()}
             columns={columns}
-            columnMap={{"Cliente": "nomeCliente",  
-                "ID": "idCliente",  // Mudado para refletir a propriedade correta do cliente
-                "Data de Nascimento": "dtNascCliente",  
-                "Ultima Compra": "ultimaCompraCliente",
-                "Saldo": "saldoCliente",
-                "Limite": "limiteCliente",
-              }}
+            columnMap={{
+              Cliente: "nomeCliente",
+              ID: "idCliente", 
+              "Data de Nascimento": "dtNascCliente", 
+              "Ultima Compra": "ultimaCompraCliente",
+              Saldo: "saldoCliente",
+              Limite: "limiteCliente",
+            }}
             handleDelete={handleDeleteCliente}
             handleEdit={() => {}}
           />
-        )}  
+        )}
 
         <ModalExcluir
           open={openModalExcluir}
