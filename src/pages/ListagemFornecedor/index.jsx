@@ -12,10 +12,11 @@ const Fornecedores = () => {
   const [fornecedores, setFornecedores] = useState([]);
   const [user, setUser] = useState(null);
   const [openModalExcluir, setOpenModalExcluir] = useState(false);
-  const [fornecedorExcluir, setFornecedorExcluir] = useState(null);
+  const [idFornecedorExcluir, setIdFornecedorExcluir] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
+  // Função para obter o token e validar a expiração
   const getToken = () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -38,21 +39,32 @@ const Fornecedores = () => {
     return token;
   };
 
+  // Função para retornar a configuração com o token no cabeçalho
   const getRequestConfig = () => {
     const token = getToken();
-    return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+    if (token) {
+      return {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+    }
+    return {}; // Se não tiver token, retorna um objeto vazio
   };
 
+  // Carregar fornecedores após a primeira renderização
   useEffect(() => {
     const token = getToken();
     if (!token) return;
 
+    // Requisição para obter os fornecedores
     axios
-      .get("http://localhost:8080/fornecedor", getRequestConfig())
+      .get("http://localhost:8080/fornecedor", getRequestConfig()) // Passando a configuração com token
       .then(({ data }) => setFornecedores(data))
       .catch((err) => console.error("Erro ao buscar fornecedores", err));
   }, [navigate]);
 
+  // Função para filtrar fornecedores com base na busca
   const filterFornecedores = () => {
     if (!searchQuery) return fornecedores;
     return fornecedores.filter((fornecedor) =>
@@ -60,38 +72,44 @@ const Fornecedores = () => {
     );
   };
 
-  const handleDeleteFornecedor = (fornecedorId) => {
-    setFornecedorExcluir(fornecedorId);
+  // Função para abrir o modal de exclusão
+  const handleDeleteFornecedor = (idFornecedor) => {
+    setIdFornecedorExcluir(idFornecedor);
     setOpenModalExcluir(true);
   };
 
+  // Função para confirmar a exclusão de um fornecedor
   const handleConfirmDelete = async () => {
     try {
       const token = getToken();
       if (!token) return;
 
+      // Requisição para excluir fornecedor
       await axios.delete(
-        `http://localhost:8080/fornecedor/${fornecedorExcluir}`,
-        getRequestConfig()
+        `http://localhost:8080/fornecedor/${idFornecedorExcluir}`,
+        getRequestConfig() // Passando a configuração com token
       );
-      setFornecedores((prev) => prev.filter((f) => f.cnpjFornecedor !== fornecedorExcluir));
+      setFornecedores((prev) => prev.filter((f) => f.idFornecedor !== idFornecedorExcluir));
       setOpenModalExcluir(false);
-      setFornecedorExcluir(null);
+      setIdFornecedorExcluir(null);
     } catch (error) {
       console.error("Erro ao excluir o fornecedor:", error);
     }
   };
 
+  // Fechar o modal de exclusão
   const handleCloseModal = () => {
     setOpenModalExcluir(false);
-    setFornecedorExcluir(null);
+    setIdFornecedorExcluir(null);
   };
 
+  // Navegar para a tela de adicionar fornecedor
   const handleAddFornecedor = () => {
     navigate("/fornecedores/adicionar");
   };
 
-  const columns = ["CNPJ", "Nome Social", "Celular", "Email", "Chave Pix"];
+  // Definir as colunas para exibição na tabela
+  const columns = ["ID", "Nome Social", "Celular", "Email", "Chave Pix"];
 
   return (
     <C.Container>
@@ -99,12 +117,20 @@ const Fornecedores = () => {
       <C.Content>
         <C.Title>Lista de Fornecedores</C.Title>
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
-        <button onClick={handleAddFornecedor} style={{
-          position: "absolute", top: "20px", right: "20px",
-          padding: "10px 20px", backgroundColor: "#007bff",
-          color: "white", border: "none", borderRadius: "5px",
-          cursor: "pointer"
-        }}>
+        <button
+          onClick={handleAddFornecedor}
+          style={{
+            position: "absolute",
+            top: "20px",
+            right: "20px",
+            padding: "10px 20px",
+            backgroundColor: "#007bff",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+          }}
+        >
           Adicionar Fornecedor
         </button>
         {fornecedores.length === 0 ? (
@@ -114,17 +140,21 @@ const Fornecedores = () => {
             data={filterFornecedores()}
             columns={columns}
             columnMap={{
-              "CNPJ": "cnpjFornecedor",
+              ID: "idFornecedor",
               "Nome Social": "nomeSocialFornecedor",
               "Celular": "celularFornecedor",
               "Email": "emailFornecedor",
-              "Chave Pix": "chavePixFornecedor"
+              "Chave Pix": "chavePixFornecedor",
             }}
             handleDelete={handleDeleteFornecedor}
             handleEdit={() => {}}
           />
         )}
-        <ModalExcluir open={openModalExcluir} onClose={handleCloseModal} onConfirm={handleConfirmDelete} />
+        <ModalExcluir
+          open={openModalExcluir}
+          onClose={handleCloseModal}
+          onConfirm={handleConfirmDelete}
+        />
       </C.Content>
     </C.Container>
   );

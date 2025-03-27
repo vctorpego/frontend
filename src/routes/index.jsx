@@ -13,6 +13,7 @@ import AddCliente from "../pages/AddCliente"; // Importando a página AddCliente
 import { Navigate } from "react-router-dom";
 import SwaggerPage from "../pages/Swagger"; // Importando a página Swagger
 import EditProduto from "../pages/EditProduto";
+import AddFornecedor from "../pages/AddFornecedor";
 // import Pagamentos from "../pages/Pagamentos";
 
 const RoutesApp = () => {
@@ -51,6 +52,7 @@ const RoutesApp = () => {
             element={token ? <Pagamentos /> : <Navigate to="/auth/login" />}
           />
 
+
           {/* Adicionando a rota para adicionar cliente */}
           <Route
             exact
@@ -62,6 +64,11 @@ const RoutesApp = () => {
             exact
             path="/produtos/adicionar"
             element={token ? <AddProduto /> : <Navigate to="/auth/login" />}
+          />
+          <Route
+            exact
+            path="/fornecedores/adicionar"
+            element={token ? <AddFornecedor /> : <Navigate to="/auth/login" />}
           />
 
           <Route

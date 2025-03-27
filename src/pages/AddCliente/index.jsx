@@ -53,7 +53,7 @@ const AddCliente = () => {
         alert("Cliente adicionado com sucesso!");
         // Redireciona para a rota de clientes após o alerta
         setTimeout(() => {
-          navigate("/cliente"); // Redireciona para a rota de clientes após o alerta
+          navigate("/clientes"); // Redireciona para a rota de clientes após o alerta
         }, 1500);  // Delay de 1.5 segundos para mostrar o alerta antes do redirecionamento
       }
     } catch (error) {

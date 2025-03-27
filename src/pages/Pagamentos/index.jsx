@@ -1,47 +1,37 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import jwt_decode from "jwt-decode"; // Importando o jwt-decode para decodificar o token
-import Grid from "../../components/Grid"; // Tabela com as contas
-import Sidebar from "../../components/Sidebar"; // Sidebar com menu
-import ModalExcluir from "../../components/ModalExcluir"; // Modal de confirmação de exclusão
-import { useNavigate } from "react-router-dom"; // Navegação
-import * as C from "./styles"; // Importando os estilos
+import jwt_decode from "jwt-decode";
+import Grid from "../../components/Grid";
+import Sidebar from "../../components/Sidebar";
+import ModalExcluir from "../../components/ModalExcluir";
+import { useNavigate } from "react-router-dom";
+import * as C from "./styles";
 import SearchBar from "../../components/SearchBar";
 
 const Pagamentos = () => {
-  const [contas, setContas] = useState([]); // Lista de contas
-  const [user, setUser] = useState(null); // Dados do usuário
-  const [openModalExcluir, setOpenModalExcluir] = useState(false); // Estado para modal
-  const [contaExcluir, setContaExcluir] = useState(null); // Conta a ser excluída
-  const [searchQuery, setSearchQuery] = useState(""); // Estado da busca
+  const [contas, setContas] = useState([]);
+  const [user, setUser] = useState(null);
+  const [openModalExcluir, setOpenModalExcluir] = useState(false);
+  const [contaExcluir, setContaExcluir] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
-  // Função para obter o token e verificar se é válido
   const getToken = () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      console.warn("Token não encontrado. Redirecionando para login...");
       navigate("/auth/login");
       return null;
     }
 
-    // Verificar se o token está expirado
     try {
-      const decoded = jwt_decode(token); // Decodifica o token
-      const currentTime = Date.now() / 1000; // Tempo atual em segundos
-
-      // Se o token estiver expirado
-      if (decoded.exp < currentTime) {
-        console.warn("Token expirado. Redirecionando para login...");
-        localStorage.removeItem("token"); // Remove o token expirado
-        navigate("/auth/login"); // Redireciona para o login
+      const decoded = jwt_decode(token);
+      if (decoded.exp < Date.now() / 1000) {
+        localStorage.removeItem("token");
+        navigate("/auth/login");
         return null;
       }
-
-      // Caso o token seja válido, setar as informações do usuário
-      setUser(decoded); // Armazena as informações do usuário decodificado
+      setUser(decoded);
     } catch (error) {
-      console.error("Erro ao decodificar o token:", error);
       localStorage.removeItem("token");
       navigate("/auth/login");
       return null;
@@ -50,39 +40,32 @@ const Pagamentos = () => {
     return token;
   };
 
-  // Configuração das requisições com o token
   const getRequestConfig = () => {
     const token = getToken();
-    if (!token) return {}; // Retorna objeto vazio caso não tenha token
-    return {
-      headers: { Authorization: `Bearer ${token}` },
-    };
+    if (!token) return {};
+    return { headers: { Authorization: `Bearer ${token}` } };
   };
 
-  useEffect(() => {
+  // Função para buscar contas
+  const fetchContas = () => {
     const token = getToken();
     if (!token) return;
 
-    // Requisição para buscar as contas
     axios
       .get("http://localhost:8080/controlecontas", getRequestConfig())
-      .then(({ data }) => {
-        console.log("Contas carregadas:", data); // Verificando os dados das contas
-        setContas(data);
-      })
-      .catch((err) => {
-        console.error("Erro ao buscar contas", err);
-      });
-  }, [navigate]);
+      .then(({ data }) => setContas(data))
+      .catch((err) => console.error("Erro ao buscar contas", err));
+  };
 
-  // Função de filtragem
+  useEffect(() => {
+    fetchContas();
+  }, []);
+
   const filterContas = () => {
-    if (!searchQuery) return contas; // Retorna todas as contas se a pesquisa estiver vazia
-
-    // Caso tenha uma consulta, filtra pelas contas que contêm o nome pesquisado
-    return contas.filter((conta) => {
-      return conta.nomeConta && conta.nomeConta.toLowerCase().includes(searchQuery.toLowerCase());
-    });
+    if (!searchQuery) return contas;
+    return contas.filter((conta) =>
+      conta.nomeConta?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   };
 
   const handleDeleteConta = (contaId) => {
@@ -99,9 +82,10 @@ const Pagamentos = () => {
         `http://localhost:8080/controlecontas/${contaExcluir}`,
         getRequestConfig()
       );
-      setContas((prevContas) =>
-        prevContas.filter((conta) => conta.idConta !== contaExcluir)
-      );
+
+      // Recarregar a lista de contas após a exclusão
+      fetchContas();
+
       setOpenModalExcluir(false);
       setContaExcluir(null);
     } catch (error) {
@@ -114,12 +98,10 @@ const Pagamentos = () => {
     setContaExcluir(null);
   };
 
-  // Função para redirecionar para a página de adicionar conta
   const handleAddConta = () => {
-    navigate("/pagamentos/adicionar"); // Substitua por sua rota para adicionar conta
+    navigate("/pagamentos/adicionar");
   };
 
-  // Atualize a lista de colunas conforme necessário
   const columns = ["ID", "Empresa", "Data de Pagamento", "Valor", "Vencimento", "Status"];
 
   return (
@@ -127,10 +109,7 @@ const Pagamentos = () => {
       <Sidebar user={user} />
       <C.Content>
         <C.Title>Lista de Contas</C.Title>
-
-        {/* Barra de pesquisa */}
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
-
         <button
           onClick={handleAddConta}
           style={{
@@ -148,21 +127,20 @@ const Pagamentos = () => {
           Adicionar Conta
         </button>
 
-        {/* Verificar se a lista de contas está vazia */}
         {contas.length === 0 ? (
           <p>Nenhuma conta encontrada.</p>
         ) : (
           <Grid
-            data={filterContas()} // Filtra as contas com base na pesquisa
+            data={filterContas()}
             columns={columns}
             columnMap={{
-              "ID": "idContaControleContas",    
-              "Empresa": "fornecedor.nomeSocialFornecedor",  //Asumindo que o nome social do fornecedor é o nome da empresa
+              "ID": "idContaControleContas",
+              "Empresa": "fornecedor.nomeSocialFornecedor",
               "Data de Pagamento": "dtPagamentoControleContas",
               "Valor": "valorControleContas",
               "Vencimento": "dtVencimentoControleContas",
               "Status": "statusControleContas",
-            }} // Certifique-se de mapear os atributos corretamente
+            }}
             handleDelete={handleDeleteConta}
             handleEdit={() => {}}
           />

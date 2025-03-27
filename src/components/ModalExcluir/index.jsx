@@ -9,7 +9,7 @@ const ModalExcluir = ({ cliente, onClose, onConfirm, open }) => {
         <Trash size={56} className="icon" />
         <C.Message>
           <h3>Confirmar Exclusão</h3>
-          <p>Deseja realmente excluir o cliente <strong>{cliente?.nome}</strong>?</p>
+          <p>Deseja realmente excluir o item <strong>{cliente?.nome}</strong>?</p>
         </C.Message>
         <C.Buttons>
           <button className="delete" onClick={onConfirm}>Excluir</button>

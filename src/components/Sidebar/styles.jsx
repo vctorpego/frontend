@@ -28,16 +28,22 @@ export const Menu = styled.div`
   margin-bottom: 20px;
 `;
 
-export const MenuItem = styled.div`
+export const MenuItem = styled.div.attrs((props) => ({
+  // Filtra a prop `isActive` para não ser passada para o DOM
+  'data-active': props.isActive ? 'true' : 'false',
+}))`
   display: flex;
   align-items: center;
   padding: 15px;
   color: white;
   font-size: 18px;
   cursor: pointer;
+  background-color: ${(props) => (props.isActive ? "#34495e" : "transparent")}; /* Cor ativa */
+
   &:hover {
-    background-color: #34495e;
+    background-color: #34495e; /* Cor do hover */
   }
+
   svg {
     margin-right: 10px;
   }

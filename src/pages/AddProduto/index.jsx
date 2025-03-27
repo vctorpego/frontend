@@ -58,7 +58,7 @@ const AddProduto = () => {
       if (response.status === 200) {
         alert("Produto adicionado com sucesso!");
         setTimeout(() => {
-          navigate("/produto");
+          navigate("/produtos");
         }, 1500);
       }
     } catch (error) {

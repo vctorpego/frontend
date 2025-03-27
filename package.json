@@ -18,6 +18,7 @@
     "react-dom": "^18.3.1",
     "react-feather": "^2.0.10",
     "react-router-dom": "^7.3.0",
+    "react-select": "^5.10.1",
     "styled-components": "^6.1.15",
     "swagger": "^0.7.5",
     "swagger-ui-react": "^5.20.1"
