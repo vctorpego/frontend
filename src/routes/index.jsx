@@ -7,6 +7,7 @@ import Signin from "../pages/Signin";
 import Signup from "../pages/Signup";
 import ListagemClientes from "../pages/ListagemClientes";
 import ListagemProdutos from "../pages/ListagemProdutos";
+import ListagemFornecedor from "../pages/ListagemFornecedor";
 import Pagamentos from "../pages/Pagamentos";
 import AddProduto from "../pages/AddProduto"; // Importando a página AddProduto
 import AddCliente from "../pages/AddCliente"; // Importando a página AddCliente
@@ -30,13 +31,18 @@ const RoutesApp = () => {
           />
           <Route
             exact
-            path="/cliente"
+            path="/fornecedores"
+            element={token ? <ListagemFornecedor /> : <Navigate to="/auth/login" />}
+          />
+          <Route
+            exact
+            path="/clientes"
             element={token ? <ListagemClientes /> : <Navigate to="/auth/login" />}
           />
 
           <Route
             exact
-            path="/produto"
+            path="/produtos"
             element={token ? <ListagemProdutos /> : <Navigate to="/auth/login" />}
           />
 
@@ -49,19 +55,19 @@ const RoutesApp = () => {
           {/* Adicionando a rota para adicionar cliente */}
           <Route
             exact
-            path="/cliente/adicionar"
+            path="/clientes/adicionar"
             element={token ? <AddCliente /> : <Navigate to="/auth/login" />}
           />
 
           <Route
             exact
-            path="/produto/adicionar"
+            path="/produtos/adicionar"
             element={token ? <AddProduto /> : <Navigate to="/auth/login" />}
           />
 
           <Route
             exact
-            path="/produto/editar/:id"
+            path="/produtos/editar/:id"
             element={token ? <EditProduto /> : <Navigate to="/auth/login" />}
           />
 
