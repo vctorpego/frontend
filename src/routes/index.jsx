@@ -4,7 +4,6 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import useAuth from "../hooks/useAuth"; // Importando o hook de autenticação
 import Home from "../pages/Home";
 import Signin from "../pages/Signin";
-import Signup from "../pages/Signup";
 import ListagemClientes from "../pages/ListagemClientes";
 import ListagemProdutos from "../pages/ListagemProdutos";
 import ListagemFornecedor from "../pages/ListagemFornecedor";
@@ -67,13 +66,9 @@ const RoutesApp = () => {
 
           <Route
             exact
-            path="/produtos/editar/:id"
+            path="/produtos/editar/id"
             element={token ? <EditProduto /> : <Navigate to="/auth/login" />}
           />
-
-          {/* Rota pública */}
-          <Route path="/" element={<Signin />} />
-          <Route exact path="/signup" element={<Signup />} />
 
           {/* Rota para Swagger UI */}
           <Route path="/swagger" element={<SwaggerPage />} />
