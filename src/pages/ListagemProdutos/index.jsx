@@ -125,6 +125,11 @@ const ListagemProdutos = () => {
   // Atualize a lista de colunas conforme necessário
   const columns = ["Nome", "ID", "Preço de Custo", "Preço", "Estoque", "Código de Barras"];
 
+  const handleEditProduto = (produtoId) => {
+    navigate('/produto/editar/' + produtoId);
+  };
+
+
   return (
     <C.Container>
       <Sidebar user={user} />
@@ -182,7 +187,7 @@ const ListagemProdutos = () => {
               "Código de Barras": "codigoBarrasProduto", // Código de Barras
             }} // Certifique-se de mapear os atributos corretamente
             handleDelete={handleDeleteProduto}
-            handleEdit={() => {}}
+            handleEdit={handleEditProduto}
           />
         )}
 

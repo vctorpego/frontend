@@ -12,6 +12,7 @@ import AddProduto from "../pages/AddProduto"; // Importando a página AddProduto
 import AddCliente from "../pages/AddCliente"; // Importando a página AddCliente
 import { Navigate } from "react-router-dom";
 import SwaggerPage from "../pages/Swagger"; // Importando a página Swagger
+import EditProduto from "../pages/EditProduto";
 // import Pagamentos from "../pages/Pagamentos";
 
 const RoutesApp = () => {
@@ -56,6 +57,12 @@ const RoutesApp = () => {
             exact
             path="/produto/adicionar"
             element={token ? <AddProduto /> : <Navigate to="/auth/login" />}
+          />
+
+          <Route
+            exact
+            path="/produto/editar/:id"
+            element={token ? <EditProduto /> : <Navigate to="/auth/login" />}
           />
 
           {/* Rota pública */}
