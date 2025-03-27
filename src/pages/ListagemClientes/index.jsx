@@ -142,7 +142,7 @@ const ListagemClientes = () => {
   };
 
   const handleAddCliente = () => {
-    navigate("/cliente/adicionar");
+    navigate("/clientes/adicionar");
   };
 
   const columns = [

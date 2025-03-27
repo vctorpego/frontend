@@ -116,7 +116,7 @@ const Pagamentos = () => {
 
   // Função para redirecionar para a página de adicionar conta
   const handleAddConta = () => {
-    navigate("/conta/adicionar"); // Substitua por sua rota para adicionar conta
+    navigate("/pagamentos/adicionar"); // Substitua por sua rota para adicionar conta
   };
 
   // Atualize a lista de colunas conforme necessário

@@ -40,7 +40,7 @@ const Signin = () => {
         login(token);
 
         // Redireciona para a página principal após o login bem-sucedido
-        navigate("/produto");
+        navigate("/produtos");
       } else {
         setError("Erro de autenticação. Verifique suas credenciais.");
       }

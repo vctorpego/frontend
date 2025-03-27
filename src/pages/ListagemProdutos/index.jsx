@@ -119,14 +119,14 @@ const ListagemProdutos = () => {
 
   // Função para redirecionar para a página de adicionar produto
   const handleAddProduto = () => {
-    navigate("/produto/adicionar"); // Substitua por sua rota para adicionar produto
+    navigate("/produtos/adicionar"); // Substitua por sua rota para adicionar produto
   };
 
   // Atualize a lista de colunas conforme necessário
   const columns = ["Nome", "ID", "Preço de Custo", "Preço", "Estoque", "Código de Barras"];
 
   const handleEditProduto = (produtoId) => {
-    navigate('/produto/editar/' + produtoId);
+    navigate('/produtos/editar/' + produtoId);
   };
 
 

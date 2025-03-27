@@ -88,7 +88,7 @@ const Fornecedores = () => {
   };
 
   const handleAddFornecedor = () => {
-    navigate("/fornecedor/adicionar");
+    navigate("/fornecedores/adicionar");
   };
 
   const columns = ["CNPJ", "Nome Social", "Celular", "Email", "Chave Pix"];

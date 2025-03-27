@@ -68,7 +68,7 @@ const EditProduto = () => {
       );
 
       alert("Produto atualizado com sucesso!");
-      navigate("/produto");
+      navigate("/produtos");
     } catch (error) {
       console.error("Erro ao atualizar o produto:", error);
       alert("Erro ao atualizar o produto.");
