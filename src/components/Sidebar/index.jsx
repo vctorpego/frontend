@@ -22,7 +22,7 @@ const Sidebar = ({ user, handleLogout }) => {
       </C.Logo>
 
       <C.Menu>
-        <C.MenuItem onClick={() => handleNavigation("/home")} isActive={isActive("/home")}>
+        <C.MenuItem onClick={() => handleNavigation("")} isActive={isActive("/home")}>
           <LayoutDashboard size={20} /> Dashboard
         </C.MenuItem>
         <C.MenuItem onClick={() => handleNavigation("/produtos")} isActive={isActive("/produtos")}>
@@ -34,25 +34,25 @@ const Sidebar = ({ user, handleLogout }) => {
         <C.MenuItem onClick={() => handleNavigation("/clientes")} isActive={isActive("/clientes")}>
           <Users size={20} /> Clientes
         </C.MenuItem>
-        <C.MenuItem onClick={() => handleNavigation("/recarga")} isActive={isActive("/recarga")}>
+        <C.MenuItem onClick={() => handleNavigation("")} isActive={isActive("/recarga")}>
           <ShoppingCart size={20} /> Recarga
         </C.MenuItem>
-        <C.MenuItem onClick={() => handleNavigation("/vendas")} isActive={isActive("/vendas")}>
+        <C.MenuItem onClick={() => handleNavigation("")} isActive={isActive("/vendas")}>
           <DollarSign size={20} /> Vendas
         </C.MenuItem>
         <C.MenuItem onClick={() => handleNavigation("/pagamentos")} isActive={isActive("/pagamentos")}>
           <DollarSign size={20} /> Pagamentos
         </C.MenuItem>
-        <C.MenuItem onClick={() => handleNavigation("/relatorios")} isActive={isActive("/relatorios")}>
+        <C.MenuItem onClick={() => handleNavigation("")} isActive={isActive("/relatorios")}>
           <FileText size={20} /> Relatórios
         </C.MenuItem>
-        <C.MenuItem onClick={() => handleNavigation("/usuarios")} isActive={isActive("/usuarios")}>
+        <C.MenuItem onClick={() => handleNavigation("")} isActive={isActive("/usuarios")}>
           <User size={20} /> Usuários
         </C.MenuItem>
-        <C.MenuItem onClick={() => handleNavigation("/entrada")} isActive={isActive("/entrada")}>
+        <C.MenuItem onClick={() => handleNavigation("")} isActive={isActive("/entrada")}>
           <ArrowRightCircle size={20} /> Entrada
         </C.MenuItem>
-        <C.MenuItem onClick={() => handleNavigation("/saida")} isActive={isActive("/saida")}>
+        <C.MenuItem onClick={() => handleNavigation("")} isActive={isActive("/saida")}>
           <ArrowRightCircle size={20} /> Saída
         </C.MenuItem>
         <C.MenuItem onClick={handleLogout}>
