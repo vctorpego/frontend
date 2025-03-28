@@ -108,7 +108,7 @@ const ListagemProdutos = () => {
       setOpenModalExcluir(false);
       setProdutoExcluir(null);
     } catch (error) {
-
+      console.error("Erro ao excluir a produto:", error);
     }
   };
 
@@ -136,22 +136,6 @@ const ListagemProdutos = () => {
       <C.Content>
         <C.Title>Lista de Produtos</C.Title>
         
-        {/* Barra de pesquisa */}
-        {/* <input
-          type="text"
-          placeholder="Digite um produto"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)} // Atualiza o estado da pesquisa
-          style={{
-            padding: "10px",
-            fontSize: "14px",
-            marginBottom: "20px",
-            width: "300px",
-            borderRadius: "5px",
-            border: "1px solid #ccc"
-          }}
-        /> */}
-
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
         
         <button
