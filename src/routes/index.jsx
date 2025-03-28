@@ -16,6 +16,7 @@ import EditProduto from "../pages/EditProduto";
 import AddFornecedor from "../pages/AddFornecedor";
 import PagarConta from "../pages/PagarConta"; 
 import AddConta from "../pages/AddConta";
+import EditConta from "../pages/EditConta";
 
 // import Pagamentos from "../pages/Pagamentos";
 
@@ -32,7 +33,7 @@ const RoutesApp = () => {
             path="/home"
             element={token ? <Home /> : <Navigate to="/auth/login" />}
           />
-                    <Route
+          <Route
             exact
             path="/pagamentos/pagar/:id"
             element={token ? <PagarConta /> : <Navigate to="/auth/login" />}
@@ -82,6 +83,11 @@ const RoutesApp = () => {
             exact
             path="/fornecedores/adicionar"
             element={token ? <AddFornecedor /> : <Navigate to="/auth/login" />}
+          />
+          <Route
+            exact
+            path="/pagamentos/editar/:idConta"
+            element={token ? <EditConta /> : <Navigate to="/auth/login" />}
           />
 
           <Route

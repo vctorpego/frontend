@@ -72,7 +72,7 @@ const PagarConta = () => {
         }
       );
 
-      if (response.status === 200) {
+      if (response.status === 201) {
         alert("Pagamento realizado com sucesso!");
         navigate("/pagamentos", { replace: true });
 
