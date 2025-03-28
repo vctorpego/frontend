@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import jwt_decode from "jwt-decode";
-import { Container, Title, Form, Input, Button, Label } from '../AddConta/styles';
+import { Container, Title, Form, Input, Button, Label, Select } from '../AddConta/styles';  // Importando o Select estilizado
 
 const AddConta = () => {
   const [dtVencimento, setDtVencimento] = useState("");
@@ -93,7 +93,6 @@ const AddConta = () => {
       if (response.status === 201) {
         alert("Conta adicionada com sucesso!");
         navigate("/pagamentos");
-
       }
     } catch (error) {
       console.error("Erro ao adicionar a conta:", error);
@@ -152,7 +151,7 @@ const AddConta = () => {
 
         <div>
           <Label>Fornecedor:</Label>
-          <select
+          <Select
             value={fornecedorId}
             onChange={(e) => setFornecedorId(e.target.value)} // Aqui você define o ID do fornecedor
             required
@@ -160,27 +159,28 @@ const AddConta = () => {
             <option value="">Selecione um Fornecedor</option>
             {fornecedores && fornecedores.length > 0 ? (
               fornecedores.map((fornecedor) => (
-                <option key={fornecedor.idFornecedor} value={fornecedor.idFornecedor}> {/* Aqui você passa o ID do fornecedor */}
-                  {fornecedor.nomeSocialFornecedor}  {/* Aqui você exibe o nome do fornecedor */}
+                <option key={fornecedor.idFornecedor} value={fornecedor.idFornecedor}>
+                  {fornecedor.nomeSocialFornecedor}
                 </option>
               ))
             ) : (
               <option value="">Nenhum fornecedor encontrado</option>
             )}
-          </select>
-
+          </Select>
         </div>
+
         <div>
           <Label>Status:</Label>
-          <select
+          <Select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
             required
           >
             <option value="Não Paga">Não Paga</option>
             <option value="Paga">Paga</option>
-          </select>
+          </Select>
         </div>
+
         <Button type="submit">Adicionar Conta</Button>
       </Form>
     </Container>
