@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import jwt_decode from "jwt-decode"; // Importando o jwt-decode para decodificar o token
-import Grid from "../../components/Grid"; // Tabela com os produtos
-import Sidebar from "../../components/Sidebar"; // Sidebar com menu
-import ModalExcluir from "../../components/ModalExcluir"; // Modal de confirmação de exclusão
-import { useNavigate } from "react-router-dom"; // Navegação
-import * as C from "./styles"; // Importando os estilos
+import jwt_decode from "jwt-decode";
+import Grid from "../../components/Grid";
+import Sidebar from "../../components/Sidebar";
+import ModalExcluir from "../../components/ModalExcluir";
+import { useNavigate } from "react-router-dom";
+import * as C from "./styles";
 import SearchBar from "../../components/SearchBar";
 
 const ListagemProdutos = () => {
-  const [produtos, setProdutos] = useState([]); // Lista de produtos
-  const [user, setUser] = useState(null); // Dados do usuário
-  const [openModalExcluir, setOpenModalExcluir] = useState(false); // Estado para modal
-  const [produtoExcluir, setProdutoExcluir] = useState(null); // Produto a ser excluído
-  const [searchQuery, setSearchQuery] = useState(""); // Estado da busca
+  const [produtos, setProdutos] = useState([]);
+  const [user, setUser] = useState(null);
+  const [openModalExcluir, setOpenModalExcluir] = useState(false);
+  const [produtoExcluir, setProdutoExcluir] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
-  // Função para obter o token e verificar se é válido
   const getToken = () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -25,16 +24,14 @@ const ListagemProdutos = () => {
       return null;
     }
 
-    // Verificar se o token está expirado
     try {
-      const decoded = jwt_decode(token); // Decodifica o token
-      const currentTime = Date.now() / 1000; // Tempo atual em segundos
+      const decoded = jwt_decode(token);
+      const currentTime = Date.now() / 1000;
 
-      // Se o token estiver expirado
       if (decoded.exp < currentTime) {
         console.warn("Token expirado. Redirecionando para login...");
-        localStorage.removeItem("token"); // Remove o token expirado
-        navigate("/auth/login"); // Redireciona para o login
+        localStorage.removeItem("token");
+        navigate("/auth/login");
         return null;
       }
     } catch (error) {
@@ -47,7 +44,7 @@ const ListagemProdutos = () => {
     return token;
   };
 
-  // Configuração das requisições com o token
+  // Função para adicionar o token diretamente nas requisições
   const getRequestConfig = () => {
     const token = getToken();
     if (!token) return {}; // Retorna objeto vazio caso não tenha token
@@ -60,12 +57,10 @@ const ListagemProdutos = () => {
     const token = getToken();
     if (!token) return;
 
-
-    // Requisição para buscar os produtos
     axios
-      .get("http://localhost:8080/produto", getRequestConfig())
+      .get("http://localhost:8080/produto", getRequestConfig()) // Passando o token individualmente na requisição
       .then(({ data }) => {
-        console.log("Produtos carregados:", data); // Verificando os dados dos produtos
+        console.log("Produtos carregados:", data);
         setProdutos(data);
       })
       .catch((err) => {
@@ -73,22 +68,16 @@ const ListagemProdutos = () => {
       });
   }, [navigate]);
 
-  // Função de filtragem
   const filterProdutos = () => {
-    if (!searchQuery) return produtos; // Retorna todos os produtos se a pesquisa estiver vazia
+    if (!searchQuery) return produtos;
 
-    // Depuração: Veja como os produtos estão sendo filtrados
-
-    
-    // Caso tenha uma consulta, filtra pelos produtos que contém o nome pesquisado
-    return produtos.filter((produto) => {
-
-      // Agora verificamos o campo nomeProduto com o que foi digitado
-      return produto.nomeProduto && produto.nomeProduto.toLowerCase().includes(searchQuery.toLowerCase());
-    });
+    return produtos.filter((produto) =>
+      produto.nomeProduto.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   };
 
   const handleDeleteProduto = (produtoId) => {
+    console.log("Produto a ser excluído:", produtoId); // Verifique o valor aqui
     setProdutoExcluir(produtoId);
     setOpenModalExcluir(true);
   };
@@ -98,17 +87,21 @@ const ListagemProdutos = () => {
       const token = getToken();
       if (!token) return;
 
+      console.log("Excluindo produto com ID:", produtoExcluir); // Verifique o ID que está sendo passado para a exclusão
+
       await axios.delete(
         `http://localhost:8080/produto/${produtoExcluir}`,
-        getRequestConfig()
+        getRequestConfig() // Passando o token na requisição de exclusão
       );
+
+      // Remover produto da lista local após exclusão
       setProdutos((prevProdutos) =>
         prevProdutos.filter((produto) => produto.idProduto !== produtoExcluir)
       );
       setOpenModalExcluir(false);
       setProdutoExcluir(null);
     } catch (error) {
-      console.error("Erro ao excluir a produto:", error);
+
     }
   };
 
@@ -117,18 +110,18 @@ const ListagemProdutos = () => {
     setProdutoExcluir(null);
   };
 
-  // Função para redirecionar para a página de adicionar produto
   const handleAddProduto = () => {
-    navigate("/produtos/adicionar"); // Substitua por sua rota para adicionar produto
+    navigate("/produtos/adicionar");
   };
-
-  // Atualize a lista de colunas conforme necessário
-  const columns = ["Nome", "ID", "Preço de Custo", "Preço", "Estoque", "Código de Barras"];
 
   const handleEditProduto = (produtoId) => {
-    navigate('/produtos/editar/' + produtoId);
+    console.log("Produto a ser editado:", produtoId); // Verifique o ID
+
+    navigate(`/produtos/editar/${produtoId}`);
+
   };
 
+  const columns = ["ID", "Nome", "Código de Barras", "Estoque", "Preço", "Preço de Custo"];
 
   return (
     <C.Container>
@@ -136,8 +129,24 @@ const ListagemProdutos = () => {
       <C.Content>
         <C.Title>Lista de Produtos</C.Title>
         
+        {/* Barra de pesquisa */}
+        {/* <input
+          type="text"
+          placeholder="Digite um produto"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)} // Atualiza o estado da pesquisa
+          style={{
+            padding: "10px",
+            fontSize: "14px",
+            marginBottom: "20px",
+            width: "300px",
+            borderRadius: "5px",
+            border: "1px solid #ccc"
+          }}
+        /> */}
+
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
-        
+
         <button
           onClick={handleAddProduto}
           style={{
@@ -154,22 +163,21 @@ const ListagemProdutos = () => {
         >
           Adicionar Produto
         </button>
-        
-        {/* Verificar se a lista de produtos está vazia */}
+
         {produtos.length === 0 ? (
           <p>Nenhum produto encontrado.</p>
         ) : (
           <Grid
-            data={filterProdutos()} // Filtra os produtos com base na pesquisa
+            data={filterProdutos()}
             columns={columns}
             columnMap={{
-              "Nome": "nomeProduto",         // Nome do Produto
-              "ID": "idProduto",             // ID do Produto
-              "Preço de Custo": "valorDeCustoProduto",  // Preço de Custo
-              "Preço": "precoProduto",       // Preço
-              "Estoque": "quantProduto",     // Quantidade (Estoque)
-              "Código de Barras": "codigoBarrasProduto", // Código de Barras
-            }} // Certifique-se de mapear os atributos corretamente
+              "ID": "idProduto",
+              "Nome": "nomeProduto",
+              "Código de Barras": "codigoBarrasProduto",
+              "Estoque": "quantProduto",
+              "Preço": "precoProduto",
+              "Preço de Custo": "valorDeCustoProduto",
+            }}
             handleDelete={handleDeleteProduto}
             handleEdit={handleEditProduto}
           />

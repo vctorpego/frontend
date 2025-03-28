@@ -63,19 +63,3 @@ export const Label = styled.label`
   font-size: 16px;
   color: #555;
 `;
-export const Select = styled.select`
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  width: 100%;
-  transition: border-color 0.3s ease;
-
-  &:focus {
-    border-color: #007BFF; /* Cor do contorno ao focar no campo */
-    outline: none;
-  }
-`;
-
-
-

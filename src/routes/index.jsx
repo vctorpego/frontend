@@ -13,6 +13,10 @@ import AddCliente from "../pages/AddCliente"; // Importando a página AddCliente
 import { Navigate } from "react-router-dom";
 import SwaggerPage from "../pages/Swagger"; // Importando a página Swagger
 import EditProduto from "../pages/EditProduto";
+import AddFornecedor from "../pages/AddFornecedor";
+import PagarConta from "../pages/PagarConta"; 
+import AddConta from "../pages/AddConta";
+
 // import Pagamentos from "../pages/Pagamentos";
 
 const RoutesApp = () => {
@@ -27,6 +31,11 @@ const RoutesApp = () => {
             exact
             path="/home"
             element={token ? <Home /> : <Navigate to="/auth/login" />}
+          />
+                    <Route
+            exact
+            path="/pagamentos/pagar/:id"
+            element={token ? <PagarConta /> : <Navigate to="/auth/login" />}
           />
           <Route
             exact
@@ -50,6 +59,12 @@ const RoutesApp = () => {
             path="/pagamentos"
             element={token ? <Pagamentos /> : <Navigate to="/auth/login" />}
           />
+                    <Route
+            exact
+            path="/pagamentos/adicionar"
+            element={token ? <AddConta /> : <Navigate to="/auth/login" />}
+          />
+
 
           {/* Adicionando a rota para adicionar cliente */}
           <Route
@@ -63,10 +78,15 @@ const RoutesApp = () => {
             path="/produtos/adicionar"
             element={token ? <AddProduto /> : <Navigate to="/auth/login" />}
           />
+          <Route
+            exact
+            path="/fornecedores/adicionar"
+            element={token ? <AddFornecedor /> : <Navigate to="/auth/login" />}
+          />
 
           <Route
             exact
-            path="/produtos/editar/id"
+            path="/produtos/editar/:idProduto"
             element={token ? <EditProduto /> : <Navigate to="/auth/login" />}
           />
 
