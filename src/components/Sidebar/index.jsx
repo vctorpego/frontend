@@ -22,7 +22,7 @@ const Sidebar = ({ user, handleLogout }) => {
       </C.Logo>
 
       <C.Menu>
-        <C.MenuItem onClick={() => handleNavigation("/home")} isActive={isActive("/dashboard")}>
+        <C.MenuItem onClick={() => handleNavigation("/home")} isActive={isActive("/home")}>
           <LayoutDashboard size={20} /> Dashboard
         </C.MenuItem>
         <C.MenuItem onClick={() => handleNavigation("/produtos")} isActive={isActive("/produtos")}>

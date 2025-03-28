@@ -14,6 +14,7 @@ import { Navigate } from "react-router-dom";
 import SwaggerPage from "../pages/Swagger"; // Importando a página Swagger
 import EditProduto from "../pages/EditProduto";
 import AddFornecedor from "../pages/AddFornecedor";
+import PagarConta from "../pages/PagarConta"; 
 // import Pagamentos from "../pages/Pagamentos";
 
 const RoutesApp = () => {
@@ -28,6 +29,11 @@ const RoutesApp = () => {
             exact
             path="/home"
             element={token ? <Home /> : <Navigate to="/auth/login" />}
+          />
+                    <Route
+            exact
+            path="/pagamentos/pagar/:id"
+            element={token ? <PagarConta /> : <Navigate to="/auth/login" />}
           />
           <Route
             exact

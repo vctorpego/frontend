@@ -9,13 +9,14 @@ import * as C from "./styles";
 import SearchBar from "../../components/SearchBar";
 
 const Pagamentos = () => {
-  const [contas, setContas] = useState([]);
-  const [user, setUser] = useState(null);
-  const [openModalExcluir, setOpenModalExcluir] = useState(false);
-  const [contaExcluir, setContaExcluir] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [contas, setContas] = useState([]); // Lista de contas
+  const [user, setUser] = useState(null); // Dados do usuário
+  const [openModalExcluir, setOpenModalExcluir] = useState(false); // Modal de confirmação de exclusão
+  const [contaExcluir, setContaExcluir] = useState(null); // Conta a ser excluída
+  const [searchQuery, setSearchQuery] = useState(""); // Estado de busca
   const navigate = useNavigate();
 
+  // Função para obter o token e verificar se é válido
   const getToken = () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -40,6 +41,7 @@ const Pagamentos = () => {
     return token;
   };
 
+  // Função para obter configuração da requisição
   const getRequestConfig = () => {
     const token = getToken();
     if (!token) return {};
@@ -61,6 +63,7 @@ const Pagamentos = () => {
     fetchContas();
   }, []);
 
+  // Função de filtragem das contas
   const filterContas = () => {
     if (!searchQuery) return contas;
     return contas.filter((conta) =>
@@ -68,11 +71,13 @@ const Pagamentos = () => {
     );
   };
 
+  // Função para lidar com a exclusão de conta
   const handleDeleteConta = (contaId) => {
     setContaExcluir(contaId);
     setOpenModalExcluir(true);
   };
 
+  // Confirmar a exclusão da conta
   const handleConfirmDelete = async () => {
     try {
       const token = getToken();
@@ -93,15 +98,18 @@ const Pagamentos = () => {
     }
   };
 
+  // Fechar o modal de exclusão
   const handleCloseModal = () => {
     setOpenModalExcluir(false);
     setContaExcluir(null);
   };
 
-  const handleAddConta = () => {
-    navigate("/pagamentos/adicionar");
+  // Função para redirecionar para a página de pagar conta
+  const handlePagarConta = (contaId) => {
+    navigate('/pagamentos/pagar/' + contaId); // Redireciona para a página de pagamento
   };
 
+  // Colunas para a tabela de contas
   const columns = ["ID", "Empresa", "Data de Pagamento", "Valor", "Vencimento", "Status"];
 
   return (
@@ -111,7 +119,7 @@ const Pagamentos = () => {
         <C.Title>Lista de Contas</C.Title>
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
         <button
-          onClick={handleAddConta}
+          onClick={() => navigate("/pagamentos/adicionar")} // Redireciona para a página de adicionar conta
           style={{
             position: "absolute",
             top: "20px",
@@ -142,7 +150,7 @@ const Pagamentos = () => {
               "Status": "statusControleContas",
             }}
             handleDelete={handleDeleteConta}
-            handleEdit={() => {}}
+            handleEdit={handlePagarConta} // Substituindo a função de edição pela de pagar conta
           />
         )}
 
