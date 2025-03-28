@@ -3,11 +3,11 @@ import styled from "styled-components";
 export const SidebarContainer = styled.div`
   width: 250px;
   height: 100vh;
-  background-color: #2c3e50;
+  background-color: #007bff; /* Cor de fundo da Sidebar */
   padding-top: 20px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   position: fixed;
 `;
 
@@ -15,12 +15,20 @@ export const Logo = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: 30px;
+  width: 100%;
+  padding-left: 15px;
+
+  svg {
+    color: white;
+  }
 `;
 
 export const LogoText = styled.h1`
-  color: #3498db;
+  color: #f0f0f0;
   font-size: 24px;
-  margin-left: 10px;
+  margin-left: 4px;
+  margin-top: 8px;
+  white-space: nowrap; /* Evita quebra de linha no nome */
 `;
 
 export const Menu = styled.div`
@@ -29,19 +37,18 @@ export const Menu = styled.div`
 `;
 
 export const MenuItem = styled.div.attrs((props) => ({
-  // Filtra a prop `isActive` para não ser passada para o DOM
   'data-active': props.isActive ? 'true' : 'false',
 }))`
   display: flex;
   align-items: center;
-  padding: 15px;
+  padding: 13px;
   color: white;
   font-size: 18px;
   cursor: pointer;
-  background-color: ${(props) => (props.isActive ? "#34495e" : "transparent")}; /* Cor ativa */
+  background-color: ${(props) => (props.isActive ? "#0056b3" : "transparent")}; /* Tom mais escuro para ativo */
 
   &:hover {
-    background-color: #34495e; /* Cor do hover */
+    background-color: #0069d9; /* Azul mais escuro no hover */
   }
 
   svg {
@@ -52,7 +59,7 @@ export const MenuItem = styled.div.attrs((props) => ({
 export const UserInfo = styled.div`
   margin-top: auto;
   padding: 20px;
-  text-align: center;
+  text-align: left;
   color: white;
   font-size: 14px;
 `;
