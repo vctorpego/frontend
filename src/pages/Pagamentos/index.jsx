@@ -33,6 +33,7 @@ const Pagamentos = () => {
       }
       setUser(decoded);
     } catch (error) {
+      console.error("Erro ao decodificar o token:", error);
       localStorage.removeItem("token");
       navigate("/auth/login");
       return null;
@@ -149,6 +150,7 @@ const Pagamentos = () => {
               "Vencimento": "dtVencimentoControleContas",
               "Status": "statusControleContas",
             }}
+            idKey="idContaControleContas"  // 🔹 Define o campo de ID correto
             handleDelete={handleDeleteConta}
             handleEdit={handlePagarConta} // Substituindo a função de edição pela de pagar conta
           />

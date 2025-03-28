@@ -193,6 +193,7 @@ const ListagemClientes = () => {
               Saldo: "saldoCliente",
               Limite: "limiteCliente",
             }}
+            idKey="idCliente" // Define o campo de ID correto
             handleDelete={handleDeleteCliente}
             handleEdit={() => {}}
           />

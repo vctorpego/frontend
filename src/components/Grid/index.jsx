@@ -1,15 +1,14 @@
 import React from "react";
 import { Edit, Trash2 } from "lucide-react";
-import * as C from "./styles"; // Importando os estilos do arquivo separado
+import * as C from "./styles";
 
-const Grid = ({ data, columns, columnMap, handleDelete, handleEdit }) => {
+const Grid = ({ data, columns, columnMap, handleDelete, handleEdit, idKey }) => {
   // Função para acessar valores aninhados no objeto com validações
   const getNestedValue = (obj, path) => {
-    if (typeof path === 'string' && path.trim()) {
-      // Verifica se o caminho é uma string válida e não está vazio
+    if (typeof path === "string" && path.trim()) {
       return path.split(".").reduce((acc, key) => acc?.[key], obj) ?? "-";
     }
-    return "-"; // Retorna "-" se o caminho não for válido
+    return "-";
   };
 
   return (
@@ -32,10 +31,10 @@ const Grid = ({ data, columns, columnMap, handleDelete, handleEdit }) => {
                 </C.TableCell>
               ))}
               <C.TableCell align="center">
-                <C.ActionButton onClick={() => handleEdit(item.idContaControleContas || item.id)}>
+                <C.ActionButton onClick={() => handleEdit(item[idKey])}>
                   <Edit style={{ color: "blue" }} />
                 </C.ActionButton>
-                <C.ActionButton onClick={() => handleDelete(item.idContaControleContas || item.id)}>
+                <C.ActionButton onClick={() => handleDelete(item[idKey])}>
                   <Trash2 style={{ color: "red" }} />
                 </C.ActionButton>
               </C.TableCell>

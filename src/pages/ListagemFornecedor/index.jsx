@@ -146,6 +146,7 @@ const Fornecedores = () => {
               "Email": "emailFornecedor",
               "Chave Pix": "chavePixFornecedor",
             }}
+            idKey="idFornecedor"  // 🔹 Define o campo de ID correto
             handleDelete={handleDeleteFornecedor}
             handleEdit={() => {}}
           />

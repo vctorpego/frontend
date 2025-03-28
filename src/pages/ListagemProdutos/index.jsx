@@ -26,14 +26,12 @@ const ListagemProdutos = () => {
 
     try {
       const decoded = jwt_decode(token);
-      const currentTime = Date.now() / 1000;
-
-      if (decoded.exp < currentTime) {
-        console.warn("Token expirado. Redirecionando para login...");
+      if (decoded.exp < Date.now() / 1000) {
         localStorage.removeItem("token");
         navigate("/auth/login");
         return null;
       }
+      setUser(decoded);
     } catch (error) {
       console.error("Erro ao decodificar o token:", error);
       localStorage.removeItem("token");
@@ -77,7 +75,6 @@ const ListagemProdutos = () => {
   };
 
   const handleDeleteProduto = (produtoId) => {
-    console.log("Produto a ser excluído:", produtoId); // Verifique o valor aqui
     setProdutoExcluir(produtoId);
     setOpenModalExcluir(true);
   };
@@ -86,8 +83,6 @@ const ListagemProdutos = () => {
     try {
       const token = getToken();
       if (!token) return;
-
-      console.log("Excluindo produto com ID:", produtoExcluir); // Verifique o ID que está sendo passado para a exclusão
 
       await axios.delete(
         `http://localhost:8080/produto/${produtoExcluir}`,
@@ -128,22 +123,6 @@ const ListagemProdutos = () => {
       <Sidebar user={user} />
       <C.Content>
         <C.Title>Lista de Produtos</C.Title>
-        
-        {/* Barra de pesquisa */}
-        {/* <input
-          type="text"
-          placeholder="Digite um produto"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)} // Atualiza o estado da pesquisa
-          style={{
-            padding: "10px",
-            fontSize: "14px",
-            marginBottom: "20px",
-            width: "300px",
-            borderRadius: "5px",
-            border: "1px solid #ccc"
-          }}
-        /> */}
 
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
 
@@ -178,6 +157,7 @@ const ListagemProdutos = () => {
               "Preço": "precoProduto",
               "Preço de Custo": "valorDeCustoProduto",
             }}
+            idKey="idProduto"  // 🔹 Define o campo de ID correto
             handleDelete={handleDeleteProduto}
             handleEdit={handleEditProduto}
           />
