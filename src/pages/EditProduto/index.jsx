@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import jwtDecode from "jwt-decode"; // Importa a biblioteca para decodificar o token
+import jwtDecode from "jwt-decode";
 import { Container, Title, Form, Input, Button, Label } from "../AddCliente/styles";
 
 const EditProduto = () => {
-  const { id } = useParams();
+  const { idProduto } = useParams();  // Altere para 'idProduto'
   const [nomeProduto, setNomeProduto] = useState("");
   const [precoCusto, setPrecoCusto] = useState("");
   const [precoVenda, setPrecoVenda] = useState("");
@@ -15,7 +15,7 @@ const EditProduto = () => {
   useEffect(() => {
     const fetchProduto = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/produto/${id}`);
+        const response = await axios.get(`http://localhost:8080/produto/${idProduto}`);
         const { nomeProduto, precoProduto, valorDeCustoProduto, quantProduto } = response.data;
         setNomeProduto(nomeProduto);
         setPrecoCusto(valorDeCustoProduto);
@@ -27,7 +27,7 @@ const EditProduto = () => {
       }
     };
     fetchProduto();
-  }, [id]);
+  }, [idProduto]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,7 +55,7 @@ const EditProduto = () => {
       }
 
       await axios.put(
-        `http://localhost:8080/produto/${id}`,
+        `http://localhost:8080/produto/${idProduto}`,
         {
           nomeProduto,
           precoProduto: precoVenda,

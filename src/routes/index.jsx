@@ -15,6 +15,8 @@ import SwaggerPage from "../pages/Swagger"; // Importando a página Swagger
 import EditProduto from "../pages/EditProduto";
 import AddFornecedor from "../pages/AddFornecedor";
 import PagarConta from "../pages/PagarConta"; 
+import AddConta from "../pages/AddConta";
+
 // import Pagamentos from "../pages/Pagamentos";
 
 const RoutesApp = () => {
@@ -57,6 +59,11 @@ const RoutesApp = () => {
             path="/pagamentos"
             element={token ? <Pagamentos /> : <Navigate to="/auth/login" />}
           />
+                    <Route
+            exact
+            path="/pagamentos/adicionar"
+            element={token ? <AddConta /> : <Navigate to="/auth/login" />}
+          />
 
 
           {/* Adicionando a rota para adicionar cliente */}
@@ -79,7 +86,7 @@ const RoutesApp = () => {
 
           <Route
             exact
-            path="/produtos/editar/id"
+            path="/produtos/editar/:idProduto"
             element={token ? <EditProduto /> : <Navigate to="/auth/login" />}
           />
 
