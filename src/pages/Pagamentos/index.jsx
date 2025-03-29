@@ -105,7 +105,7 @@ const Pagamentos = () => {
     setContaExcluir(null);
   };
 
-  // Função para redirecionar para a página de pagar conta
+  // Função para redirecionar para a página de editar conta
   const handlePagarConta = (contaId) => {
     navigate('/pagamentos/editar/' + contaId); // Redireciona para a página de pagamento
   };
