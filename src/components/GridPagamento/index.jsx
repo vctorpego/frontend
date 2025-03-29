@@ -1,5 +1,5 @@
 import React from "react";
-import { Edit, Trash2 } from "lucide-react";
+import { CreditCard, Edit, Trash2 } from "lucide-react";
 import * as C from "./styles";
 
 const Grid = ({ data, columns, columnMap, handleDelete, handleEdit, handlePay, idKey }) => {
@@ -38,7 +38,7 @@ const Grid = ({ data, columns, columnMap, handleDelete, handleEdit, handlePay, i
                   <Trash2 style={{ color: "red" }} />
                 </C.ActionButton>
                 <C.ActionButton onClick={() => handlePay(item[idKey])}>
-                  <Edit style={{ color: "gray" }} />
+                  <CreditCard style={{ color: "green" }} />
                 </C.ActionButton>
               </C.TableCell>
             </tr>
