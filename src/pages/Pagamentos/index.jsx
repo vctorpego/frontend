@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
-import Grid from "../../components/Grid";
+import Grid from "../../components/GridPagamento";
 import Sidebar from "../../components/Sidebar";
 import ModalExcluir from "../../components/ModalExcluir";
 import { useNavigate } from "react-router-dom";
@@ -107,8 +107,13 @@ const Pagamentos = () => {
 
   // Função para redirecionar para a página de pagar conta
   const handlePagarConta = (contaId) => {
-    navigate('/pagamentos/pagar/' + contaId); // Redireciona para a página de pagamento
+    navigate('/pagamentos/editar/' + contaId); // Redireciona para a página de pagamento
   };
+
+  const handlePayConta = (contaId) => {
+    navigate('/pagamentos/pagar/' + contaId); // Redireciona para a página de pagamento
+  }
+
 
   // Colunas para a tabela de contas
   const columns = ["ID", "Empresa", "Data de Pagamento", "Valor", "Vencimento", "Status"];
@@ -151,6 +156,7 @@ const Pagamentos = () => {
               "Status": "statusControleContas",
             }}
             idKey="idContaControleContas"  // 🔹 Define o campo de ID correto
+            handlePay={handlePayConta} // Passa a função de pagament
             handleDelete={handleDeleteConta}
             handleEdit={handlePagarConta} // Substituindo a função de edição pela de pagar conta
           />
