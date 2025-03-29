@@ -107,7 +107,7 @@ const Pagamentos = () => {
 
   // Função para redirecionar para a página de pagar conta
   const handlePagarConta = (contaId) => {
-    navigate('/pagamentos/pagar/' + contaId); // Redireciona para a página de pagamento
+    navigate('/pagamentos/editar/' + contaId); // Redireciona para a página de pagamento
   };
 
   // Colunas para a tabela de contas
