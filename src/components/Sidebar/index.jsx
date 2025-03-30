@@ -37,7 +37,7 @@ const Sidebar = ({ user, handleLogout }) => {
         <C.MenuItem onClick={() => handleNavigation("")} isActive={isActive("/recarga")}>
           <ShoppingCart size={20} /> Recarga
         </C.MenuItem>
-        <C.MenuItem onClick={() => handleNavigation("")} isActive={isActive("/vendas")}>
+        <C.MenuItem onClick={() => handleNavigation("/vendas")} isActive={isActive("/vendas")}>
           <DollarSign size={20} /> Vendas
         </C.MenuItem>
         <C.MenuItem onClick={() => handleNavigation("/pagamentos")} isActive={isActive("/pagamentos")}>

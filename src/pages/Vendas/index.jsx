@@ -1,20 +1,20 @@
 import { useState } from "react";
-import useBarcodeScanner from "../../hooks/useBarcodeScanner"; // Importa o hook
-import axios from "axios"; // Usando axios para fazer as requisições HTTP
+import useBarcodeScanner from "../../hooks/useBarcodeScanner"; // Hook para scanner
+import axios from "axios"; // Para requisições HTTP
 import jwt_decode from "jwt-decode"; // Para decodificar o token
-import * as C from "./styles"; // Importando os componentes estilizados
-import { useNavigate } from "react-router-dom"; // Para navegação entre páginas
+import { useNavigate } from "react-router-dom"; // Para navegação
+import * as C from "./styles"; // Importa os estilos do arquivo styles.jsx
 
 function Vendas() {
-  const [scannedCode, setScannedCode] = useState(""); // Armazena o código de barras escaneado
+  const [clienteId, setClienteId] = useState(""); // ID do cliente digitado
+  const [cliente, setCliente] = useState(null); // Dados do cliente
+  const [scannedCode, setScannedCode] = useState(""); // Código escaneado
   const [produtos, setProdutos] = useState([]); // Lista de produtos escaneados
   const navigate = useNavigate();
 
-  // Função para pegar o token e configurar o cabeçalho da requisição
+  // Função para obter o token do localStorage
   const getToken = () => {
     const token = localStorage.getItem("token");
-    console.log(localStorage.getItem("token"));
-
     if (!token) {
       console.warn("Token não encontrado. Redirecionando para login...");
       navigate("/auth/login");
@@ -38,58 +38,94 @@ function Vendas() {
     return token;
   };
 
-  // Função para configurar as requisições com o token
-  const getRequestConfig = () => {
-    const token = getToken();
-    if (!token) return {}; // Retorna um objeto vazio caso não tenha token
-    return {
-      headers: { Authorization: `Bearer ${token}` },
-    };
+  // Função para buscar o cliente pelo ID digitado
+  const buscarCliente = async () => {
+    if (!clienteId) {
+      alert("Digite um ID de cliente!");
+      return;
+    }
+
+    try {
+      const token = getToken();
+      if (!token) return;
+
+      const response = await axios.get(`http://localhost:8080/cliente/${clienteId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.status === 200) {
+        setCliente(response.data);
+        setProdutos([]); // Reseta os produtos escaneados ao trocar de cliente
+        console.log("Cliente encontrado:", response.data);
+      } else {
+        alert("Cliente não encontrado!");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar cliente:", error);
+      alert("Erro ao buscar cliente!");
+    }
   };
 
   // Função para tratar o escaneamento do código de barras
   const handleScan = async (code) => {
+    if (!cliente) {
+      alert("Busque um cliente antes de escanear produtos!");
+      return;
+    }
+
     console.log("Código escaneado:", code);
     setScannedCode(code);
-  
+
     try {
-      const token = localStorage.getItem("token"); // Certifique-se de que o token está armazenado corretamente
-  
-      const response = await fetch(`http://localhost:8080/produto/codigobarras/${scannedCode}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`, // Envia o token no cabeçalho
-          'Content-Type': 'application/json',
-        },
+      const token = getToken();
+      if (!token) return;
+
+      const response = await axios.get(`http://localhost:8080/produto/codigobarras/${code}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-  
-      if (response.ok) {
-        const produto = await response.json();
-        console.log("Produto encontrado:", produto);
-        setProdutos((prev) => [...prev, produto]);
+
+      if (response.status === 200) {
+        setProdutos((prev) => [...prev, response.data]);
+        console.log("Produto encontrado:", response.data);
       } else {
         console.log("Produto não encontrado!");
       }
     } catch (error) {
       console.error("Erro ao buscar produto:", error);
     }
-  };  
+  };
 
-  useBarcodeScanner(handleScan); // Usa o hook para escanear o código de barras
+  useBarcodeScanner(handleScan); // Ativa o scanner de código de barras
 
   return (
     <C.Container>
       <C.Title>Ponto de Venda - Cafeteria</C.Title>
-      <C.Description>Escaneie um código de barras...</C.Description>
-      
+
+      {/* Campo para buscar cliente */}
+      <div>
+        <C.Input
+          type="text"
+          placeholder="Digite o ID do cliente..."
+          value={clienteId}
+          onChange={(e) => setClienteId(e.target.value)}
+        />
+
+        <C.Button onClick={buscarCliente}>Buscar Cliente</C.Button>
+
+      </div>
+
+      {/* Exibe o nome do cliente, se encontrado */}
+      {cliente && <h2>Cliente: {cliente.nomeCliente}</h2>}
+
+      {/* Exibe os produtos escaneados */}
       {produtos.length === 0 ? (
         <C.Description>Nenhum produto escaneado ainda.</C.Description>
       ) : (
         <C.ProductList>
           {produtos.map((produto, index) => (
             <C.ProductItem key={index}>
-              <span>{produto.nomeProduto}</span> {/* Nome do produto */}
-              <C.ProductPrice>R$ {produto.precoProduto}</C.ProductPrice> {/* Preço do produto */}
+              <span>{produto.nomeProduto}</span>
+              <C.ProductPrice>R$ {produto.precoProduto}</C.ProductPrice>
             </C.ProductItem>
           ))}
         </C.ProductList>
