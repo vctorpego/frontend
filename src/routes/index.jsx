@@ -14,9 +14,10 @@ import { Navigate } from "react-router-dom";
 import SwaggerPage from "../pages/Swagger"; // Importando a página Swagger
 import EditProduto from "../pages/EditProduto";
 import AddFornecedor from "../pages/AddFornecedor";
-import PagarConta from "../pages/PagarConta"; 
+import PagarConta from "../pages/PagarConta";
 import AddConta from "../pages/AddConta";
 import EditConta from "../pages/EditConta";
+import Vendas from "../pages/Vendas";
 
 // import Pagamentos from "../pages/Pagamentos";
 
@@ -60,12 +61,11 @@ const RoutesApp = () => {
             path="/pagamentos"
             element={token ? <Pagamentos /> : <Navigate to="/auth/login" />}
           />
-                    <Route
+          <Route
             exact
             path="/pagamentos/adicionar"
             element={token ? <AddConta /> : <Navigate to="/auth/login" />}
           />
-
 
           {/* Adicionando a rota para adicionar cliente */}
           <Route
@@ -94,6 +94,12 @@ const RoutesApp = () => {
             exact
             path="/produtos/editar/:idProduto"
             element={token ? <EditProduto /> : <Navigate to="/auth/login" />}
+          />
+
+          <Route
+            exact
+            path="/vendas"
+            element={token ? <Vendas /> : <Navigate to="/auth/login" />}
           />
 
           {/* Rota para Swagger UI */}

@@ -1,14 +1,53 @@
 import React from "react";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Printer } from "lucide-react"; // Importando ícones adicionais
 import * as C from "./styles";
+import Button from "../../components/Button"; // Certifique-se de importar o componente Button
 
-const Grid = ({ data, columns, columnMap, handleDelete, handleEdit, idKey }) => {
+const Grid = ({ 
+  data, 
+  columns, 
+  columnMap, 
+  handleDelete, 
+  handleEdit, 
+  handlePrint, 
+  handlePay, 
+  idKey, 
+  actions = ["edit", "delete"] // Define as ações a serem exibidas, com "edit" e "delete" como padrão
+}) => {
   // Função para acessar valores aninhados no objeto com validações
   const getNestedValue = (obj, path) => {
     if (typeof path === "string" && path.trim()) {
       return path.split(".").reduce((acc, key) => acc?.[key], obj) ?? "-";
     }
     return "-";
+  };
+
+  // Função para renderizar ícones de ações com base nas escolhas
+  const renderActions = (item) => {
+    return (
+      <>
+        {actions.includes("edit") && (
+          <C.ActionButton onClick={() => handleEdit(item[idKey])}>
+            <Edit style={{ color: "blue", fontSize: "18px" }} />
+          </C.ActionButton>
+        )}
+        {actions.includes("delete") && (
+          <C.ActionButton onClick={() => handleDelete(item[idKey])}>
+            <Trash2 style={{ color: "red", fontSize: "18px" }} />
+          </C.ActionButton>
+        )}
+        {actions.includes("print") && (
+          <C.ActionButton onClick={() => handlePrint(item[idKey])}>
+            <Printer style={{ color: "green", fontSize: "18px" }} />
+          </C.ActionButton>
+        )}
+        {actions.includes("pay") && (
+          <C.ActionButton onClick={() => handlePay(item[idKey])}>
+            <Button Text="Pagar" onClick={() => handlePay(item[idKey])} />
+          </C.ActionButton>
+        )}
+      </>
+    );
   };
 
   return (
@@ -31,12 +70,7 @@ const Grid = ({ data, columns, columnMap, handleDelete, handleEdit, idKey }) => 
                 </C.TableCell>
               ))}
               <C.TableCell align="center">
-                <C.ActionButton onClick={() => handleEdit(item[idKey])}>
-                  <Edit style={{ color: "blue" }} />
-                </C.ActionButton>
-                <C.ActionButton onClick={() => handleDelete(item[idKey])}>
-                  <Trash2 style={{ color: "red" }} />
-                </C.ActionButton>
+                {renderActions(item)} {/* Renderiza as ações baseadas nas escolhas */}
               </C.TableCell>
             </tr>
           ))

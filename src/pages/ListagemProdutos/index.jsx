@@ -117,6 +117,7 @@ const ListagemProdutos = () => {
   };
 
   const columns = ["ID", "Nome", "Código de Barras", "Estoque", "Preço", "Preço de Custo"];
+  const actions = ["edit", "delete", "printer"];
 
   return (
     <C.Container>
@@ -160,6 +161,7 @@ const ListagemProdutos = () => {
             idKey="idProduto"  // 🔹 Define o campo de ID correto
             handleDelete={handleDeleteProduto}
             handleEdit={handleEditProduto}
+            actions={actions} // Passando as ações para o Grid
           />
         )}
 

@@ -23,6 +23,7 @@ export const TableHeader = styled.th`
 export const TableCell = styled.td`
   padding: 12px 15px;
   text-align: left;
+  vertical-align: middle;
   border: 1px solid #ddd;
   font-size: 14px;
   color: #555;
