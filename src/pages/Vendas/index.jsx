@@ -99,7 +99,7 @@ function Vendas() {
 
   return (
     <C.Container>
-      <C.Title>Ponto de Venda - Cafeteria</C.Title>
+      <C.Title>Nova Comanda  - TechMeal</C.Title>
 
       {/* Campo para buscar cliente */}
       <div>
