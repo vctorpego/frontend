@@ -79,7 +79,7 @@ const EditProduto = () => {
       }
 
       await axios.put(
-        `http://localhost:8080/produto/${idProduto}`,
+        `http://localhost:8080/produto/alterar/${idProduto}`,
         {
           nomeProduto,  // Não envia nomeProduto para ser alterado
           precoProduto: precoVenda,

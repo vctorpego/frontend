@@ -111,6 +111,12 @@ const Fornecedores = () => {
   // Definir as colunas para exibição na tabela
   const columns = ["ID", "Nome Social", "Celular", "Email", "Chave Pix"];
 
+  const handleEditFornecedor = (fornecedorId) => {
+    console.log("Fornecedor a ser editado:", fornecedorId); // Verifique o ID
+
+    navigate(`/fornecedores/editar/${fornecedorId}`);
+  }
+
   return (
     <C.Container>
       <Sidebar user={user} />
@@ -148,7 +154,7 @@ const Fornecedores = () => {
             }}
             idKey="idFornecedor"  // 🔹 Define o campo de ID correto
             handleDelete={handleDeleteFornecedor}
-            handleEdit={() => {}}
+            handleEdit={handleEditFornecedor}
           />
         )}
         <ModalExcluir

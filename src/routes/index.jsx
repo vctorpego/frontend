@@ -13,6 +13,8 @@ import AddCliente from "../pages/AddCliente"; // Importando a página AddCliente
 import { Navigate } from "react-router-dom";
 import SwaggerPage from "../pages/Swagger"; // Importando a página Swagger
 import EditProduto from "../pages/EditProduto";
+import EditFornecedor from "../pages/EditFornecedor";
+import EditCliente from "../pages/EditCliente";
 import AddFornecedor from "../pages/AddFornecedor";
 import PagarConta from "../pages/PagarConta";
 import AddConta from "../pages/AddConta";
@@ -92,8 +94,20 @@ const RoutesApp = () => {
 
           <Route
             exact
+            path="/clientes/editar/:idCliente"
+            element={token ? <EditCliente /> : <Navigate to="/auth/login" />}
+          />
+
+          <Route
+            exact
             path="/produtos/editar/:idProduto"
             element={token ? <EditProduto /> : <Navigate to="/auth/login" />}
+          />
+
+          <Route
+            exact
+            path="/fornecedores/editar/:idFornecedor"
+            element={token ? <EditFornecedor /> : <Navigate to="/auth/login" />}
           />
 
           <Route

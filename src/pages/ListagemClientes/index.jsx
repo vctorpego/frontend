@@ -154,6 +154,12 @@ const ListagemClientes = () => {
     "Ultima Compra"
   ]; // Colunas da tabela
 
+  const handleEditCliente = (clienteId) => {
+    console.log("Cliente a ser editado:", clienteId); // Verifique o ID
+
+    navigate(`/clientes/editar/${clienteId}`);
+  }
+
   return (
     <C.Container>
       <Sidebar user={user} />
@@ -195,7 +201,7 @@ const ListagemClientes = () => {
             }}
             idKey="idCliente" // Define o campo de ID correto
             handleDelete={handleDeleteCliente}
-            handleEdit={() => {}}
+            handleEdit={handleEditCliente}
           />
         )}
 
