@@ -1,18 +1,20 @@
-import { useState } from "react";
-import useBarcodeScanner from "../../hooks/useBarcodeScanner"; // Hook para scanner
-import axios from "axios"; // Para requisições HTTP
-import jwt_decode from "jwt-decode"; // Para decodificar o token
-import { useNavigate } from "react-router-dom"; // Para navegação
-import * as C from "./styles"; // Importa os estilos do arquivo styles.jsx
+import { useRef, useState } from "react";
+import useBarcodeScanner from "../../hooks/useBarcodeScanner";
+import axios from "axios";
+import jwt_decode from "jwt-decode";
+import { useNavigate } from "react-router-dom";
+import * as C from "./styles";
 
 function Vendas() {
-  const [clienteId, setClienteId] = useState(""); // ID do cliente digitado
-  const [cliente, setCliente] = useState(null); // Dados do cliente
-  const [scannedCode, setScannedCode] = useState(""); // Código escaneado
-  const [produtos, setProdutos] = useState([]); // Lista de produtos escaneados
+  const [clienteId, setClienteId] = useState("");
+  const [cliente, setCliente] = useState(null);
+  const [produtos, setProdutos] = useState([]);
+  const [valorTotal, setValorTotal] = useState(0);
+  const [primeiroScan, setPrimeiroScan] = useState(true); // Flag para verificar o primeiro scan
   const navigate = useNavigate();
 
-  // Função para obter o token do localStorage
+  const clienteInputRef = useRef(null);
+
   const getToken = () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -20,7 +22,6 @@ function Vendas() {
       navigate("/auth/login");
       return null;
     }
-
     try {
       const decoded = jwt_decode(token);
       if (decoded.exp < Date.now() / 1000) {
@@ -34,28 +35,26 @@ function Vendas() {
       navigate("/auth/login");
       return null;
     }
-
     return token;
   };
 
-  // Função para buscar o cliente pelo ID digitado
   const buscarCliente = async () => {
     if (!clienteId) {
       alert("Digite um ID de cliente!");
       return;
     }
-
     try {
       const token = getToken();
       if (!token) return;
-
       const response = await axios.get(`http://localhost:8080/cliente/${clienteId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       if (response.status === 200) {
         setCliente(response.data);
-        setProdutos([]); // Reseta os produtos escaneados ao trocar de cliente
+        setProdutos([]);
+        setValorTotal(0);
+        setClienteId(""); // Limpa o campo de ID do cliente após a busca
+        setPrimeiroScan(true); // Reset para indicar que o próximo scan será o primeiro
         console.log("Cliente encontrado:", response.data);
       } else {
         alert("Cliente não encontrado!");
@@ -66,26 +65,31 @@ function Vendas() {
     }
   };
 
-  // Função para tratar o escaneamento do código de barras
   const handleScan = async (code) => {
+    console.log("Código escaneado (antes da correção):", code);
+    
     if (!cliente) {
       alert("Busque um cliente antes de escanear produtos!");
       return;
     }
 
-    console.log("Código escaneado:", code);
-    setScannedCode(code);
+    // Se for o primeiro scan, remover o primeiro caractere do código de barras
+    if (primeiroScan && code.length > 1) {
+      code = code.substring(1);
+      setPrimeiroScan(false); // Desativa a flag após o primeiro scan
+    }
+
+    console.log("Código escaneado (após a correção):", code);
 
     try {
       const token = getToken();
       if (!token) return;
-
       const response = await axios.get(`http://localhost:8080/produto/codigobarras/${code}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       if (response.status === 200) {
         setProdutos((prev) => [...prev, response.data]);
+        setValorTotal((prevTotal) => prevTotal + response.data.precoProduto);
         console.log("Produto encontrado:", response.data);
       } else {
         console.log("Produto não encontrado!");
@@ -95,29 +99,23 @@ function Vendas() {
     }
   };
 
-  useBarcodeScanner(handleScan); // Ativa o scanner de código de barras
+  useBarcodeScanner(handleScan);
 
   return (
     <C.Container>
-      <C.Title>Nova Comanda  - TechMeal</C.Title>
-
-      {/* Campo para buscar cliente */}
+      <C.Title>Nova Comanda - TechMeal</C.Title>
       <div>
         <C.Input
+          ref={clienteInputRef}
           type="text"
           placeholder="Digite o ID do cliente..."
           value={clienteId}
           onChange={(e) => setClienteId(e.target.value)}
         />
-
         <C.Button onClick={buscarCliente}>Buscar Cliente</C.Button>
-
       </div>
-
-      {/* Exibe o nome do cliente, se encontrado */}
       {cliente && <h2>Cliente: {cliente.nomeCliente}</h2>}
-
-      {/* Exibe os produtos escaneados */}
+      <h3>Valor Total: R$ {valorTotal.toFixed(2)}</h3>
       {produtos.length === 0 ? (
         <C.Description>Nenhum produto escaneado ainda.</C.Description>
       ) : (
