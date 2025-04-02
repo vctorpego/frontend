@@ -10,9 +10,8 @@ function Vendas() {
   const [cliente, setCliente] = useState(null);
   const [produtos, setProdutos] = useState([]);
   const [valorTotal, setValorTotal] = useState(0);
-  const [primeiroScan, setPrimeiroScan] = useState(true); // Flag para verificar o primeiro scan
+  const [primeiroScan, setPrimeiroScan] = useState(true);
   const navigate = useNavigate();
-
   const clienteInputRef = useRef(null);
 
   const getToken = () => {
@@ -38,6 +37,8 @@ function Vendas() {
     return token;
   };
 
+  const [clienteBuscado, setClienteBuscado] = useState(null);
+
   const buscarCliente = async () => {
     if (!clienteId) {
       alert("Digite um ID de cliente!");
@@ -49,12 +50,14 @@ function Vendas() {
       const response = await axios.get(`http://localhost:8080/cliente/${clienteId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (response.status === 200) {
+
+      if (response.status === 200 && response.data) {
         setCliente(response.data);
+        setClienteBuscado(response.data);
+
         setProdutos([]);
         setValorTotal(0);
-        setClienteId(""); // Limpa o campo de ID do cliente após a busca
-        setPrimeiroScan(true); // Reset para indicar que o próximo scan será o primeiro
+        setPrimeiroScan(true);
         console.log("Cliente encontrado:", response.data);
       } else {
         alert("Cliente não encontrado!");
@@ -65,18 +68,68 @@ function Vendas() {
     }
   };
 
+  const atualizarVenda = async () => {
+    const clienteAtualId = clienteBuscado?.id || clienteId;
+
+    if (!clienteAtualId) {
+      alert("Busque um cliente antes de atualizar a venda!");
+      return;
+    }
+
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const endpointBusca = `http://localhost:8080/comanda/ultima/${clienteAtualId}`;
+      console.log("Chamando GET:", endpointBusca);
+
+      const response = await axios.get(endpointBusca, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("Resposta da busca de comanda:", response.data);
+
+      if (response.status !== 200 || !response.data?.idCompraComanda) {
+        alert("Nenhuma comanda encontrada para este cliente!");
+        return;
+      }
+
+      const comandaId = response.data.idCompraComanda;
+      const endpointAtualizacao = `http://localhost:8080/comanda/${comandaId}`;
+      console.log("Chamando PUT:", endpointAtualizacao);
+
+      const comandaData = {
+        produtos: [...produtos], // 🔹 Garante que sempre será um array
+        valorTotal: valorTotal,
+      };
+      
+
+      console.log("Dados enviados no PUT:", JSON.stringify(comandaData, null, 2));
+
+      await axios.put(endpointAtualizacao, comandaData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      alert("Venda atualizada com sucesso!");
+      setProdutos([]);
+      setValorTotal(0);
+    } catch (error) {
+      console.error("Erro ao atualizar venda:", error);
+      alert("Erro ao atualizar venda!");
+    }
+  };
+
   const handleScan = async (code) => {
     console.log("Código escaneado (antes da correção):", code);
-    
+
     if (!cliente) {
       alert("Busque um cliente antes de escanear produtos!");
       return;
     }
 
-    // Se for o primeiro scan, remover o primeiro caractere do código de barras
     if (primeiroScan && code.length > 1) {
       code = code.substring(1);
-      setPrimeiroScan(false); // Desativa a flag após o primeiro scan
+      setPrimeiroScan(false);
     }
 
     console.log("Código escaneado (após a correção):", code);
@@ -112,7 +165,10 @@ function Vendas() {
           value={clienteId}
           onChange={(e) => setClienteId(e.target.value)}
         />
-        <C.Button onClick={buscarCliente}>Buscar Cliente</C.Button>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <C.Button onClick={buscarCliente}>Buscar Cliente</C.Button>
+          <C.Button onClick={atualizarVenda}>Atualizar Venda</C.Button>
+        </div>
       </div>
       {cliente && <h2>Cliente: {cliente.nomeCliente}</h2>}
       <h3>Valor Total: R$ {valorTotal.toFixed(2)}</h3>

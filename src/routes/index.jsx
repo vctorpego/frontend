@@ -20,6 +20,7 @@ import PagarConta from "../pages/PagarConta";
 import AddConta from "../pages/AddConta";
 import EditConta from "../pages/EditConta";
 import Vendas from "../pages/Vendas";
+import Entrada from "../pages/Entrada";
 
 // import Pagamentos from "../pages/Pagamentos";
 
@@ -108,6 +109,12 @@ const RoutesApp = () => {
             exact
             path="/fornecedores/editar/:idFornecedor"
             element={token ? <EditFornecedor /> : <Navigate to="/auth/login" />}
+          />
+
+          <Route
+            exact
+            path="/entrada"
+            element={token ? <Entrada /> : <Navigate to="/auth/login" />}
           />
 
           <Route
