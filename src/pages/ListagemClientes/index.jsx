@@ -1,40 +1,34 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
-import Grid from "../../components/Grid"; // Tabela com os clientes
-import Sidebar from "../../components/Sidebar"; // Sidebar com menu
-import SearchBar from "../../components/SearchBar"; // Barra de pesquisa
-import ModalExcluir from "../../components/ModalExcluir"; // Modal de confirmação de exclusão
-import { useNavigate } from "react-router-dom"; // Navegação
-import * as C from "./styles"; // Importando os estilos
+import Grid from "../../components/Grid";
+import Sidebar from "../../components/Sidebar";
+import SearchBar from "../../components/SearchBar";
+import ModalExcluir from "../../components/ModalExcluir";
+import { useNavigate } from "react-router-dom";
+import * as C from "./styles";
 
 const ListagemClientes = () => {
-  const [clientes, setClientes] = useState([]); // Lista de clientes
-  const [user, setUser] = useState(null); // Dados do usuário
-  const [openModalExcluir, setOpenModalExcluir] = useState(false); // Estado para modal
-  const [clienteExcluir, setClienteExcluir] = useState(null); // Cliente a ser excluído
-  const [searchQuery, setSearchQuery] = useState(""); // Estado da busca
+  const [clientes, setClientes] = useState([]);
+  const [user, setUser] = useState(null);
+  const [openModalExcluir, setOpenModalExcluir] = useState(false);
+  const [clienteExcluir, setClienteExcluir] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
-  // Função para obter o token e verificar se é válido
   const getToken = () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      console.warn("Token não encontrado. Redirecionando para login...");
       navigate("/auth/login");
       return null;
     }
 
-    // Verificar se o token está expirado
     try {
-      const decoded = jwt_decode(token); // Decodifica o token
-      const currentTime = Date.now() / 1000; // Tempo atual em segundos
-
-      // Se o token estiver expirado
+      const decoded = jwt_decode(token);
+      const currentTime = Date.now() / 1000;
       if (decoded.exp < currentTime) {
-        console.warn("Token expirado. Redirecionando para login...");
-        localStorage.removeItem("token"); // Remove o token expirado
-        navigate("/auth/login"); // Redireciona para o login
+        localStorage.removeItem("token");
+        navigate("/auth/login");
         return null;
       }
     } catch (error) {
@@ -47,38 +41,33 @@ const ListagemClientes = () => {
     return token;
   };
 
-  // Função para obter dados do usuário (se necessário)
   const getUserData = () => {
     const token = getToken();
     if (token) {
       const decoded = jwt_decode(token);
-      setUser(decoded); // Armazena os dados do usuário
+      setUser(decoded);
     }
   };
 
   useEffect(() => {
-    getUserData(); // Obtém os dados do usuário ao montar o componente
+    getUserData();
   }, []);
 
-  // Configuração das requisições com o token
   const getRequestConfig = () => {
     const token = getToken();
-    if (!token) return {}; // Retorna objeto vazio caso não tenha token
+    if (!token) return {};
     return {
       headers: { Authorization: `Bearer ${token}` },
     };
   };
 
-  // Função para buscar clientes
   const fetchClientes = () => {
     const token = getToken();
     if (!token) return;
 
-    // Requisição para buscar os clientes
     axios
       .get("http://localhost:8080/cliente", getRequestConfig())
       .then(({ data }) => {
-        console.log("Clientes carregados:", data); // Verificando os dados dos clientes
         setClientes(data);
       })
       .catch((err) => {
@@ -87,48 +76,32 @@ const ListagemClientes = () => {
   };
 
   useEffect(() => {
-    fetchClientes(); // Carrega os clientes assim que a página for montada
+    fetchClientes();
   }, [navigate]);
 
-  // Filtra os clientes com base na consulta de pesquisa
   const filterClientes = () => {
-    if (!searchQuery) return clientes; // Retorna todos os clientes se a pesquisa estiver vazia
-
-    return clientes.filter((cliente) => {
-      return (
-        cliente.nomeCliente &&
-        cliente.nomeCliente.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    });
+    if (!searchQuery) return clientes;
+    return clientes.filter((cliente) =>
+      cliente.nomeCliente?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   };
 
-  // Função para excluir cliente
   const handleDeleteCliente = (clienteId) => {
     setClienteExcluir(clienteId);
     setOpenModalExcluir(true);
   };
 
   const handleConfirmDelete = async () => {
-    console.log("Tentando excluir cliente com ID:", clienteExcluir);
-
-    if (!clienteExcluir) {
-      console.error("ID do cliente é inválido.");
-      return;
-    }
+    if (!clienteExcluir) return;
 
     try {
-      // Requisição de exclusão do cliente
-      const response = await axios.delete(`http://localhost:8080/cliente/${clienteExcluir}`, {
+      await axios.delete(`http://localhost:8080/cliente/${clienteExcluir}`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Envia o token para autenticação
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-      console.log("Cliente excluído:", response.data);
 
-      // Atualiza a lista de clientes após a exclusão
-      fetchClientes(); // Chama a função para buscar os clientes atualizados
-
-      // Fecha o modal e limpa o cliente a ser excluído
+      fetchClientes();
       setOpenModalExcluir(false);
       setClienteExcluir(null);
     } catch (error) {
@@ -146,28 +119,44 @@ const ListagemClientes = () => {
   };
 
   const columns = [
-    "Cliente", 
-    "ID", 
-    "Saldo", 
-    "Limite", 
-    "Valor Gasto", 
-    "Ultima Compra"
-  ]; // Colunas da tabela
+    "Cliente",
+    "ID",
+    "Saldo",
+    "Limite",
+    "Limite Disponível",
+    "Limite Usado",
+    "Ultima Compra",
+  ];
+
+  const columnMap = {
+    Cliente: "nomeCliente",
+    ID: "idCliente",
+    Saldo: "saldoCliente",
+    Limite: "limiteCliente",
+    "Limite Disponível": "faturaCliente",
+    "Limite Usado": "limiteUsado",
+    "Ultima Compra": "ultimaCompraCliente",
+  };
+
+  // Mapeia os clientes e adiciona o campo calculado limiteUsado
+  const clientesComLimiteUsado = filterClientes().map((cliente) => ({
+    ...cliente,
+    limiteUsado:
+      cliente.limiteCliente != null && cliente.faturaCliente != null
+        ? (cliente.limiteCliente - cliente.faturaCliente).toFixed(2)
+        : "N/A",
+  }));
 
   const handleEditCliente = (clienteId) => {
-    console.log("Cliente a ser editado:", clienteId); // Verifique o ID
-
     navigate(`/clientes/editar/${clienteId}`);
-  }
+  };
 
   return (
     <C.Container>
       <Sidebar user={user} />
-
       <C.Content>
         <C.Title>Lista de Clientes</C.Title>
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
-
         <button
           onClick={handleAddCliente}
           style={{
@@ -189,17 +178,10 @@ const ListagemClientes = () => {
           <p>Nenhum cliente encontrado.</p>
         ) : (
           <Grid
-            data={filterClientes()}
+            data={clientesComLimiteUsado}
             columns={columns}
-            columnMap={{
-              Cliente: "nomeCliente",
-              ID: "idCliente", 
-              "Data de Nascimento": "dtNascCliente", 
-              "Ultima Compra": "ultimaCompraCliente",
-              Saldo: "saldoCliente",
-              Limite: "limiteCliente",
-            }}
-            idKey="idCliente" // Define o campo de ID correto
+            columnMap={columnMap}
+            idKey="idCliente"
             handleDelete={handleDeleteCliente}
             handleEdit={handleEditCliente}
           />
