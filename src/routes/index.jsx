@@ -21,6 +21,8 @@ import AddConta from "../pages/AddConta";
 import EditConta from "../pages/EditConta";
 import Vendas from "../pages/Vendas";
 import Entrada from "../pages/Entrada";
+import Saida from "../pages/Saida";
+
 
 // import Pagamentos from "../pages/Pagamentos";
 
@@ -115,6 +117,11 @@ const RoutesApp = () => {
             exact
             path="/entrada"
             element={token ? <Entrada /> : <Navigate to="/auth/login" />}
+          />
+          <Route
+            exact
+            path="/saida"
+            element={token ? <Saida /> : <Navigate to="/auth/login" />}
           />
 
           <Route

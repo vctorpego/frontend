@@ -117,7 +117,6 @@ function Vendas() {
       let faturaRestante = cliente.faturaCliente;
   
       if (valorTotal <= saldoRestante) {
-        // O saldo é suficiente para pagar a comanda
         saldoRestante -= valorTotal;
         await axios.put(`http://localhost:8080/cliente/atualizar-saldo/${clienteAtualId}`, {
           saldoCliente: saldoRestante,
@@ -125,7 +124,6 @@ function Vendas() {
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
-        // O saldo não é suficiente, vamos usar o limite (faturaCliente)
         const restanteParaCobrar = valorTotal - saldoRestante;
         faturaRestante -= restanteParaCobrar;
   
@@ -142,6 +140,17 @@ function Vendas() {
         });
       }
   
+      
+      await axios.put(
+        `http://localhost:8080/cliente/ultima-compra/${clienteAtualId}`,
+        {
+          ultimaCompraCliente: new Date().toISOString().split("T")[0],
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+  
       alert("Venda finalizada com sucesso!");
       setProdutos([]);
       setValorTotal(0);
@@ -149,6 +158,7 @@ function Vendas() {
       alert("Erro ao finalizar venda!");
     }
   };
+  
   
   
 

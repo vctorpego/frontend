@@ -8,17 +8,25 @@ const EntradaCliente = () => {
   const [idCliente, setIdCliente] = useState("");
   const [cliente, setCliente] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [erro, setErro] = useState(""); // 🔹 Novo estado para mensagens de erro
+  const [erro, setErro] = useState("");
   const navigate = useNavigate();
+
+  const resetarPagina = () => {
+    setTimeout(() => {
+      setIdCliente("");
+      setCliente(null);
+      setErro("");
+    }, 3000); // ⏳ Aguarda 3 segundos antes de resetar
+  };
 
   const handleIdentificarCliente = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setErro(""); // 🔹 Resetando erro antes da requisição
+    setErro("");
 
     const token = localStorage.getItem("token");
     if (!token) {
-      setErro("Você precisa estar logado!");
+      setErro("❌ Você precisa estar logado!");
       navigate("/auth/login");
       return;
     }
@@ -26,51 +34,76 @@ const EntradaCliente = () => {
     try {
       const decodedToken = jwtDecode(token);
       if (decodedToken.exp < Date.now() / 1000) {
-        setErro("Token expirado. Faça login novamente.");
+        setErro("⚠️ Token expirado. Faça login novamente.");
         localStorage.removeItem("token");
         navigate("/auth/login");
         return;
       }
 
-      // 🔹 1. Buscar informações do cliente
-      const clienteResponse = await axios.get(
-        `http://localhost:8080/cliente/${idCliente}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      // 🔍 Buscar dados do cliente
+      const clienteResponse = await axios.get(`http://localhost:8080/cliente/${idCliente}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      setCliente(clienteResponse.data);
+      const clienteData = clienteResponse.data;
+      const hoje = new Date();
+      const ultimaCompra = clienteData.ultimaCompraCliente ? new Date(clienteData.ultimaCompraCliente) : null;
 
-      // 🔹 2. Criar comanda se não houver uma ativa
-      const comandaData = {
-        cliente: clienteResponse.data,
-        horaEntradaComanda: new Date().toISOString().slice(0, 19).replace("T", " "),
-      };
+      // 🛑 Verificar última compra (não pode ser maior que 30 dias)
+      if (ultimaCompra) {
+        const diasDesdeUltimaCompra = Math.floor((hoje - ultimaCompra) / (1000 * 60 * 60 * 24));
+        if (diasDesdeUltimaCompra > 30) {
+          setErro("⚠️ Cliente possui Debitos a mais de 30 dias. Favor procurar a Gerência");
+          return;
+        }
+      }
 
-      const comandaResponse = await axios.post(
-        "http://localhost:8080/comanda",
-        comandaData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
 
-      alert("✅ Comanda criada com sucesso!");
-      console.log("Comanda:", comandaResponse.data);
+
+      // 🆕 Verificar se já tem uma comanda ativa
+      try {
+        const comandaExistente = await axios.get(`http://localhost:8080/comanda/ultima/${idCliente}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (comandaExistente.status === 200 && comandaExistente.data?.idCompraComanda) {
+          setErro("⚠️ Cliente já possui uma comanda ativa.");
+          return;
+        }
+      } catch (err) {
+        // Se o status de erro for 404 (sem comanda ativa), cria a comanda
+        if (err.response?.status === 404) {
+          // ✅ Criar comanda, caso o cliente não tenha comanda ativa
+          const comandaResponse = await axios.post(
+            "http://localhost:8080/comanda",
+            { cliente: { idCliente } },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+
+          // 🎉 Exibir informações do cliente após entrada
+          setCliente(comandaResponse.data.cliente);
+          setErro(""); // Remove mensagens de erro anteriores
+          resetarPagina();
+          return;
+        }
+
+        setErro("❌ Erro ao processar. Tente novamente.");
+        return;
+      }
+
+      // Caso haja outro erro, exibe uma mensagem genérica
     } catch (error) {
-      console.error("Erro ao identificar cliente:", error);
-
       if (error.response) {
-        // 🔹 Verifica se o erro veio do backend
-        const errorMessage = error.response.data.message || "Erro desconhecido.";
-
-        if (error.response.status === 404) {
-          setErro("⚠️ Cliente não encontrado. Verifique o ID e tente novamente.");
-        } else if (error.response.status === 401) {
-          setErro("🚫 Este cliente já está no salão.");
+        const status = error.response.status;
+        if (status === 401) {
+          setErro("❌ Cliente não encontrado.");
+        } else if (status === 409) {
+          setErro("⚠️ Cliente já está no salão.");
         } else {
-          setErro(errorMessage);
+          setErro("❌ Erro ao processar. Tente novamente.");
         }
       } else {
-        // 🔹 Erro de conexão ou falha inesperada
-        setErro("❌ Erro ao conectar ao servidor. Tente novamente mais tarde.");
+        setErro("❌ Erro na conexão com o servidor.");
       }
     } finally {
       setLoading(false);
@@ -95,12 +128,12 @@ const EntradaCliente = () => {
         </Button>
       </Form>
 
-      {erro && <ErrorMessage>{erro}</ErrorMessage>} {/* 🔹 Exibição de erro na tela */}
+      {erro && <ErrorMessage>{erro}</ErrorMessage>}
 
-      {cliente && !erro && (
+      {cliente && (
         <div>
           <h2>🎉 Seja bem-vindo, {cliente.nomeCliente}!</h2>
-          <p>💰 Seu saldo é: R$ {cliente.saldoCliente ? cliente.saldoCliente.toFixed(2) : "0.00"}</p>
+          <p>💰 Seu saldo é: R$ {cliente.saldoCliente?.toFixed(2) || "0.00"}</p>
         </div>
       )}
     </Container>
