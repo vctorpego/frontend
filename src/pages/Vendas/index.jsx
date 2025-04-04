@@ -66,36 +66,52 @@ function Vendas() {
 
   const atualizarVenda = async () => {
     const clienteAtualId = clienteBuscado?.id || clienteId;
-
+  
     if (!clienteAtualId) {
       alert("Busque um cliente antes de finalizar a venda!");
       return;
     }
-
+  
     const token = getToken();
     if (!token) return;
-
+  
     try {
       const response = await axios.get(`http://localhost:8080/comanda/ultima/${clienteAtualId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
+  
       if (response.status !== 200 || !response.data?.idCompraComanda) {
         alert("Nenhuma comanda encontrada para este cliente!");
         return;
       }
-
+  
       const comandaId = response.data.idCompraComanda;
-
+  
+      // Agrupa produtos por ID e conta quantidades
+      const mapaProdutos = new Map();
+      produtos.forEach((produto) => {
+        const id = produto.idProduto;
+        if (mapaProdutos.has(id)) {
+          mapaProdutos.set(id, mapaProdutos.get(id) + 1);
+        } else {
+          mapaProdutos.set(id, 1);
+        }
+      });
+  
+      const comandaProdutos = Array.from(mapaProdutos.entries()).map(([idProduto, quantidade]) => ({
+        idProduto,
+        quantidade,
+      }));
+  
       const comandaData = {
-        produtos: [...produtos],
-        valorTotal: valorTotal,
+        valorTotalComanda: valorTotal,
+        comandaProdutos,
       };
-
+  
       await axios.put(`http://localhost:8080/comanda/${comandaId}`, comandaData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
+  
       alert("Venda finalizada com sucesso!");
       setProdutos([]);
       setValorTotal(0);
@@ -103,6 +119,7 @@ function Vendas() {
       alert("Erro ao finalizar venda!");
     }
   };
+  
 
   const handleScan = async (code) => {
     document.activeElement.blur();
