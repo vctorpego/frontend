@@ -97,12 +97,52 @@ export const Button = styled.button`
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.3s ease;
-  width: 100%;
 
   &:hover {
     background-color: #0056b3;
     transform: scale(1.05);
   }
+
+  &:not(:only-child) {
+    width: auto;
+    flex: 1;
+  }
 `;
+
+export const FieldGroup = styled.div`
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  width: 100%;
+  max-width: 500px;
+
+  @media (min-width: 480px) {
+    flex-direction: row;
+    align-items: center;
+  }
+`;
+
+export const ClienteNome = styled.p`
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin-top: 10px;
+`;
+
+export const ValorTotal = styled.p`
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin-top: 5px;
+`;
+
+export const SubTitle = styled.h3`
+  font-size: 1rem;
+  font-weight: bold;
+  color: #555;
+  margin-top: 20px;
+`;
+
+
 
 

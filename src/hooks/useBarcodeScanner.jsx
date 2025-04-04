@@ -5,6 +5,11 @@ function useBarcodeScanner(onScan) {
 
   useEffect(() => {
     const handleKeyPress = (event) => {
+      const tagName = document.activeElement.tagName;
+      const isTyping = tagName === "INPUT" || tagName === "TEXTAREA";
+
+      if (isTyping) return;
+
       if (event.key === "Enter") {
         if (barcode) {
           onScan(barcode);
