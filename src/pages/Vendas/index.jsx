@@ -112,6 +112,36 @@ function Vendas() {
         headers: { Authorization: `Bearer ${token}` },
       });
   
+      // Atualizar saldo e fatura após finalização da venda
+      let saldoRestante = cliente.saldoCliente;
+      let faturaRestante = cliente.faturaCliente;
+  
+      if (valorTotal <= saldoRestante) {
+        // O saldo é suficiente para pagar a comanda
+        saldoRestante -= valorTotal;
+        await axios.put(`http://localhost:8080/cliente/atualizar-saldo/${clienteAtualId}`, {
+          saldoCliente: saldoRestante,
+        }, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        // O saldo não é suficiente, vamos usar o limite (faturaCliente)
+        const restanteParaCobrar = valorTotal - saldoRestante;
+        faturaRestante -= restanteParaCobrar;
+  
+        await axios.put(`http://localhost:8080/cliente/atualizar-saldo/${clienteAtualId}`, {
+          saldoCliente: 0,
+        }, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+  
+        await axios.put(`http://localhost:8080/cliente/atualizar-fatura/${clienteAtualId}`, {
+          faturaCliente: faturaRestante,
+        }, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+  
       alert("Venda finalizada com sucesso!");
       setProdutos([]);
       setValorTotal(0);
@@ -119,6 +149,7 @@ function Vendas() {
       alert("Erro ao finalizar venda!");
     }
   };
+  
   
 
   const handleScan = async (code) => {
@@ -175,7 +206,7 @@ function Vendas() {
     if (!token) return;
 
     try {
-      const response = await axios.get("http://localhost:8080/produto/2", {
+      const response = await axios.get("http://localhost:8080/produto/1", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
