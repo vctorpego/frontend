@@ -23,6 +23,24 @@ export const Description = styled.p`
   text-align: center;
 `;
 
+export const Mensagem = styled.div`
+  color: #856404;
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  padding: 12px 20px;
+  border-radius: 6px;
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-in-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
 export const Form = styled.form`
   background-color: white;
   padding: 30px;
@@ -42,15 +60,14 @@ export const Input = styled.input`
   border-radius: 5px;
   width: 100%;
   transition: all 0.3s ease;
-  
+
   &:focus {
     border-color: #007BFF;
     outline: none;
-    transform: scale(1.05);
+    transform: scale(1.03);
+    background-color: #eef7ff;
   }
 `;
-
-
 
 export const ProductList = styled.ul`
   list-style-type: none;
@@ -83,8 +100,6 @@ export const ProductPrice = styled.span`
 export const Label = styled.label`
   font-size: 16px;
   color: #555;
-
-  
 `;
 
 export const Button = styled.button`
@@ -123,26 +138,22 @@ export const FieldGroup = styled.div`
 `;
 
 export const ClienteNome = styled.p`
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   font-weight: bold;
-  color: #1a1a1a;
+  color: #2c3e50;
   margin-top: 10px;
 `;
 
 export const ValorTotal = styled.p`
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   font-weight: bold;
-  color: #1a1a1a;
+  color: #2c3e50;
   margin-top: 5px;
 `;
 
 export const SubTitle = styled.h3`
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: bold;
   color: #555;
   margin-top: 20px;
 `;
-
-
-
-

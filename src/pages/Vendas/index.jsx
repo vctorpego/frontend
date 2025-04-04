@@ -10,12 +10,19 @@ function Vendas() {
   const [cliente, setCliente] = useState(null);
   const [produtos, setProdutos] = useState([]);
   const [valorTotal, setValorTotal] = useState(0);
-  const [primeiroScan, setPrimeiroScan] = useState(true);
+  const [comandaAtiva, setComandaAtiva] = useState(null);
+  const [pesoGramas, setPesoGramas] = useState("");
+  const [clienteBuscado, setClienteBuscado] = useState(null);
+  const [mensagem, setMensagem] = useState("");
+
   const navigate = useNavigate();
   const clienteInputRef = useRef(null);
   const pesoInputRef = useRef(null);
-  const [pesoGramas, setPesoGramas] = useState("");
-  const [clienteBuscado, setClienteBuscado] = useState(null);
+
+  const exibirMensagem = (texto) => {
+    setMensagem(texto);
+    setTimeout(() => setMensagem(""), 5000);
+  };
 
   const getToken = () => {
     const token = localStorage.getItem("token");
@@ -39,108 +46,106 @@ function Vendas() {
   };
 
   const buscarCliente = async () => {
-    if (!clienteId) {
-      alert("Digite um ID de cliente!");
-      return;
-    }
-    try {
-      const token = getToken();
-      if (!token) return;
-      const response = await axios.get(`http://localhost:8080/cliente/${clienteId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.status === 200 && response.data) {
-        setCliente(response.data);
-        setClienteBuscado(response.data);
-        setProdutos([]);
-        setValorTotal(0);
-        setPrimeiroScan(true);
-      } else {
-        alert("Cliente não encontrado!");
-      }
-    } catch {
-      alert("Erro ao buscar cliente!");
-    }
-  };
-
-  const atualizarVenda = async () => {
-    const clienteAtualId = clienteBuscado?.id || clienteId;
+    setMensagem(""); // limpa a mensagem ao iniciar nova busca
   
-    if (!clienteAtualId) {
-      alert("Busque um cliente antes de finalizar a venda!");
-      return;
-    }
+    if (!clienteId) return exibirMensagem("Digite um ID de cliente!");
   
     const token = getToken();
     if (!token) return;
   
     try {
-      const response = await axios.get(`http://localhost:8080/comanda/ultima/${clienteAtualId}`, {
+      const response = await axios.get(`http://localhost:8080/cliente/${clienteId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
   
-      if (response.status !== 200 || !response.data?.idCompraComanda) {
-        alert("Nenhuma comanda encontrada para este cliente!");
-        return;
+      if (response.status === 200 && response.data) {
+        setCliente(response.data);
+        setClienteBuscado(response.data);
+        setProdutos([]);
+        setValorTotal(0);
+  
+        const clienteRealId = response.data.id || response.data.idCliente;
+        const comandaResponse = await axios.get(
+          `http://localhost:8080/comanda/ultima/${clienteRealId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+  
+        if (comandaResponse.status === 200 && comandaResponse.data && !comandaResponse.data.horaSaidaComanda) {
+          setComandaAtiva(comandaResponse.data);
+        } else {
+          setComandaAtiva(null);
+          exibirMensagem("Cliente não possui comanda ativa. Não é possível adicionar produtos.");
+        }
+      } else {
+        setCliente(null);
+        setComandaAtiva(null);
+        exibirMensagem("Cliente não encontrado!");
       }
+    } catch {
+      setCliente(null);
+      setComandaAtiva(null);
+      exibirMensagem("Erro ao buscar cliente!");
+    }
+  };
   
-      const comandaId = response.data.idCompraComanda;
-  
-      // Agrupa produtos por ID e conta quantidades
+  const atualizarVenda = async () => {
+    const clienteAtualId = clienteBuscado?.id || clienteId;
+    if (!clienteAtualId) return exibirMensagem("Busque um cliente antes de finalizar a venda!");
+
+    const token = getToken();
+    if (!token) return;
+
+    if (!comandaAtiva || !comandaAtiva.idCompraComanda) {
+      return exibirMensagem("Nenhuma comanda ativa encontrada para este cliente!");
+    }
+
+    try {
+      const comandaId = comandaAtiva.idCompraComanda;
+
       const mapaProdutos = new Map();
       produtos.forEach((produto) => {
         const id = produto.idProduto;
-        if (mapaProdutos.has(id)) {
-          mapaProdutos.set(id, mapaProdutos.get(id) + 1);
-        } else {
-          mapaProdutos.set(id, 1);
-        }
+        mapaProdutos.set(id, (mapaProdutos.get(id) || 0) + 1);
       });
-  
+
       const comandaProdutos = Array.from(mapaProdutos.entries()).map(([idProduto, quantidade]) => ({
         idProduto,
         quantidade,
       }));
-  
-      const comandaData = {
+
+      await axios.put(`http://localhost:8080/comanda/${comandaId}`, {
         valorTotalComanda: valorTotal,
         comandaProdutos,
-      };
-  
-      await axios.put(`http://localhost:8080/comanda/${comandaId}`, comandaData, {
+      }, {
         headers: { Authorization: `Bearer ${token}` },
       });
-  
-      // Atualizar saldo e fatura após finalização da venda
+
       let saldoRestante = cliente.saldoCliente;
       let faturaRestante = cliente.faturaCliente;
-  
+
       if (valorTotal <= saldoRestante) {
-        saldoRestante -= valorTotal;
         await axios.put(`http://localhost:8080/cliente/atualizar-saldo/${clienteAtualId}`, {
-          saldoCliente: saldoRestante,
+          saldoCliente: saldoRestante - valorTotal,
         }, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
         const restanteParaCobrar = valorTotal - saldoRestante;
-        faturaRestante -= restanteParaCobrar;
-  
         await axios.put(`http://localhost:8080/cliente/atualizar-saldo/${clienteAtualId}`, {
           saldoCliente: 0,
         }, {
           headers: { Authorization: `Bearer ${token}` },
         });
-  
+
         await axios.put(`http://localhost:8080/cliente/atualizar-fatura/${clienteAtualId}`, {
-          faturaCliente: faturaRestante,
+          faturaCliente: faturaRestante - restanteParaCobrar,
         }, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
-  
-      
+
       await axios.put(
         `http://localhost:8080/cliente/ultima-compra/${clienteAtualId}`,
         {
@@ -150,28 +155,22 @@ function Vendas() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-  
-      alert("Venda finalizada com sucesso!");
+
       setProdutos([]);
       setValorTotal(0);
+      exibirMensagem("Venda finalizada com sucesso!");
     } catch {
-      alert("Erro ao finalizar venda!");
+      exibirMensagem("Erro ao finalizar venda!");
     }
   };
-  
-  
-  
 
   const handleScan = async (code) => {
     document.activeElement.blur();
 
-    if (!cliente) {
-      alert("Busque um cliente antes de escanear produtos!");
-      return;
-    }
+    if (!cliente) return exibirMensagem("Busque um cliente antes de escanear produtos!");
+    if (!comandaAtiva) return exibirMensagem("Cliente não possui comanda ativa. Não é possível adicionar produtos.");
 
     let cleanCode = code.replace(/\D/g, "");
-
     if (pesoGramas && pesoGramas.trim() !== "") {
       const pesoLido = pesoGramas.trim();
       if (cleanCode.startsWith(pesoLido)) {
@@ -179,10 +178,10 @@ function Vendas() {
       }
     }
 
-    try {
-      const token = getToken();
-      if (!token) return;
+    const token = getToken();
+    if (!token) return;
 
+    try {
       const response = await axios.get(`http://localhost:8080/produto/codigobarras/${cleanCode}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -193,24 +192,22 @@ function Vendas() {
         const limitePermitido = cliente.saldoCliente + cliente.faturaCliente;
 
         if (novoTotal > limitePermitido) {
-          alert("O total já atingiu o seu saldo + limite disponível!");
-          return;
+          return exibirMensagem("O total já atingiu o seu saldo + limite disponível!");
         }
 
         setProdutos((prev) => [...prev, produto]);
         setValorTotal(novoTotal);
       }
     } catch {
-      alert("Erro ao buscar produto!");
+      exibirMensagem("Erro ao buscar produto!");
     }
   };
 
   const adicionarRefeicao = async () => {
+    if (!comandaAtiva) return exibirMensagem("Cliente não possui comanda ativa. Não é possível adicionar refeições.");
+
     const peso = parseFloat(pesoGramas);
-    if (isNaN(peso) || peso <= 0) {
-      alert("Informe um peso válido em gramas!");
-      return;
-    }
+    if (isNaN(peso) || peso <= 0) return exibirMensagem("Informe um peso válido em gramas!");
 
     const token = getToken();
     if (!token) return;
@@ -227,8 +224,7 @@ function Vendas() {
 
         const limitePermitido = cliente.saldoCliente + cliente.faturaCliente;
         if (valorTotal + valorProporcional > limitePermitido) {
-          alert("O total já atingiu o seu saldo + limite disponível!");
-          return;
+          return exibirMensagem("O total já atingiu o seu saldo + limite disponível!");
         }
 
         const produtoComPeso = {
@@ -242,10 +238,10 @@ function Vendas() {
         setPesoGramas("");
         pesoInputRef.current?.blur();
       } else {
-        alert("Produto de refeição não encontrado!");
+        exibirMensagem("Produto de refeição não encontrado!");
       }
     } catch {
-      alert("Erro ao buscar produto refeição!");
+      exibirMensagem("Erro ao buscar produto refeição!");
     }
   };
 
@@ -254,6 +250,8 @@ function Vendas() {
   return (
     <C.Container>
       <C.Title>Nova Comanda - TechMeal</C.Title>
+
+      {mensagem && <C.Mensagem>{mensagem}</C.Mensagem>}
 
       <C.FieldGroup>
         <C.Input
@@ -269,7 +267,7 @@ function Vendas() {
       {cliente && <C.ClienteNome>Cliente: {cliente.nomeCliente}</C.ClienteNome>}
       {cliente && <C.ValorTotal>Valor Total: R$ {valorTotal.toFixed(2)}</C.ValorTotal>}
 
-      {cliente && (
+      {cliente && comandaAtiva && (
         <>
           <C.SubTitle>Adicionar Refeição (por peso)</C.SubTitle>
           <C.FieldGroup>
