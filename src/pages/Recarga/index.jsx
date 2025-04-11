@@ -52,14 +52,16 @@ const Recarga = () => {
     if (!clienteId) return;
 
     try {
-      const res = await axios.get(`http://localhost:8080/cliente/${clienteId}`, getRequestConfig());
+      const res = await axios.get(
+        `http://localhost:8080/cliente/${clienteId}`,
+        getRequestConfig()
+      );
       setCliente(res.data);
-      // NÃO limpa a mensagem de sucesso aqui
     } catch (err) {
       console.error("Erro ao buscar cliente:", err);
       alert("Cliente não encontrado.");
       setCliente(null);
-      setMensagemSucesso(""); // limpa apenas se der erro
+      setMensagemSucesso("");
     }
   };
 
@@ -102,25 +104,20 @@ const Recarga = () => {
           { saldoCliente: novoSaldo },
           getRequestConfig()
         );
-        setClientes(clientesAtualizados);
-        setValor("");
-        setMensagemSucesso("Recarga realizada com sucesso!");
+      }
 
-        setTimeout(() => {
-          setMensagemSucesso("");
-        }, 1000);
-      })
-      .catch((error) => {
-        console.error("Erro ao realizar recarga:", error);
-        alert("Ocorreu um erro ao realizar a recarga.");
-      });
-  };
+      setMensagemSucesso("Recarga realizada com sucesso!");
+      setValor("");
 
-  const handleClienteIdChange = (e) => {
-    const id = e.target.value;
-    setClienteId(id);
-    const cliente = clientes.find((c) => c.idCliente === parseInt(id));
-    setClienteSelecionado(cliente || null);
+      // Mensagem some após 3 segundos
+      setTimeout(() => setMensagemSucesso(""), 3000);
+
+      // Recarregar cliente atualizado
+      await buscarCliente();
+    } catch (error) {
+      console.error("Erro ao realizar recarga:", error);
+      alert("Erro ao atualizar dados do cliente.");
+    }
   };
 
   return (
