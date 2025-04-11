@@ -1,13 +1,19 @@
 import styled from "styled-components";
 
 export const Container = styled.div`
+    display: flex;
+    min-height: 100vh;
+    flex-direction: row;
+    background-color: #f4f4f4;
+`;
+
+
+export const Content = styled.div`
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   flex-direction: column;
-  height: 100vh;
-  background-color: #f5f5f5;
-  gap: 30px;
+  width: 100%;
   padding: 20px;
 `;
 

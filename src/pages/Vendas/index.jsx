@@ -4,8 +4,10 @@ import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import * as C from "./styles";
+import Sidebar from "../../components/Sidebar";
 
 function Vendas() {
+  const [user, setUser] = useState(null);
   const [clienteId, setClienteId] = useState("");
   const [cliente, setCliente] = useState(null);
   const [produtos, setProdutos] = useState([]);
@@ -249,58 +251,61 @@ function Vendas() {
 
   return (
     <C.Container>
-      <C.Title>Nova Comanda - TechMeal</C.Title>
+      <Sidebar user={user} />
+      <C.Content>
+        <C.Title>Nova Comanda - TechMeal</C.Title>
 
-      {mensagem && <C.Mensagem>{mensagem}</C.Mensagem>}
+        {mensagem && <C.Mensagem>{mensagem}</C.Mensagem>}
 
-      <C.FieldGroup>
-        <C.Input
-          ref={clienteInputRef}
-          type="text"
-          placeholder="Digite o ID do cliente..."
-          value={clienteId}
-          onChange={(e) => setClienteId(e.target.value)}
-        />
-        <C.Button onClick={buscarCliente}>Buscar Cliente</C.Button>
-      </C.FieldGroup>
-
-      {cliente && <C.ClienteNome>Cliente: {cliente.nomeCliente}</C.ClienteNome>}
-      {cliente && <C.ValorTotal>Valor Total: R$ {valorTotal.toFixed(2)}</C.ValorTotal>}
-
-      {cliente && comandaAtiva && (
-        <>
-          <C.SubTitle>Adicionar Refeição (por peso)</C.SubTitle>
-          <C.FieldGroup>
-            <C.Input
-              ref={pesoInputRef}
-              type="number"
-              placeholder="Peso em gramas"
-              value={pesoGramas}
-              onChange={(e) => setPesoGramas(e.target.value)}
-            />
-            <C.Button onClick={adicionarRefeicao}>Adicionar Refeição</C.Button>
-          </C.FieldGroup>
-        </>
-      )}
-
-      {produtos.length === 0 ? (
-        <C.Description>Nenhum produto escaneado ainda.</C.Description>
-      ) : (
-        <C.ProductList>
-          {produtos.map((produto, index) => (
-            <C.ProductItem key={index}>
-              <span>{produto.nomeProduto}</span>
-              <C.ProductPrice>R$ {produto.precoProduto.toFixed(2)}</C.ProductPrice>
-            </C.ProductItem>
-          ))}
-        </C.ProductList>
-      )}
-
-      {cliente && produtos.length > 0 && (
-        <C.FieldGroup style={{ marginTop: "30px", justifyContent: "center" }}>
-          <C.Button onClick={atualizarVenda}>Finalizar Venda</C.Button>
+        <C.FieldGroup>
+          <C.Input
+            ref={clienteInputRef}
+            type="text"
+            placeholder="Digite o ID do cliente..."
+            value={clienteId}
+            onChange={(e) => setClienteId(e.target.value)}
+          />
+          <C.Button onClick={buscarCliente}>Buscar Cliente</C.Button>
         </C.FieldGroup>
-      )}
+
+        {cliente && <C.ClienteNome>Cliente: {cliente.nomeCliente}</C.ClienteNome>}
+        {cliente && <C.ValorTotal>Valor Total: R$ {valorTotal.toFixed(2)}</C.ValorTotal>}
+
+        {cliente && comandaAtiva && (
+          <>
+            <C.SubTitle>Adicionar Refeição (por peso)</C.SubTitle>
+            <C.FieldGroup>
+              <C.Input
+                ref={pesoInputRef}
+                type="number"
+                placeholder="Peso em gramas"
+                value={pesoGramas}
+                onChange={(e) => setPesoGramas(e.target.value)}
+              />
+              <C.Button onClick={adicionarRefeicao}>Adicionar Refeição</C.Button>
+            </C.FieldGroup>
+          </>
+        )}
+
+        {produtos.length === 0 ? (
+          <C.Description>Nenhum produto escaneado ainda.</C.Description>
+        ) : (
+          <C.ProductList>
+            {produtos.map((produto, index) => (
+              <C.ProductItem key={index}>
+                <span>{produto.nomeProduto}</span>
+                <C.ProductPrice>R$ {produto.precoProduto.toFixed(2)}</C.ProductPrice>
+              </C.ProductItem>
+            ))}
+          </C.ProductList>
+        )}
+
+        {cliente && produtos.length > 0 && (
+          <C.FieldGroup style={{ marginTop: "30px", justifyContent: "center" }}>
+            <C.Button onClick={atualizarVenda}>Finalizar Venda</C.Button>
+          </C.FieldGroup>
+        )}
+        </C.Content>
     </C.Container>
   );
 }

@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom"; // Importando o hook useLocation para saber a URL atual
-import { CupSoda, LayoutDashboard, Box, Users, ShoppingCart, DollarSign, FileText, User, ArrowRightCircle, LogOut } from "lucide-react";
+import { CupSoda, LayoutDashboard, Box, Users, ShoppingCart, DollarSign, FileText, User, ArrowRightCircle, LogOut, Banknote } from "lucide-react";
 import * as C from "./styles";  // Importando os estilos
 
 const Sidebar = ({ user, handleLogout }) => {
@@ -35,13 +35,13 @@ const Sidebar = ({ user, handleLogout }) => {
           <Users size={20} /> Clientes
         </C.MenuItem>
         <C.MenuItem onClick={() => handleNavigation("/recarga")} isActive={isActive("/recarga")}>
-          <ShoppingCart size={20} /> Recarga
+          <DollarSign size={20} /> Recarga
         </C.MenuItem>
         <C.MenuItem onClick={() => handleNavigation("/vendas")} isActive={isActive("/vendas")}>
-          <DollarSign size={20} /> Vendas
+          <ShoppingCart size={20} /> Vendas
         </C.MenuItem>
         <C.MenuItem onClick={() => handleNavigation("/pagamentos")} isActive={isActive("/pagamentos")}>
-          <DollarSign size={20} /> Pagamentos
+          <Banknote size={20} /> Pagamentos
         </C.MenuItem>
         <C.MenuItem onClick={() => handleNavigation("")} isActive={isActive("/relatorios")}>
           <FileText size={20} /> Relatórios
