@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
@@ -7,21 +7,12 @@ import * as C from "./styles";
 
 const Recarga = () => {
   const [user, setUser] = useState(null);
-  const [clientes, setClientes] = useState([]);
   const [clienteId, setClienteId] = useState("");
-  const [clienteSelecionado, setClienteSelecionado] = useState(null);
+  const [cliente, setCliente] = useState(null);
   const [valor, setValor] = useState("");
   const [mensagemSucesso, setMensagemSucesso] = useState("");
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = getToken();
-    if (token) {
-      setUser(jwt_decode(token));
-      buscarClientes();
-    }
-  }, []);
 
   const getToken = () => {
     const token = localStorage.getItem("token");
@@ -57,122 +48,120 @@ const Recarga = () => {
     };
   };
 
-  const buscarClientes = () => {
-    axios
-      .get("http://localhost:8080/cliente", getRequestConfig())
-      .then((res) => setClientes(res.data))
-      .catch((err) => console.error("Erro ao buscar clientes:", err));
-  };
+  const buscarCliente = async () => {
+    if (!clienteId) return;
 
-  const calcularNovoSaldoEFatura = (cliente, valorRecarga) => {
-    let novoSaldo = cliente.saldoCliente;
-    let novaFatura = cliente.faturaCliente;
-    const valor = parseFloat(valorRecarga);
-
-    if (cliente.saldoCliente === 0 && valor > 0) {
-      if (valor >= novaFatura) {
-        const sobra = valor - novaFatura;
-        novaFatura = 0;
-        novoSaldo = sobra;
-      } else {
-        novaFatura -= valor;
-      }
-    } else {
-      novoSaldo += valor;
+    try {
+      const res = await axios.get(`http://localhost:8080/cliente/${clienteId}`, getRequestConfig());
+      setCliente(res.data);
+      // NÃO limpa a mensagem de sucesso aqui
+    } catch (err) {
+      console.error("Erro ao buscar cliente:", err);
+      alert("Cliente não encontrado.");
+      setCliente(null);
+      setMensagemSucesso(""); // limpa apenas se der erro
     }
-
-    return { novoSaldo, novaFatura };
   };
 
-  const realizarRecarga = () => {
-    if (!clienteSelecionado) {
-      alert("Selecione um cliente válido.");
+  const realizarRecarga = async () => {
+    if (!cliente) {
+      alert("Nenhum cliente selecionado.");
       return;
     }
 
-    if (!valor || isNaN(valor) || parseFloat(valor) <= 0) {
+    const valorRecarga = parseFloat(valor);
+    if (!valor || isNaN(valorRecarga) || valorRecarga <= 0) {
       alert("Digite um valor válido para recarga.");
       return;
     }
 
-    const { novoSaldo, novaFatura } = calcularNovoSaldoEFatura(clienteSelecionado, valor);
+    const creditoUsado = cliente.limiteCliente - cliente.faturaCliente;
+    let restante = valorRecarga;
 
-    axios
-      .put(
-        `http://localhost:8080/cliente/atualizar-saldo/${clienteSelecionado.idCliente}`,
-        { saldoCliente: novoSaldo, faturaCliente: novaFatura },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      )
-      .then(() => {
-        const clientesAtualizados = clientes.map((c) =>
-          c.idCliente === clienteSelecionado.idCliente
-            ? { ...c, saldoCliente: novoSaldo, faturaCliente: novaFatura }
-            : c
+    try {
+      // 1. Abater do crédito utilizado (fatura)
+      if (creditoUsado > 0) {
+        const valorParaFatura = Math.min(restante, creditoUsado);
+        const novaFatura = cliente.faturaCliente + valorParaFatura;
+
+        await axios.put(
+          `http://localhost:8080/cliente/atualizar-fatura/${cliente.idCliente}`,
+          { faturaCliente: novaFatura },
+          getRequestConfig()
         );
-        setClientes(clientesAtualizados);
-        setValor("");
-        setMensagemSucesso("Recarga realizada com sucesso!");
 
-        setTimeout(() => {
-          setMensagemSucesso("");
-        }, 1000);
-      })
-      .catch((error) => {
-        console.error("Erro ao realizar recarga:", error);
-        alert("Ocorreu um erro ao realizar a recarga.");
-      });
-  };
+        restante -= valorParaFatura;
+      }
 
-  const handleClienteIdChange = (e) => {
-    const id = e.target.value;
-    setClienteId(id);
-    const cliente = clientes.find((c) => c.idCliente === parseInt(id));
-    setClienteSelecionado(cliente || null);
+      // 2. Se sobrar, adicionar ao saldo
+      if (restante > 0) {
+        const novoSaldo = cliente.saldoCliente + restante;
+
+        await axios.put(
+          `http://localhost:8080/cliente/atualizar-saldo/${cliente.idCliente}`,
+          { saldoCliente: novoSaldo },
+          getRequestConfig()
+        );
+      }
+
+      setMensagemSucesso("Recarga realizada com sucesso!");
+      setValor("");
+
+      // Mensagem some após 3 segundos
+      setTimeout(() => setMensagemSucesso(""), 3000);
+
+      // Recarregar cliente atualizado
+      await buscarCliente();
+    } catch (error) {
+      console.error("Erro ao realizar recarga:", error);
+      alert("Erro ao atualizar dados do cliente.");
+    }
   };
 
   return (
     <C.Container>
       <Sidebar user={user} />
-
       <C.Content>
         <C.Title>Recarga</C.Title>
 
         {mensagemSucesso && <C.Sucesso>{mensagemSucesso}</C.Sucesso>}
 
         <C.Form>
-          <label>Digite o ID do cliente:</label>
+          <label>ID do Cliente:</label>
           <input
             type="number"
-            placeholder="Digite o ID do cliente"
             value={clienteId}
-            onChange={handleClienteIdChange}
+            onChange={(e) => setClienteId(e.target.value)}
+            placeholder="Digite o ID do cliente"
           />
-
-          {clienteSelecionado && (
-            <div>
-              <p>
-                <strong>Cliente Selecionado:</strong> {clienteSelecionado.nomeCliente}
-              </p>
-            </div>
-          )}
-
-          <label>Valor da recarga:</label>
-          <input
-            type="number"
-            placeholder="Digite o valor"
-            value={valor}
-            onChange={(e) => setValor(e.target.value)}
-            min="1"
-          />
-
-          <button type="button" onClick={realizarRecarga}>
-            Confirmar Recarga
+          <button type="button" onClick={buscarCliente}>
+            Buscar Cliente
           </button>
+
+          {cliente && (
+            <>
+              <div>
+                <p><strong>Cliente:</strong> {cliente.nomeCliente}</p>
+                <p>Saldo Atual: R$ {cliente.saldoCliente.toFixed(2)}</p>
+                <p>Limite Total: R$ {cliente.limiteCliente.toFixed(2)}</p>
+                <p>Limite Disponível: R$ {cliente.faturaCliente.toFixed(2)}</p>
+                <p>Crédito Utilizado: R$ {(cliente.limiteCliente - cliente.faturaCliente).toFixed(2)}</p>
+              </div>
+
+              <label>Valor da Recarga:</label>
+              <input
+                type="number"
+                value={valor}
+                onChange={(e) => setValor(e.target.value)}
+                placeholder="Digite o valor da recarga"
+                min="1"
+              />
+
+              <button type="button" onClick={realizarRecarga}>
+                Confirmar Recarga
+              </button>
+            </>
+          )}
         </C.Form>
       </C.Content>
     </C.Container>

@@ -138,12 +138,19 @@ const ListagemClientes = () => {
     "Ultima Compra": "ultimaCompraCliente",
   };
 
-  // Mapeia os clientes e adiciona o campo calculado limiteUsado
+  const formatMoeda = (valor) => {
+    if (valor == null) return "0,00";
+    return Number(valor).toFixed(2).replace(".", ",");
+  };
+
   const clientesComLimiteUsado = filterClientes().map((cliente) => ({
     ...cliente,
+    saldoCliente: formatMoeda(cliente.saldoCliente),
+    limiteCliente: formatMoeda(cliente.limiteCliente),
+    faturaCliente: formatMoeda(cliente.faturaCliente),
     limiteUsado:
       cliente.limiteCliente != null && cliente.faturaCliente != null
-        ? (cliente.limiteCliente - cliente.faturaCliente).toFixed(2)
+        ? formatMoeda(cliente.limiteCliente - cliente.faturaCliente)
         : "N/A",
   }));
 

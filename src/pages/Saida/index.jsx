@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import jwtDecode from "jwt-decode";
@@ -22,10 +22,23 @@ const SaidaCliente = () => {
   const [erro, setErro] = useState("");
   const navigate = useNavigate();
 
-  const buscarDetalhesProdutos = async (comanda) => {
+  // Envia para o servidor de impressão
+  const enviarParaImpressao = async (cliente, comanda, produtos) => {
+    try {
+      await axios.post("http://localhost:3001/imprimir", {
+        cliente,
+        comanda,
+        produtos,
+      });
+    } catch (err) {
+      console.error("Erro ao enviar para servidor de impressão:", err);
+    }
+  };
+
+  const buscarDetalhesProdutos = async (comandaFinalizada) => {
     try {
       const token = localStorage.getItem("token");
-      const promises = comanda.comandaProdutos.map(async ({ idProduto, quantidade }) => {
+      const promises = comandaFinalizada.comandaProdutos.map(async ({ idProduto, quantidade }) => {
         const res = await axios.get(`http://localhost:8080/produto/${idProduto}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -37,6 +50,9 @@ const SaidaCliente = () => {
 
       const detalhes = await Promise.all(promises);
       setProdutosDetalhados(detalhes);
+
+      // Depois que tudo está carregado, envia para impressão
+      enviarParaImpressao(comandaFinalizada.cliente, comandaFinalizada, detalhes);
     } catch (error) {
       console.error("Erro ao buscar detalhes dos produtos:", error);
     }
@@ -63,7 +79,7 @@ const SaidaCliente = () => {
         return;
       }
 
-      // 1. Busca comanda ativa (sem hora de saída)
+      // 1. Busca comanda ativa
       const comandaResponse = await axios.get(
         `http://localhost:8080/comanda/ultima/${idCliente}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -91,12 +107,15 @@ const SaidaCliente = () => {
 
         const comandaFinalizada = comandaFinalizadaResponse.data;
 
+        // 5. Atualiza estados para exibição
         setCliente(comandaFinalizada.cliente);
         setComanda(comandaFinalizada);
 
+        // 6. Busca produtos e imprime depois disso
         if (comandaFinalizada.comandaProdutos.length > 0) {
           await buscarDetalhesProdutos(comandaFinalizada);
         }
+
       } else {
         setErro("⚠️ Não há comanda ativa para este cliente.");
       }
@@ -135,26 +154,6 @@ const SaidaCliente = () => {
         </div>
       )}
 
-      {cliente && comanda && (
-        <div style={{ marginTop: "20px" }}>
-          <h3>Detalhes da Comanda</h3>
-          <p><strong>ID Comanda:</strong> {comanda.idCompraComanda}</p>
-          <p><strong>Entrada:</strong> {comanda.horaEntradaComanda}</p>
-          <p><strong>Saída:</strong> {comanda.horaSaidaComanda}</p>
-          <p><strong>Valor Total:</strong> R$ {comanda.valorTotalComanda.toFixed(2)}</p>
-          <p><strong>Saldo antes da compra:</strong> R$ {comanda.saldoAntigo.toFixed(2)}</p>
-          <p><strong>Limite antes da compra:</strong> R$ {comanda.limiteAntigo.toFixed(2)}</p>
-
-          <h4>Produtos:</h4>
-          <ul>
-            {produtosDetalhados.map((produto, index) => (
-              <li key={index}>
-                {produto.nomeProduto} - qtd: {produto.quantidade} - R$ {produto.precoProduto.toFixed(2)}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </Container>
   );
 };
