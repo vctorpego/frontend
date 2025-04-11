@@ -115,12 +115,34 @@ const Recarga = () => {
             : c
         );
         setClientes(clientesAtualizados);
-        setValor("");
-        setMensagemSucesso("Recarga realizada com sucesso!");
 
-        setTimeout(() => {
-          setMensagemSucesso("");
-        }, 1000);
+        // Save recharge history
+        axios
+          .post(
+            "http://localhost:8080/historico-recarga",
+            {
+              dataRecargaHistoricoRecarga: new Date().toISOString(),
+              valorRecargaHistoricoRecarga: parseFloat(valor),
+              cliente: { idCliente: clienteSelecionado.idCliente }, // Ensure proper mapping for cliente
+            },
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          )
+          .then(() => {
+            setValor("");
+            setMensagemSucesso("Recarga realizada com sucesso!");
+            setTimeout(() => {
+              setMensagemSucesso("");
+            }, 1000);
+          })
+          .catch((error) => {
+            console.error("Erro ao salvar histórico de recarga:", error);
+            alert("Ocorreu um erro ao salvar o histórico de recarga.");
+          });
       })
       .catch((error) => {
         console.error("Erro ao realizar recarga:", error);
