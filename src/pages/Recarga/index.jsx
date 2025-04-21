@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +7,7 @@ import * as C from "./styles";
 
 const Recarga = () => {
   const [user, setUser] = useState(null);
-  const [clienteId, setClienteId] = useState("");
+  const [cartaoCliente, setCartaoCliente] = useState(""); // Usando o cartão do cliente
   const [cliente, setCliente] = useState(null);
   const [valor, setValor] = useState("");
   const [mensagemSucesso, setMensagemSucesso] = useState("");
@@ -48,12 +48,12 @@ const Recarga = () => {
     };
   };
 
-  const buscarCliente = async () => {
-    if (!clienteId) return;
+  const buscarClientePorCartao = async () => {
+    if (!cartaoCliente || cartaoCliente.length !== 10) return; // Verificar se o número do cartão está completo
 
     try {
       const res = await axios.get(
-        `http://localhost:8080/cliente/${clienteId}`,
+        `http://localhost:8080/cliente/cartao/${cartaoCliente}`,
         getRequestConfig()
       );
       setCliente(res.data);
@@ -113,12 +113,42 @@ const Recarga = () => {
       setTimeout(() => setMensagemSucesso(""), 3000);
 
       // Recarregar cliente atualizado
-      await buscarCliente();
+      await buscarClientePorCartao();
     } catch (error) {
       console.error("Erro ao realizar recarga:", error);
       alert("Erro ao atualizar dados do cliente.");
     }
   };
+
+  // Função para capturar o número do cartão
+  useEffect(() => {
+    const handleCardInput = (event) => {
+      const input = event.key;
+      if (/^[0-9]$/.test(input)) {
+        setCartaoCliente((prev) => {
+          if (prev.length < 10) return prev + input;
+          return prev;
+        });
+      }
+
+      if (input === "Enter") {
+        event.preventDefault();
+      }
+    };
+
+    document.addEventListener("keydown", handleCardInput);
+    return () => {
+      document.removeEventListener("keydown", handleCardInput);
+    };
+  }, []);
+
+  // Chama a busca do cliente automaticamente quando o cartão for lido
+  useEffect(() => {
+    if (cartaoCliente.length === 10) {
+      console.log("Cartão completo, buscando cliente...");
+      buscarClientePorCartao();
+    }
+  }, [cartaoCliente]);
 
   return (
     <C.Container>
@@ -129,16 +159,8 @@ const Recarga = () => {
         {mensagemSucesso && <C.Sucesso>{mensagemSucesso}</C.Sucesso>}
 
         <C.Form>
-          <label>ID do Cliente:</label>
-          <input
-            type="number"
-            value={clienteId}
-            onChange={(e) => setClienteId(e.target.value)}
-            placeholder="Digite o ID do cliente"
-          />
-          <button type="button" onClick={buscarCliente}>
-            Buscar Cliente
-          </button>
+          <label>Cartão do Cliente:</label>
+          <div>{cartaoCliente}</div>
 
           {cliente && (
             <>

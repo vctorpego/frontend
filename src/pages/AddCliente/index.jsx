@@ -1,73 +1,74 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { Container, Title, Form, Input, Button, Label } from '../AddProduto/styles';  // Importando os estilos
+import { Container, Title, Form, Input, Button, Label } from '../AddProduto/styles';
+import useCardScanner from "../../hooks/useCardScanner"; // Importa o hook do cartão
 
 const AddCliente = () => {
-  const [nomeCliente, setNomeCliente] = useState("");  // Nome do cliente
-  const [saldoCliente, setSaldoCliente] = useState("");  // Saldo do cliente
-  const [limiteCliente, setLimiteCliente] = useState("");  // Limite de crédito
-  const [dtNascCliente, setDtNascCliente] = useState("");  // Data de nascimento
-  const [faturaCliente, setFaturaCliente] = useState("");  // Fatura do cliente
+  const [nomeCliente, setNomeCliente] = useState("");
+  const [saldoCliente, setSaldoCliente] = useState("");
+  const [limiteCliente, setLimiteCliente] = useState("");
+  const [dtNascCliente, setDtNascCliente] = useState("");
+  const [faturaCliente, setFaturaCliente] = useState(""); // Novo estado para faturaCliente
+  const [codigoCartao, setCodigoCartao] = useState(""); // Novo estado para o cartão
+
   const navigate = useNavigate();
 
-  // Função para lidar com o envio do formulário
+  // Ativa o leitor de cartão
+  useCardScanner((codigoLido) => {
+    // Atualiza apenas o estado do código do cartão quando o cartão for lido
+    setCodigoCartao(codigoLido);
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Formulário enviado");
 
-    // Verifica se todos os campos foram preenchidos
-    if (!nomeCliente || !saldoCliente || !limiteCliente || !dtNascCliente) {
+    if (!nomeCliente || !saldoCliente || !limiteCliente || !dtNascCliente || !faturaCliente || !codigoCartao) {
       alert("Por favor, preencha todos os campos.");
       return;
     }
 
-    // Obtendo o token do localStorage
     const token = localStorage.getItem("token");
 
     if (!token) {
       alert("Você precisa estar logado!");
-      navigate("auth/login"); // Redireciona para a página de login
+      navigate("auth/login");
       return;
     }
 
     try {
-      // Requisição para adicionar o cliente com o token no cabeçalho
       const response = await axios.post(
         "http://localhost:8080/cliente", 
         { 
           nomeCliente, 
-          saldoCliente: parseFloat(saldoCliente),  // Garantir que seja um número
-          limiteCliente: parseFloat(limiteCliente),  // Garantir que seja um número
-          dtNascCliente,  // Data de nascimento
+          saldoCliente: parseFloat(saldoCliente),
+          limiteCliente: parseFloat(limiteCliente),
+          dtNascCliente,
+          faturaCliente: parseFloat(faturaCliente), // Inclui o campo faturaCliente
+          idCartaoCliente: codigoCartao // Inclui o campo idCartaoCliente
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`,  // Adicionando o token no cabeçalho
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      // Se a criação foi bem-sucedida, mostra o alerta e redireciona para a lista de clientes
       if (response.status === 200) {
         alert("Cliente adicionado com sucesso!");
-        // Redireciona para a rota de clientes após o alerta
         setTimeout(() => {
-          navigate("/clientes"); // Redireciona para a rota de clientes após o alerta
-        }, 1500);  // Delay de 1.5 segundos para mostrar o alerta antes do redirecionamento
+          navigate("/clientes");
+        }, 1500);
       }
     } catch (error) {
       console.error("Erro ao adicionar o cliente:", error);
-
       if (error.response) {
-        // Verifica se o erro é devido ao cliente já existir
         if (error.response.status === 409) {
           alert("Erro: O Cliente já está cadastrado no sistema.");
         } else if (error.response.status === 401) {
-          // Se o erro for 401 (token inválido ou expirado)
           alert("Token inválido ou expirado. Por favor, faça login novamente.");
-          localStorage.removeItem("token");  // Remove o token inválido do localStorage
-          navigate("auth/login");  // Redireciona para a página de login
+          localStorage.removeItem("token");
+          navigate("auth/login");
         } else if (error.response.status === 500) {
           alert("Erro interno do servidor. Tente novamente mais tarde.");
         } else {
@@ -88,7 +89,7 @@ const AddCliente = () => {
           <Input
             type="text"
             value={nomeCliente}
-            onChange={(e) => setNomeCliente(e.target.value)} // Atualizando o valor do estado
+            onChange={(e) => setNomeCliente(e.target.value)}
             placeholder="Nome do Cliente"
             required
           />
@@ -123,7 +124,26 @@ const AddCliente = () => {
             required
           />
         </div>
-
+        <div>
+          <Label>Fatura do Cliente:</Label>
+          <Input
+            type="number"
+            value={faturaCliente}
+            onChange={(e) => setFaturaCliente(e.target.value)}
+            placeholder="Fatura do Cliente"
+            required
+          />
+        </div>
+        <div>
+          <Label>Código do Cartão:</Label>
+          <Input
+            type="text"
+            value={codigoCartao}
+            onChange={(e) => setCodigoCartao(e.target.value)} // Apenas atualiza o valor do código do cartão
+            placeholder="Passe o cartão ou digite o código"
+            required
+          />
+        </div>
         <Button type="submit">Adicionar Cliente</Button>
       </Form>
     </Container>

@@ -2,19 +2,16 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import jwtDecode from "jwt-decode";
-
 import {
   Container,
   Title,
-  Form,
-  Input,
-  Button,
   Label,
   ErrorMessage,
 } from "./styles";
+import { debounce } from "lodash";
 
 const SaidaCliente = () => {
-  const [idCliente, setIdCliente] = useState("");
+  const [cartaoCliente, setCartaoCliente] = useState("");
   const [cliente, setCliente] = useState(null);
   const [comanda, setComanda] = useState(null);
   const [produtosDetalhados, setProdutosDetalhados] = useState([]);
@@ -22,7 +19,37 @@ const SaidaCliente = () => {
   const [erro, setErro] = useState("");
   const navigate = useNavigate();
 
-  // Envia para o servidor de impressão
+  const resetarPagina = () => {
+    setTimeout(() => {
+      setCartaoCliente("");
+      setCliente(null);
+      setComanda(null);
+      setProdutosDetalhados([]);
+      setErro("");
+    }, 3000);
+  };
+
+  useEffect(() => {
+    const handleCardInput = (event) => {
+      const input = event.key;
+      if (/^[0-9a-zA-Z]$/.test(input)) {
+        setCartaoCliente((prev) => {
+          if (prev.length < 12) return prev + input;
+          return prev;
+        });
+      }
+
+      if (input === "Enter") {
+        event.preventDefault();
+      }
+    };
+
+    document.addEventListener("keydown", handleCardInput);
+    return () => {
+      document.removeEventListener("keydown", handleCardInput);
+    };
+  }, []);
+
   const enviarParaImpressao = async (cliente, comanda, produtos) => {
     try {
       await axios.post("http://localhost:3001/imprimir", {
@@ -30,9 +57,7 @@ const SaidaCliente = () => {
         comanda,
         produtos,
       });
-    } catch (err) {
-      console.error("Erro ao enviar para servidor de impressão:", err);
-    }
+    } catch {}
   };
 
   const buscarDetalhesProdutos = async (comandaFinalizada) => {
@@ -50,110 +75,123 @@ const SaidaCliente = () => {
 
       const detalhes = await Promise.all(promises);
       setProdutosDetalhados(detalhes);
-
-      // Depois que tudo está carregado, envia para impressão
       enviarParaImpressao(comandaFinalizada.cliente, comandaFinalizada, detalhes);
-    } catch (error) {
-      console.error("Erro ao buscar detalhes dos produtos:", error);
-    }
+    } catch {}
   };
 
-  const handleIdentificarCliente = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setErro("");
+  useEffect(() => {
+    if (cartaoCliente.length > 0) {
+      const processarSaida = debounce(async () => {
+        setLoading(true);
+        setErro("");
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setErro("❌ Você precisa estar logado!");
-      navigate("/auth/login");
-      return;
-    }
-
-    try {
-      const decodedToken = jwtDecode(token);
-      if (decodedToken.exp < Date.now() / 1000) {
-        setErro("⚠️ Token expirado. Faça login novamente.");
-        localStorage.removeItem("token");
-        navigate("/auth/login");
-        return;
-      }
-
-      // 1. Busca comanda ativa
-      const comandaResponse = await axios.get(
-        `http://localhost:8080/comanda/ultima/${idCliente}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (comandaResponse.status === 200) {
-        const comandaOriginal = comandaResponse.data;
-
-        // 2. Gera data/hora atual
-        const agora = new Date();
-        const dataHoraSaida = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")} ${String(agora.getHours()).padStart(2, "0")}:${String(agora.getMinutes()).padStart(2, "0")}`;
-
-        // 3. PUT para registrar hora de saída
-        await axios.put(
-          `http://localhost:8080/comanda/saida/${comandaOriginal.idCompraComanda}`,
-          { horaSaidaComanda: dataHoraSaida },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        // 4. Busca comanda já finalizada
-        const comandaFinalizadaResponse = await axios.get(
-          `http://localhost:8080/comanda/ultima-finalizada/${idCliente}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        const comandaFinalizada = comandaFinalizadaResponse.data;
-
-        // 5. Atualiza estados para exibição
-        setCliente(comandaFinalizada.cliente);
-        setComanda(comandaFinalizada);
-
-        // 6. Busca produtos e imprime depois disso
-        if (comandaFinalizada.comandaProdutos.length > 0) {
-          await buscarDetalhesProdutos(comandaFinalizada);
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setErro("❌ Você precisa estar logado!");
+          navigate("/auth/login");
+          return;
         }
 
-      } else {
-        setErro("⚠️ Não há comanda ativa para este cliente.");
-      }
-    } catch (error) {
-      console.error(error);
-      setErro("❌ Erro ao registrar saída. Verifique o ID do cliente.");
-    } finally {
-      setLoading(false);
+        try {
+          const decodedToken = jwtDecode(token);
+          if (decodedToken.exp < Date.now() / 1000) {
+            setErro("⚠️ Sessão expirada. Faça login novamente.");
+            localStorage.removeItem("token");
+            navigate("/auth/login");
+            return;
+          }
+
+          const clienteResponse = await axios.get(
+            `http://localhost:8080/cliente/cartao/${cartaoCliente}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+
+          const clienteData = clienteResponse.data;
+
+          const comandaResponse = await axios.get(
+            `http://localhost:8080/comanda/ultima/${clienteData.idCliente}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+
+          if (comandaResponse.status === 200) {
+            const comandaOriginal = comandaResponse.data;
+
+            const agora = new Date();
+            const dataHoraSaida = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")} ${String(agora.getHours()).padStart(2, "0")}:${String(agora.getMinutes()).padStart(2, "0")}`;
+
+            await axios.put(
+              `http://localhost:8080/comanda/saida/${comandaOriginal.idCompraComanda}`,
+              { horaSaidaComanda: dataHoraSaida },
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            const comandaFinalizadaResponse = await axios.get(
+              `http://localhost:8080/comanda/ultima-finalizada/${clienteData.idCliente}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            const comandaFinalizada = comandaFinalizadaResponse.data;
+            setCliente(comandaFinalizada.cliente);
+            setComanda(comandaFinalizada);
+
+            if (comandaFinalizada.comandaProdutos.length > 0) {
+              await buscarDetalhesProdutos(comandaFinalizada);
+            }
+
+            resetarPagina();
+          } else {
+            setErro("⚠️ Não há comanda ativa para este cliente.");
+          }
+        } catch {
+          setErro("❌ Erro ao registrar saída. Verifique o cartão.");
+        } finally {
+          setLoading(false);
+        }
+      }, 500);
+
+      processarSaida();
     }
-  };
+  }, [cartaoCliente, navigate]);
 
   return (
     <Container>
       <Title>Saída do Cliente</Title>
-      <Form onSubmit={handleIdentificarCliente}>
-        <div>
-          <Label>ID do Cliente:</Label>
-          <Input
-            type="text"
-            value={idCliente}
-            onChange={(e) => setIdCliente(e.target.value)}
-            required
-          />
-        </div>
-        <Button type="submit" disabled={loading}>
-          {loading ? "🔄 Processando..." : "Registrar Saída"}
-        </Button>
-      </Form>
 
+      <Label>Cartão:</Label>
+      <div>{cartaoCliente}</div>
+
+      {loading && <p>🔄 Processando...</p>}
       {erro && <ErrorMessage>{erro}</ErrorMessage>}
 
       {cliente && (
         <div>
-          <h2>👋 Até logo, {cliente.nomeCliente}!</h2>
-          <p>💰 Seu saldo final é: R$ {cliente.saldoCliente?.toFixed(2) || "0.00"}</p>
+          <h2>Até logo, {cliente.nomeCliente}!</h2>
+          <p> Saldo final: R$ {cliente.saldoCliente?.toFixed(2) || "0.00"}</p>
         </div>
       )}
 
+      {comanda && (
+        <div style={{ marginTop: "1rem", borderTop: "1px solid #ccc", paddingTop: "1rem" }}>
+          <h3>Comanda Finalizada</h3>
+          <p><strong>ID:</strong> {comanda.idCompraComanda}</p>
+          <p><strong>Entrada:</strong> {comanda.horaEntradaComanda}</p>
+          <p><strong>Saída:</strong> {comanda.horaSaidaComanda}</p>
+          <p><strong>Total:</strong> R$ {comanda.valorTotalComanda?.toFixed(2)}</p>
+
+          {produtosDetalhados.length > 0 && (
+            <>
+              <h4>Produtos:</h4>
+              <ul>
+                {produtosDetalhados.map((produto, index) => (
+                  <li key={index}>
+                    {produto.nomeProduto} x{produto.quantidade} – R$ {(produto.valorProduto * produto.quantidade).toFixed(2)}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+      )}
     </Container>
   );
 };
