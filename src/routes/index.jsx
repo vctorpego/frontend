@@ -7,6 +7,7 @@ import AddCliente from "../pages/AddCliente";
 import AddConta from "../pages/AddConta";
 import AddFornecedor from "../pages/AddFornecedor";
 import AddProduto from "../pages/AddProduto";
+import AddUsuario from "../pages/AddUsuario";
 import EditCliente from "../pages/EditCliente";
 import EditConta from "../pages/EditConta";
 import EditFornecedor from "../pages/EditFornecedor";
@@ -23,6 +24,8 @@ import SwaggerPage from "../pages/Swagger";
 import Vendas from "../pages/Vendas";
 import Entrada from "../pages/Entrada";
 import Saida from "../pages/Saida";
+import ListagemUsuarios from "../pages/ListagemUsuarios";
+
 
 const RoutesApp = () => {
   const { token } = useAuth(); // Pega o token do contexto de autenticação
@@ -50,9 +53,9 @@ const RoutesApp = () => {
             element={token ? <AddCliente /> : <Navigate to="/auth/login" />}
           />
           <Route
-             exact
-             path="/clientes/editar/:idCliente"
-             element={token ? <EditCliente /> : <Navigate to="/auth/login" />}
+            exact
+            path="/clientes/editar/:idCliente"
+            element={token ? <EditCliente /> : <Navigate to="/auth/login" />}
           />
           <Route
             exact
@@ -65,9 +68,9 @@ const RoutesApp = () => {
             element={token ? <AddFornecedor /> : <Navigate to="/auth/login" />}
           />
           <Route
-             exact
-             path="/fornecedores/editar/:idFornecedor"
-             element={token ? <EditFornecedor /> : <Navigate to="/auth/login" />}
+            exact
+            path="/fornecedores/editar/:idFornecedor"
+            element={token ? <EditFornecedor /> : <Navigate to="/auth/login" />}
           />
           <Route
             exact
@@ -108,6 +111,16 @@ const RoutesApp = () => {
             exact
             path="/recarga"
             element={token ? <Recarga /> : <Navigate to="/auth/login" />}
+          />
+          <Route
+            exact
+            path="/usuarios"
+            element={token ? <ListagemUsuarios /> : <Navigate to="/auth/login" />}
+          />
+                    <Route
+            exact
+            path="/usuarios/adicionar"
+            element={token ? <AddUsuario /> : <Navigate to="/auth/login" />}
           />
           <Route
             exact

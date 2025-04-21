@@ -46,7 +46,7 @@ const Sidebar = ({ user, handleLogout }) => {
         <C.MenuItem onClick={() => handleNavigation("")} isActive={isActive("/relatorios")}>
           <FileText size={20} /> Relatórios
         </C.MenuItem>
-        <C.MenuItem onClick={() => handleNavigation("")} isActive={isActive("/usuarios")}>
+        <C.MenuItem onClick={() => handleNavigation("/usuarios")} isActive={isActive("/usuarios")}>
           <User size={20} /> Usuários
         </C.MenuItem>
         <C.MenuItem onClick={() => handleNavigation("/entrada")} isActive={isActive("/entrada")}>
