@@ -2,12 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import jwtDecode from "jwt-decode";
-import {
-  Container,
-  Title,
-  Label,
-  ErrorMessage,
-} from "./styles";
+import { Container, Title, Label, ErrorMessage } from "./styles";
 import { debounce } from "lodash";
 
 const SaidaCliente = () => {
@@ -30,23 +25,26 @@ const SaidaCliente = () => {
   };
 
   useEffect(() => {
-    const handleCardInput = (event) => {
-      const input = event.key;
-      if (/^[0-9a-zA-Z]$/.test(input)) {
-        setCartaoCliente((prev) => {
-          if (prev.length < 12) return prev + input;
-          return prev;
-        });
+    let buffer = "";
+
+    const handleKeyPress = (e) => {
+      const key = e.key;
+
+      if (/^[0-9a-zA-Z]$/.test(key)) {
+        buffer += key;
       }
 
-      if (input === "Enter") {
-        event.preventDefault();
+      if (key === "Enter") {
+        if (buffer.length >= 8) {
+          setCartaoCliente(buffer);
+        }
+        buffer = "";
       }
     };
 
-    document.addEventListener("keydown", handleCardInput);
+    document.addEventListener("keydown", handleKeyPress);
     return () => {
-      document.removeEventListener("keydown", handleCardInput);
+      document.removeEventListener("keydown", handleKeyPress);
     };
   }, []);
 
@@ -57,7 +55,9 @@ const SaidaCliente = () => {
         comanda,
         produtos,
       });
-    } catch {}
+    } catch (error) {
+      console.error("Erro ao imprimir:", error);
+    }
   };
 
   const buscarDetalhesProdutos = async (comandaFinalizada) => {
@@ -67,6 +67,10 @@ const SaidaCliente = () => {
         const res = await axios.get(`http://localhost:8080/produto/${idProduto}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        // Logando a resposta para verificar o valor
+        console.log("Produto Detalhado:", res.data);  // Verifique os dados do produto aqui
+
         return {
           ...res.data,
           quantidade,
@@ -75,82 +79,85 @@ const SaidaCliente = () => {
 
       const detalhes = await Promise.all(promises);
       setProdutosDetalhados(detalhes);
-      enviarParaImpressao(comandaFinalizada.cliente, comandaFinalizada, detalhes);
-    } catch {}
+      await enviarParaImpressao(comandaFinalizada.cliente, comandaFinalizada, detalhes);
+    } catch (error) {
+      console.error("Erro ao buscar detalhes dos produtos:", error);
+    }
   };
 
   useEffect(() => {
-    if (cartaoCliente.length > 0) {
-      const processarSaida = debounce(async () => {
-        setLoading(true);
-        setErro("");
+    if (!cartaoCliente) return;
 
-        const token = localStorage.getItem("token");
-        if (!token) {
-          setErro("❌ Você precisa estar logado!");
+    const processarSaida = async () => {
+      setLoading(true);
+      setErro("");
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setErro("❌ Você precisa estar logado!");
+        navigate("/auth/login");
+        return;
+      }
+
+      try {
+        const decodedToken = jwtDecode(token);
+        if (decodedToken.exp < Date.now() / 1000) {
+          setErro("⚠️ Sessão expirada. Faça login novamente.");
+          localStorage.removeItem("token");
           navigate("/auth/login");
           return;
         }
 
-        try {
-          const decodedToken = jwtDecode(token);
-          if (decodedToken.exp < Date.now() / 1000) {
-            setErro("⚠️ Sessão expirada. Faça login novamente.");
-            localStorage.removeItem("token");
-            navigate("/auth/login");
-            return;
-          }
+        const clienteResponse = await axios.get(
+          `http://localhost:8080/cliente/cartao/${cartaoCliente}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-          const clienteResponse = await axios.get(
-            `http://localhost:8080/cliente/cartao/${cartaoCliente}`,
+        const clienteData = clienteResponse.data;
+
+        const comandaResponse = await axios.get(
+          `http://localhost:8080/comanda/ultima/${clienteData.idCliente}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (comandaResponse.status === 200) {
+          const comandaOriginal = comandaResponse.data;
+
+          const agora = new Date();
+          const dataHoraSaida = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")} ${String(agora.getHours()).padStart(2, "0")}:${String(agora.getMinutes()).padStart(2, "0")}`;
+
+          await axios.put(
+            `http://localhost:8080/comanda/saida/${comandaOriginal.idCompraComanda}`,
+            { horaSaidaComanda: dataHoraSaida },
             { headers: { Authorization: `Bearer ${token}` } }
           );
 
-          const clienteData = clienteResponse.data;
-
-          const comandaResponse = await axios.get(
-            `http://localhost:8080/comanda/ultima/${clienteData.idCliente}`,
+          const comandaFinalizadaResponse = await axios.get(
+            `http://localhost:8080/comanda/ultima-finalizada/${clienteData.idCliente}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
 
-          if (comandaResponse.status === 200) {
-            const comandaOriginal = comandaResponse.data;
+          const comandaFinalizada = comandaFinalizadaResponse.data;
+          setCliente(comandaFinalizada.cliente);
+          setComanda(comandaFinalizada);
 
-            const agora = new Date();
-            const dataHoraSaida = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")} ${String(agora.getHours()).padStart(2, "0")}:${String(agora.getMinutes()).padStart(2, "0")}`;
-
-            await axios.put(
-              `http://localhost:8080/comanda/saida/${comandaOriginal.idCompraComanda}`,
-              { horaSaidaComanda: dataHoraSaida },
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            const comandaFinalizadaResponse = await axios.get(
-              `http://localhost:8080/comanda/ultima-finalizada/${clienteData.idCliente}`,
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            const comandaFinalizada = comandaFinalizadaResponse.data;
-            setCliente(comandaFinalizada.cliente);
-            setComanda(comandaFinalizada);
-
-            if (comandaFinalizada.comandaProdutos.length > 0) {
-              await buscarDetalhesProdutos(comandaFinalizada);
-            }
-
-            resetarPagina();
-          } else {
-            setErro("⚠️ Não há comanda ativa para este cliente.");
+          if (comandaFinalizada.comandaProdutos.length > 0) {
+            await buscarDetalhesProdutos(comandaFinalizada);
           }
-        } catch {
-          setErro("❌ Erro ao registrar saída. Verifique o cartão.");
-        } finally {
-          setLoading(false);
+
+          resetarPagina();
+        } else {
+          setErro("⚠️ Não há comanda ativa para este cliente.");
         }
-      }, 500);
+      } catch (error) {
+        console.error("Erro ao processar saída:", error);
+        setErro("❌ Erro ao registrar saída. Verifique o cartão.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      processarSaida();
-    }
+    processarSaida();
   }, [cartaoCliente, navigate]);
 
   return (
@@ -166,7 +173,7 @@ const SaidaCliente = () => {
       {cliente && (
         <div>
           <h2>Até logo, {cliente.nomeCliente}!</h2>
-          <p> Saldo final: R$ {cliente.saldoCliente?.toFixed(2) || "0.00"}</p>
+          <p>Saldo final: R$ {cliente.saldoCliente?.toFixed(2) || "0.00"}</p>
         </div>
       )}
 
@@ -184,7 +191,7 @@ const SaidaCliente = () => {
               <ul>
                 {produtosDetalhados.map((produto, index) => (
                   <li key={index}>
-                    {produto.nomeProduto} x{produto.quantidade} – R$ {(produto.valorProduto * produto.quantidade).toFixed(2)}
+                    {produto.nomeProduto} x{produto.quantidade} – R$ {(produto.precoProduto * produto.quantidade).toFixed(2)}
                   </li>
                 ))}
               </ul>

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import useBarcodeScanner from "../../hooks/useBarcodeScanner";
+import useCardScanner from "../../hooks/useCardScanner"; // Aqui, vamos usar o hook para ler o cartão
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +8,6 @@ import Sidebar from "../../components/Sidebar";
 
 function Vendas() {
   const [user, setUser] = useState(null);
-  const [clienteId, setClienteId] = useState("");
   const [cliente, setCliente] = useState(null);
   const [produtos, setProdutos] = useState([]);
   const [valorTotal, setValorTotal] = useState(0);
@@ -16,9 +15,9 @@ function Vendas() {
   const [pesoGramas, setPesoGramas] = useState("");
   const [clienteBuscado, setClienteBuscado] = useState(null);
   const [mensagem, setMensagem] = useState("");
+  const [clienteCartao, setClienteCartao] = useState(""); // Novo estado para armazenar o cartão
 
   const navigate = useNavigate();
-  const clienteInputRef = useRef(null);
   const pesoInputRef = useRef(null);
 
   const exibirMensagem = (texto) => {
@@ -47,33 +46,33 @@ function Vendas() {
     return token;
   };
 
-  const buscarCliente = async () => {
-    setMensagem(""); // limpa a mensagem ao iniciar nova busca
-  
-    if (!clienteId) return exibirMensagem("Digite um ID de cliente!");
-  
+  const buscarClientePorCartao = async (cartao) => {
+    setMensagem(""); // Limpa a mensagem ao iniciar nova busca
+
+    if (!cartao) return exibirMensagem("Cartão não detectado!");
+
     const token = getToken();
     if (!token) return;
-  
+
     try {
-      const response = await axios.get(`http://localhost:8080/cliente/${clienteId}`, {
+      const response = await axios.get(`http://localhost:8080/cliente/cartao/${cartao}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-  
+
       if (response.status === 200 && response.data) {
         setCliente(response.data);
         setClienteBuscado(response.data);
         setProdutos([]);
         setValorTotal(0);
-  
-        const clienteRealId = response.data.id || response.data.idCliente;
+
+        const clienteRealId = response.data.idCliente; // Usando idCliente agora
         const comandaResponse = await axios.get(
-          `http://localhost:8080/comanda/ultima/${clienteRealId}`,
+          `http://localhost:8080/comanda/ultima/${clienteRealId}`, // Passando idCliente aqui
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-  
+
         if (comandaResponse.status === 200 && comandaResponse.data && !comandaResponse.data.horaSaidaComanda) {
           setComandaAtiva(comandaResponse.data);
         } else {
@@ -91,9 +90,9 @@ function Vendas() {
       exibirMensagem("Erro ao buscar cliente!");
     }
   };
-  
+
   const atualizarVenda = async () => {
-    const clienteAtualId = clienteBuscado?.id || clienteId;
+    const clienteAtualId = clienteBuscado?.idCliente || clienteCartao; // Usando idCliente agora
     if (!clienteAtualId) return exibirMensagem("Busque um cliente antes de finalizar a venda!");
 
     const token = getToken();
@@ -247,7 +246,10 @@ function Vendas() {
     }
   };
 
-  useBarcodeScanner(handleScan);
+  useCardScanner((card) => {
+    setClienteCartao(card); // Captura o código do cartão
+    buscarClientePorCartao(card); // Realiza a busca do cliente por cartão
+  });
 
   return (
     <C.Container>
@@ -256,17 +258,6 @@ function Vendas() {
         <C.Title>Nova Comanda - TechMeal</C.Title>
 
         {mensagem && <C.Mensagem>{mensagem}</C.Mensagem>}
-
-        <C.FieldGroup>
-          <C.Input
-            ref={clienteInputRef}
-            type="text"
-            placeholder="Digite o ID do cliente..."
-            value={clienteId}
-            onChange={(e) => setClienteId(e.target.value)}
-          />
-          <C.Button onClick={buscarCliente}>Buscar Cliente</C.Button>
-        </C.FieldGroup>
 
         {cliente && <C.ClienteNome>Cliente: {cliente.nomeCliente}</C.ClienteNome>}
         {cliente && <C.ValorTotal>Valor Total: R$ {valorTotal.toFixed(2)}</C.ValorTotal>}
@@ -294,18 +285,18 @@ function Vendas() {
             {produtos.map((produto, index) => (
               <C.ProductItem key={index}>
                 <span>{produto.nomeProduto}</span>
-                <C.ProductPrice>R$ {produto.precoProduto.toFixed(2)}</C.ProductPrice>
+                <span>R$ {produto.precoProduto.toFixed(2)}</span>
               </C.ProductItem>
             ))}
           </C.ProductList>
         )}
 
-        {cliente && produtos.length > 0 && (
-          <C.FieldGroup style={{ marginTop: "30px", justifyContent: "center" }}>
-            <C.Button onClick={atualizarVenda}>Finalizar Venda</C.Button>
-          </C.FieldGroup>
+        {/* O botão só será exibido depois que o cliente for identificado */}
+        {cliente && comandaAtiva && produtos.length > 0 && (
+          <C.Button onClick={atualizarVenda}>Finalizar Venda</C.Button>
         )}
-        </C.Content>
+
+      </C.Content>
     </C.Container>
   );
 }

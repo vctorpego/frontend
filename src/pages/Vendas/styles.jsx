@@ -1,12 +1,11 @@
 import styled from "styled-components";
 
 export const Container = styled.div`
-    display: flex;
-    min-height: 100vh;
-    flex-direction: row;
-    background-color: #f4f4f4;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: row;
+  background-color: #f4f4f4;
 `;
-
 
 export const Content = styled.div`
   display: flex;
@@ -42,8 +41,14 @@ export const Mensagem = styled.div`
   animation: fadeIn 0.3s ease-in-out;
 
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 `;
 
@@ -111,22 +116,25 @@ export const Label = styled.label`
 export const Button = styled.button`
   background-color: #007BFF;
   color: white;
-  padding: 14px 20px;
-  font-size: 18px;
+  padding: 12px 20px;
+  font-size: 16px; /* Ajuste no tamanho da fonte */
   font-weight: bold;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.3s ease;
+  width: 100%; /* Faz o botão ocupar toda a largura disponível */
 
   &:hover {
     background-color: #0056b3;
     transform: scale(1.05);
   }
 
+  /* Tamanho fixo quando o botão não deve ocupar toda a largura */
   &:not(:only-child) {
     width: auto;
-    flex: 1;
+    max-width: 250px; /* Limite de largura */
+    margin-top: 20px; /* Espaçamento superior */
   }
 `;
 

@@ -3,7 +3,6 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import jwtDecode from "jwt-decode";
 import { Container, Title, Label, ErrorMessage } from "./styles";
-import { debounce } from "lodash";
 
 const EntradaCliente = () => {
   const [cartaoCliente, setCartaoCliente] = useState("");
@@ -17,7 +16,7 @@ const EntradaCliente = () => {
       setCartaoCliente("");
       setCliente(null);
       setErro("");
-    }, 4000); // 4 segundos
+    }, 4000);
   };
 
   useEffect(() => {
@@ -41,8 +40,10 @@ const EntradaCliente = () => {
   }, []);
 
   useEffect(() => {
-    if (cartaoCliente.length > 0) {
-      const identificarCliente = debounce(async () => {
+    if (cartaoCliente.length === 0) return;
+
+    const timeoutId = setTimeout(() => {
+      const identificarCliente = async () => {
         setLoading(true);
         setErro("");
 
@@ -69,7 +70,9 @@ const EntradaCliente = () => {
 
           const clienteData = clienteResponse.data;
           const hoje = new Date();
-          const ultimaCompra = clienteData.ultimaCompraCliente ? new Date(clienteData.ultimaCompraCliente) : null;
+          const ultimaCompra = clienteData.ultimaCompraCliente
+            ? new Date(clienteData.ultimaCompraCliente)
+            : null;
 
           if (ultimaCompra) {
             const diasDesdeUltimaCompra = Math.floor((hoje - ultimaCompra) / (1000 * 60 * 60 * 24));
@@ -132,10 +135,12 @@ const EntradaCliente = () => {
         } finally {
           setLoading(false);
         }
-      }, 500);
+      };
 
       identificarCliente();
-    }
+    }, 500); // pequena pausa para evitar múltiplas chamadas
+
+    return () => clearTimeout(timeoutId);
   }, [cartaoCliente, navigate]);
 
   return (
@@ -151,8 +156,8 @@ const EntradaCliente = () => {
 
       {cliente && (
         <div>
-          <h2> Seja bem-vindo, {cliente.nomeCliente}!</h2>
-          <p> Saldo: R$ {cliente.saldoCliente?.toFixed(2) || "0.00"}</p>
+          <h2>Seja bem-vindo, {cliente.nomeCliente}!</h2>
+          <p>Saldo: R$ {cliente.saldoCliente?.toFixed(2) || "0.00"}</p>
         </div>
       )}
     </Container>
