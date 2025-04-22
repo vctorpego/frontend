@@ -61,14 +61,15 @@ const AddUsuario = () => {
         return;
       }
 
+      // Enviar apenas os campos aceitos pelo backend por enquanto
       const response = await axios.post(
         "http://localhost:8080/usuario",
         {
-          nome,
-          email,
-          senha,
-          telefone,
-          permissoes,
+          nomeUsuario: nome,
+          emailUsuario: email,
+          telefoneUsuario: telefone,
+          login: nome, // Você pode trocar se quiser login separado
+          senhaUsuario: senha,
         },
         {
           headers: {
@@ -77,7 +78,7 @@ const AddUsuario = () => {
         }
       );
 
-      if (response.status === 200) {
+      if (response.status === 200 || response.status === 201) {
         alert("Usuário adicionado com sucesso!");
         setTimeout(() => {
           navigate("/usuarios");
@@ -145,6 +146,7 @@ const AddUsuario = () => {
           </C.InputWrapper>
         </C.InputGroup>
 
+        {/* Deixe as permissões visíveis mas não usadas ainda */}
         <div>
           <C.Label>Permissões:</C.Label>
           <C.PermissoesContainer>
@@ -158,6 +160,7 @@ const AddUsuario = () => {
                         type="checkbox"
                         checked={permissoes[tela][acao]}
                         onChange={() => handleCheckboxChange(tela, acao)}
+                        disabled // desabilitado por enquanto
                       />
                       {acao}
                     </C.CheckboxLabel>

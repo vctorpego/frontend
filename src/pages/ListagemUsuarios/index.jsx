@@ -114,7 +114,7 @@ const ListagemUsuarios = () => {
     <C.Container>
       <Sidebar user={user} />
       <C.Content>
-        <C.Title>Lista de Funcionários</C.Title>
+        <C.Title>Lista de Usuários</C.Title>
 
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
 
@@ -132,11 +132,11 @@ const ListagemUsuarios = () => {
             cursor: "pointer",
           }}
         >
-          Adicionar Funcionário
+          Adicionar Usuário
         </button>
 
         {usuarios.length === 0 ? (
-          <p>Nenhum funcionário encontrado.</p>
+          <p>Nenhum usuário encontrado.</p>
         ) : (
           <Grid
             data={filterUsuarios()}
