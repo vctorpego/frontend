@@ -14,6 +14,8 @@ const ListagemUsuarios = () => {
   const [openModalExcluir, setOpenModalExcluir] = useState(false);
   const [usuarioExcluir, setUsuarioExcluir] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [userPermissions, setUserPermissions] = useState([]);
+  const [permissoesTelaAtual, setPermissoesTelaAtual] = useState([]);
   const navigate = useNavigate();
 
   const getToken = () => {
@@ -31,42 +33,74 @@ const ListagemUsuarios = () => {
         return null;
       }
       setUser(decoded);
+      return token;
     } catch (error) {
       console.error("Erro ao decodificar token:", error);
       localStorage.removeItem("token");
       navigate("/auth/login");
+      return null;
     }
-
-    return token;
   };
 
   const getRequestConfig = () => {
-    const token = getToken();
-    if (!token) return {};
-    return {
-      headers: { Authorization: `Bearer ${token}` },
-    };
+    const token = localStorage.getItem("token");
+    return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
   };
 
   useEffect(() => {
     const token = getToken();
     if (!token) return;
 
+    const decoded = jwt_decode(token);
+    const userLogin = decoded.sub;
+
+    // Buscar usuários
     axios
       .get("http://localhost:8080/usuario", getRequestConfig())
       .then(({ data }) => {
         setUsuarios(data);
       })
       .catch((err) => {
-        console.error("Erro ao buscar usuários", err);
+        console.error("Erro ao buscar usuários:", err);
       });
+
+    // Buscar permissões do usuário logado
+    const fetchUserPermissions = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/usuario/id/${userLogin}`,
+          getRequestConfig()
+        );
+        const userId = response.data;
+
+        const permissionsResponse = await axios.get(
+          `http://localhost:8080/permissao/telas/${userId}`,
+          getRequestConfig()
+        );
+        setUserPermissions(permissionsResponse.data);
+
+        const telaAtual = "Tela Usuarios";
+        const permissoesTela = permissionsResponse.data.find(
+          (perm) => perm.tela === telaAtual
+        );
+
+        const permissoes = permissoesTela?.permissoes || [];
+        setPermissoesTelaAtual(permissoes);
+        console.log(`Permissões para ${telaAtual}:`, permissoes);
+      } catch (error) {
+        console.error("Erro ao buscar permissões:", error);
+      }
+    };
+
+    fetchUserPermissions();
   }, [navigate]);
 
   const filterUsuarios = () => {
-    if (!searchQuery) return usuarios;
-    return usuarios.filter((usuario) =>
-      usuario.nomeUsuario.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    return !searchQuery
+      ? usuarios
+      : usuarios.filter((usuario) =>
+          usuario.nomeUsuario.toLowerCase().includes(searchQuery.toLowerCase())
+        );
   };
 
   const handleDeleteUsuario = (usuarioId) => {
@@ -76,9 +110,6 @@ const ListagemUsuarios = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      const token = getToken();
-      if (!token) return;
-
       await axios.delete(
         `http://localhost:8080/usuario/${usuarioExcluir}`,
         getRequestConfig()
@@ -108,7 +139,10 @@ const ListagemUsuarios = () => {
   };
 
   const columns = ["ID", "Nome", "Email", "Telefone", "Login"];
-  const actions = ["edit", "delete"];
+
+  const actions = [];
+  if (permissoesTelaAtual.includes("PUT")) actions.push("edit");
+  if (permissoesTelaAtual.includes("DELETE")) actions.push("delete");
 
   return (
     <C.Container>
@@ -118,22 +152,24 @@ const ListagemUsuarios = () => {
 
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
 
-        <button
-          onClick={handleAddUsuario}
-          style={{
-            position: "absolute",
-            top: "20px",
-            right: "20px",
-            padding: "10px 20px",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          Adicionar Usuário
-        </button>
+        {permissoesTelaAtual.includes("POST") && (
+          <button
+            onClick={handleAddUsuario}
+            style={{
+              position: "absolute",
+              top: "20px",
+              right: "20px",
+              padding: "10px 20px",
+              backgroundColor: "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+            }}
+          >
+            Adicionar Usuário
+          </button>
+        )}
 
         {usuarios.length === 0 ? (
           <p>Nenhum usuário encontrado.</p>
@@ -142,11 +178,11 @@ const ListagemUsuarios = () => {
             data={filterUsuarios()}
             columns={columns}
             columnMap={{
-              "ID": "idUsuario",
-              "Nome": "nomeUsuario",
-              "Email": "emailUsuario",
-              "Telefone": "telefoneUsuario",
-              "Login": "login",
+              ID: "idUsuario",
+              Nome: "nomeUsuario",
+              Email: "emailUsuario",
+              Telefone: "telefoneUsuario",
+              Login: "login",
             }}
             idKey="idUsuario"
             handleDelete={handleDeleteUsuario}
