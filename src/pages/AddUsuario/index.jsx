@@ -4,25 +4,46 @@ import { useNavigate } from "react-router-dom";
 import jwtDecode from "jwt-decode";
 import * as C from "./styles";
 
-const telas = ["clientes", "produtos", "fornecedores", "usuarios"];
-const acoes = ["adicionar", "editar", "excluir"];
+const telas = [
+  { nome: "Dashboard", id: 1 },
+  { nome: "Produtos", id: 2 },
+  { nome: "Fornecedores", id: 3 },
+  { nome: "Clientes", id: 4 },
+  { nome: "Recarga", id: 5 },
+  { nome: "Vendas", id: 6 },
+  { nome: "Pagamentos", id: 7 },
+  { nome: "Relatórios", id: 8 },
+  { nome: "Entrada", id: 9 },
+  { nome: "Saída", id: 10 },
+  { nome: "Usuarios", id: 11 },
+];
+
+const acoes = {
+  adicionar: 1,  // POST
+  editar: 2,     // PUT
+  excluir: 3,    // DELETE
+  visualizar: 4, // GET
+};
 
 const AddUsuario = () => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [login, setLogin] = useState("");
+  const [permissoes, setPermissoes] = useState(
+    telas.reduce((acc, tela) => {
+      acc[tela.nome] = {
+        adicionar: false,
+        editar: false,
+        excluir: false,
+        visualizar: false,
+      };
+      return acc;
+    }, {})
+  );
+
   const navigate = useNavigate();
-
-  const initialPermissoes = telas.reduce((acc, tela) => {
-    acc[tela] = acoes.reduce((acoesAcc, acao) => {
-      acoesAcc[acao] = false;
-      return acoesAcc;
-    }, {});
-    return acc;
-  }, {});
-
-  const [permissoes, setPermissoes] = useState(initialPermissoes);
 
   const handleCheckboxChange = (tela, acao) => {
     setPermissoes((prev) => ({
@@ -36,40 +57,41 @@ const AddUsuario = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!nome || !email || !senha || !telefone) {
+  
+    if (!nome || !email || !senha || !telefone || !login) {
       alert("Preencha todos os campos.");
       return;
     }
-
+  
     const token = localStorage.getItem("token");
-
+  
     if (!token) {
       alert("Você precisa estar logado!");
       navigate("/auth/login");
       return;
     }
-
+  
     try {
       const decodedToken = jwtDecode(token);
       const currentTime = Date.now() / 1000;
-
+  
       if (decodedToken.exp < currentTime) {
         alert("Token expirado. Faça login novamente.");
         localStorage.removeItem("token");
         navigate("/auth/login");
         return;
       }
-
-      // Enviar apenas os campos aceitos pelo backend por enquanto
+  
+      // Enviar os dados do usuário para criação
       const response = await axios.post(
         "http://localhost:8080/usuario",
         {
-          nomeUsuario: nome,
           emailUsuario: email,
           telefoneUsuario: telefone,
-          login: nome, // Você pode trocar se quiser login separado
+          nomeUsuario: nome,
+          login: login,
           senhaUsuario: senha,
+          usuarioPermissaoTelaListUsuario: []  // Array vazio de permissões
         },
         {
           headers: {
@@ -77,9 +99,40 @@ const AddUsuario = () => {
           },
         }
       );
-
+  
+      console.log("Resposta do backend:", response); // Verificar resposta
+  
       if (response.status === 200 || response.status === 201) {
         alert("Usuário adicionado com sucesso!");
+  
+        const usuarioId = response.data.idUsuario; // Atualizado para o campo correto
+  
+        if (!usuarioId) {
+          throw new Error("ID do usuário não retornado.");
+        }
+  
+        // Após criar o usuário, associe as permissões
+        for (const tela of telas) {
+          for (const acao in acoes) {
+            if (permissoes[tela.nome][acao]) {
+              // Enviar a permissão para o backend com os parâmetros corretos
+              await axios.post(
+                `http://localhost:8080/usuario/${usuarioId}/permissao`,
+                null,
+                {
+                  params: {
+                    idTela: tela.id, // Substituindo pela tela correta (Vendas, Entrada, etc.)
+                    idPermissao: acoes[acao], // Passando o id da permissão correspondente
+                  },
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+            }
+          }
+        }
+  
         setTimeout(() => {
           navigate("/usuarios");
         }, 1500);
@@ -93,6 +146,7 @@ const AddUsuario = () => {
       }
     }
   };
+  
 
   return (
     <C.Container>
@@ -146,21 +200,32 @@ const AddUsuario = () => {
           </C.InputWrapper>
         </C.InputGroup>
 
-        {/* Deixe as permissões visíveis mas não usadas ainda */}
+        <C.InputGroup>
+          <C.InputWrapper>
+            <C.Label>Login:</C.Label>
+            <C.Input
+              type="text"
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
+              placeholder="Ex: silva"
+              required
+            />
+          </C.InputWrapper>
+        </C.InputGroup>
+
         <div>
           <C.Label>Permissões:</C.Label>
           <C.PermissoesContainer>
             {telas.map((tela) => (
-              <div key={tela}>
-                <strong>{tela.charAt(0).toUpperCase() + tela.slice(1)}</strong>
+              <div key={tela.id}>
+                <strong>{tela.nome}</strong>
                 <C.CheckboxContainer>
-                  {acoes.map((acao) => (
-                    <C.CheckboxLabel key={`${tela}-${acao}`}>
+                  {Object.keys(acoes).map((acao) => (
+                    <C.CheckboxLabel key={`${tela.id}-${acao}`}>
                       <C.Checkbox
                         type="checkbox"
-                        checked={permissoes[tela][acao]}
-                        onChange={() => handleCheckboxChange(tela, acao)}
-                        disabled // desabilitado por enquanto
+                        checked={permissoes[tela.nome][acao]}
+                        onChange={() => handleCheckboxChange(tela.nome, acao)}
                       />
                       {acao}
                     </C.CheckboxLabel>

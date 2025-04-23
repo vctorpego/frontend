@@ -1,19 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
 import jwtDecode from "jwt-decode";
+import useAuth from "../../hooks/useAuth";
+import api from "../../services/api";
 import * as C from "./styles";
 import {
   CupSoda, LayoutDashboard, Box, Users, ShoppingCart,
   DollarSign, FileText, User, ArrowRightCircle, LogOut, Banknote
 } from "lucide-react";
 
-const Sidebar = ({ handleLogout }) => {
+const Sidebar = () => {
   const [permissoes, setPermissoes] = useState([]);
   const [usuario, setUsuario] = useState(null);
   const [carregando, setCarregando] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // <- começa como false
 
+  const { signout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -30,7 +32,6 @@ const Sidebar = ({ handleLogout }) => {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        console.error("Token não encontrado");
         setIsLoggedIn(false);
         setCarregando(false);
         return;
@@ -38,20 +39,21 @@ const Sidebar = ({ handleLogout }) => {
 
       try {
         const decodedToken = jwtDecode(token);
-        if (!decodedToken?.sub) {
-          console.error("ID do usuário não encontrado no token");
+        const userId = decodedToken?.sub;
+
+        if (!userId) {
           setIsLoggedIn(false);
           return;
         }
 
-        const userId = decodedToken.sub;
-
-        const responseUser = await axios.get(`http://localhost:8080/usuario/id/${userId}`);
+        const responseUser = await api.get(`/usuario/id/${userId}`);
         const user = responseUser.data;
         setUsuario(user);
 
-        const responsePermissoes = await axios.get(`http://localhost:8080/permissao/telas/${user}`);
+        const responsePermissoes = await api.get(`/permissao/telas/${user}`);
         setPermissoes(responsePermissoes.data);
+
+        setIsLoggedIn(true);
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
         setPermissoes([]);
@@ -65,24 +67,15 @@ const Sidebar = ({ handleLogout }) => {
   }, []);
 
   const logout = () => {
-    localStorage.removeItem("token");
-    setIsLoggedIn(false);
-    navigate("/login", { replace: true });
+    signout();
+    navigate("/", { replace: true });
   };
 
-  if (!isLoggedIn) return null;
+  // Enquanto carrega, não mostra nada
+  if (carregando) return null;
 
-  if (carregando) {
-    return (
-      <C.SidebarContainer>
-        <C.Logo>
-          <CupSoda size={30} />
-          <C.LogoText>TechMeal</C.LogoText>
-        </C.Logo>
-        <p style={{ padding: "1rem" }}>Carregando...</p>
-      </C.SidebarContainer>
-    );
-  }
+  // Se não estiver logado, também não mostra nada
+  if (!isLoggedIn) return null;
 
   return (
     <C.SidebarContainer>

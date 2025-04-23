@@ -1,7 +1,8 @@
-import { Fragment, useEffect, useState } from "react";
+// src/routes/index.jsx
+import React, { Fragment, useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import useAuth from "../hooks/useAuth"; // Hook de autenticação
-import Sidebar from "../components/Sidebar"; // Sidebar
+import useAuth from "../hooks/useAuth";
+import Sidebar from "../components/Sidebar";
 
 // Páginas da aplicação
 import AddCliente from "../pages/AddCliente";
@@ -27,64 +28,279 @@ import Vendas from "../pages/Vendas";
 import Entrada from "../pages/Entrada";
 import Saida from "../pages/Saida";
 import ListagemUsuarios from "../pages/ListagemUsuarios";
+import NaoAutorizado from "../pages/NaoAutorizado";
+
+// Wrappers de segurança
+const ProtectedRoute = ({ children }) => {
+  const { token } = useAuth();
+  if (!token) {
+    return <Navigate to="/auth/login" replace />;
+  }
+  return children;
+};
+
+import PermissaoRoute from "./PermissaoRoute";
 
 const RoutesApp = () => {
-  const { token, user, signout } = useAuth(); // Pega o token e o usuário do contexto de autenticação
-  const [isSidebarVisible, setSidebarVisible] = useState(!!token); // Controle da visibilidade do Sidebar
+  const { token, user, signout } = useAuth();
+  const [isSidebarVisible, setSidebarVisible] = useState(!!token);
 
-  // Atualiza a visibilidade do Sidebar quando o token muda
   useEffect(() => {
-    setSidebarVisible(!!token); 
+    setSidebarVisible(!!token);
   }, [token]);
 
   return (
     <BrowserRouter>
       <Fragment>
-        {/* Renderiza o Sidebar somente se o token estiver presente */}
         {isSidebarVisible && <Sidebar user={user} handleLogout={signout} />}
 
         <Routes>
-          <Route exact path="/home" element={token ? <Home /> : <Navigate to="/auth/login" />} />
-          
-          {/* Rotas de Clientes */}
-          <Route exact path="/clientes" element={token ? <ListagemClientes /> : <Navigate to="/auth/login" />} />
-          <Route exact path="/clientes/adicionar" element={token ? <AddCliente /> : <Navigate to="/auth/login" />} />
-          <Route exact path="/clientes/editar/:idCliente" element={token ? <EditCliente /> : <Navigate to="/auth/login" />} />
+          {/* Home */}
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* Rotas de Fornecedores */}
-          <Route exact path="/fornecedores" element={token ? <ListagemFornecedor /> : <Navigate to="/auth/login" />} />
-          <Route exact path="/fornecedores/adicionar" element={token ? <AddFornecedor /> : <Navigate to="/auth/login" />} />
-          <Route exact path="/fornecedores/editar/:idFornecedor" element={token ? <EditFornecedor /> : <Navigate to="/auth/login" />} />
+          {/* Clientes */}
+          <Route
+            path="/clientes"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Clientes">
+                  <ListagemClientes />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/clientes/adicionar"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Clientes">
+                  <AddCliente />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/clientes/editar/:idCliente"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Clientes">
+                  <EditCliente />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
 
-          {/* Rotas de Pagamentos */}
-          <Route exact path="/pagamentos" element={token ? <Pagamentos /> : <Navigate to="/auth/login" />} />
-          <Route exact path="/pagamentos/adicionar" element={token ? <AddConta /> : <Navigate to="/auth/login" />} />
-          <Route exact path="/pagamentos/editar/:idConta" element={token ? <EditConta /> : <Navigate to="/auth/login" />} />
-          <Route exact path="/pagamentos/pagar/:id" element={token ? <PagarConta /> : <Navigate to="/auth/login" />} />
+          {/* Fornecedores */}
+          <Route
+            path="/fornecedores"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Fornecedores">
+                  <ListagemFornecedor />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/fornecedores/adicionar"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Fornecedores">
+                  <AddFornecedor />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/fornecedores/editar/:idFornecedor"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Fornecedores">
+                  <EditFornecedor />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
 
-          {/* Rotas de Produtos */}
-          <Route exact path="/produtos" element={token ? <ListagemProdutos /> : <Navigate to="/auth/login" />} />
-          <Route exact path="/produtos/adicionar" element={token ? <AddProduto /> : <Navigate to="/auth/login" />} />
-          <Route exact path="/produtos/editar/:idProduto" element={token ? <EditProduto /> : <Navigate to="/auth/login" />} />
+          {/* Pagamentos */}
+          <Route
+            path="/pagamentos"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Pagamentos">
+                  <Pagamentos />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pagamentos/adicionar"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Pagamentos">
+                  <AddConta />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pagamentos/editar/:idConta"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Pagamentos">
+                  <EditConta />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pagamentos/pagar/:id"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Pagamentos">
+                  <PagarConta />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
 
-          {/* Outras rotas */}
-          <Route exact path="/recarga" element={token ? <Recarga /> : <Navigate to="/auth/login" />} />
-          <Route exact path="/usuarios" element={token ? <ListagemUsuarios /> : <Navigate to="/auth/login" />} />
-          <Route exact path="/usuarios/adicionar" element={token ? <AddUsuario /> : <Navigate to="/auth/login" />} />
-          <Route exact path="/usuarios/editar/:idUsuario" element={token ? <EditUsuario /> : <Navigate to="/auth/login" />} />
-          
+          {/* Produtos */}
+          <Route
+            path="/produtos"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Produtos">
+                  <ListagemProdutos />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/produtos/adicionar"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Produtos">
+                  <AddProduto />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/produtos/editar/:idProduto"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Produtos">
+                  <EditProduto />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Recarga */}
+          <Route
+            path="/recarga"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Recarga">
+                  <Recarga />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Usuários */}
+          <Route
+            path="/usuarios"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela Usuarios">
+                  <ListagemUsuarios />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/usuarios/adicionar"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela Usuarios">
+                  <AddUsuario />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/usuarios/editar/:idUsuario"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela Usuarios">
+                  <EditUsuario />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
+
           {/* Swagger */}
-          <Route exact path="/swagger" element={token ? <SwaggerPage /> : <Navigate to="/auth/login" />} />
+          <Route
+            path="/swagger"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Relatórios">
+                  <SwaggerPage />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
 
           {/* Entradas e Saídas */}
-          <Route exact path="/entrada" element={token ? <Entrada /> : <Navigate to="/auth/login" />} />
-          <Route exact path="/saida" element={token ? <Saida /> : <Navigate to="/auth/login" />} />
-          
-          {/* Vendas */}
-          <Route exact path="/vendas" element={token ? <Vendas /> : <Navigate to="/auth/login" />} />
+          <Route
+            path="/entrada"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Entrada">
+                  <Entrada />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/saida"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Saída">
+                  <Saida />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
 
-          {/* Caso a URL não seja encontrada, redireciona para o login */}
-          <Route path="*" element={<Signin />} />
+          {/* Vendas */}
+          <Route
+            path="/vendas"
+            element={
+              <ProtectedRoute>
+                <PermissaoRoute tela="Tela de Vendas">
+                  <Vendas />
+                </PermissaoRoute>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Não autorizado */}
+          <Route path="/nao-autorizado" element={<NaoAutorizado />} />
+
+          {/* Autenticação */}
+          <Route path="/auth/login" element={<Signin />} />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to={token ? "/home" : "/auth/login"} />} />
         </Routes>
       </Fragment>
     </BrowserRouter>
