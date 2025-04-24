@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import jwtDecode from "jwt-decode";
 import api from "../services/api";
 
-const PermissaoRoute = ({ children, tela }) => {
+const PermissaoRoute = ({ children, tela, operacao }) => {
   const [autorizado, setAutorizado] = useState(null);
 
   useEffect(() => {
@@ -37,8 +37,8 @@ const PermissaoRoute = ({ children, tela }) => {
           return;
         }
 
-        // 3. Verificar se possui permissão para a tela específica
-        const permissaoTela = permissoes.find(p => p.tela === tela);
+        // 3. Verificar se possui permissão para a tela específica e operação
+        const permissaoTela = permissoes.find(p => p.tela === tela && p.operacao === operacao);
         setAutorizado(!!permissaoTela);
 
       } catch (error) {
@@ -47,7 +47,7 @@ const PermissaoRoute = ({ children, tela }) => {
     };
 
     verificarPermissao();
-  }, [tela]);
+  }, [tela, operacao]);
 
   if (autorizado === null) {
     return <div>Verificando permissões...</div>;

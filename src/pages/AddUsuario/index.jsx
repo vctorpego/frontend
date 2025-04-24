@@ -1,28 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
-import jwtDecode from "jwt-decode";
-import * as C from "./styles";
+import * as C from "./styles"; // Importando os estilos de 'styles.jsx'
 
 const telas = [
-  { nome: "Dashboard", id: 1 },
-  { nome: "Produtos", id: 2 },
-  { nome: "Fornecedores", id: 3 },
-  { nome: "Clientes", id: 4 },
-  { nome: "Recarga", id: 5 },
-  { nome: "Vendas", id: 6 },
-  { nome: "Pagamentos", id: 7 },
-  { nome: "Relatórios", id: 8 },
-  { nome: "Entrada", id: 9 },
-  { nome: "Saída", id: 10 },
-  { nome: "Usuarios", id: 11 },
+  { nome: "Tela de Dashboard", id: 1 },
+  { nome: "Tela de Produtos", id: 2 },
+  { nome: "Tela de Fornecedores", id: 3 },
+  { nome: "Tela de Clientes", id: 4 },
+  { nome: "Tela de Recarga", id: 5 },
+  { nome: "Tela de Vendas", id: 6 },
+  { nome: "Tela de Pagamentos", id: 7 },
+  { nome: "Tela de Relatórios", id: 8 },
+  { nome: "Tela de Entrada", id: 9 },
+  { nome: "Tela de Saída", id: 10 },
+  { nome: "Tela Usuarios", id: 11 },
 ];
 
 const acoes = {
-  adicionar: 1,  // POST
-  editar: 2,     // PUT
-  excluir: 3,    // DELETE
-  visualizar: 4, // GET
+  adicionar: 1,
+  editar: 2,
+  excluir: 3,
+  visualizar: 4,
 };
 
 const AddUsuario = () => {
@@ -42,8 +42,90 @@ const AddUsuario = () => {
       return acc;
     }, {})
   );
-
+  const [userPermissions, setUserPermissions] = useState([]);
+  const [hasPermission, setHasPermission] = useState(false);
   const navigate = useNavigate();
+
+  const getToken = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/auth/login");
+      return null;
+    }
+
+    try {
+      const decoded = jwt_decode(token);
+      if (decoded.exp < Date.now() / 1000) {
+        localStorage.removeItem("token");
+        navigate("/auth/login");
+        return null;
+      }
+      return token;
+    } catch (error) {
+      console.error("Erro ao decodificar token:", error);
+      localStorage.removeItem("token");
+      navigate("/auth/login");
+      return null;
+    }
+  };
+
+  const getRequestConfig = () => {
+    const token = localStorage.getItem("token");
+    return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+  };
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+  
+    const decoded = jwt_decode(token);
+    const userLogin = decoded.sub;
+  
+    const fetchUserPermissions = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/usuario/id/${userLogin}`,
+          getRequestConfig()
+        );
+        const userId = response.data;
+  
+        const permissionsResponse = await axios.get(
+          `http://localhost:8080/permissao/telas/${userId}`,
+          getRequestConfig()
+        );
+        setUserPermissions(permissionsResponse.data);
+  
+        const permissoesTela = permissionsResponse.data.find(
+          (perm) => perm.tela === "Tela Usuarios"
+        );
+  
+        const permissoes = permissoesTela?.permissoes || [];
+        setPermissoes((prev) => {
+          return telas.reduce((acc, tela) => {
+            acc[tela.nome] = {
+              adicionar: false,
+              editar: false,
+              excluir: false,
+              visualizar: false,
+            };
+            return acc;
+          }, {});
+        });
+
+        const hasPostPermission = permissoes.includes("POST");
+        setHasPermission(hasPostPermission);
+
+        // Redirecionar para /nao-autorizado se o usuário não tiver permissão
+        if (!hasPostPermission) {
+          navigate("/nao-autorizado");
+        }
+      } catch (error) {
+        console.error("Erro ao buscar permissões:", error);
+      }
+    };
+  
+    fetchUserPermissions();
+  }, [navigate]);
 
   const handleCheckboxChange = (tela, acao) => {
     setPermissoes((prev) => ({
@@ -57,32 +139,21 @@ const AddUsuario = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (!nome || !email || !senha || !telefone || !login) {
       alert("Preencha todos os campos.");
       return;
     }
-  
-    const token = localStorage.getItem("token");
-  
+
+    const token = getToken();
+
     if (!token) {
       alert("Você precisa estar logado!");
       navigate("/auth/login");
       return;
     }
-  
+
     try {
-      const decodedToken = jwtDecode(token);
-      const currentTime = Date.now() / 1000;
-  
-      if (decodedToken.exp < currentTime) {
-        alert("Token expirado. Faça login novamente.");
-        localStorage.removeItem("token");
-        navigate("/auth/login");
-        return;
-      }
-  
-      // Enviar os dados do usuário para criação
       const response = await axios.post(
         "http://localhost:8080/usuario",
         {
@@ -91,7 +162,7 @@ const AddUsuario = () => {
           nomeUsuario: nome,
           login: login,
           senhaUsuario: senha,
-          usuarioPermissaoTelaListUsuario: []  // Array vazio de permissões
+          usuarioPermissaoTelaListUsuario: [],
         },
         {
           headers: {
@@ -99,40 +170,41 @@ const AddUsuario = () => {
           },
         }
       );
-  
-      console.log("Resposta do backend:", response); // Verificar resposta
-  
+
       if (response.status === 200 || response.status === 201) {
         alert("Usuário adicionado com sucesso!");
-  
-        const usuarioId = response.data.idUsuario; // Atualizado para o campo correto
-  
+        const usuarioId = response.data.idUsuario;
+
         if (!usuarioId) {
           throw new Error("ID do usuário não retornado.");
         }
-  
-        // Após criar o usuário, associe as permissões
+
+        const permissaoPromises = [];
+
         for (const tela of telas) {
           for (const acao in acoes) {
             if (permissoes[tela.nome][acao]) {
-              // Enviar a permissão para o backend com os parâmetros corretos
-              await axios.post(
-                `http://localhost:8080/usuario/${usuarioId}/permissao`,
-                null,
-                {
-                  params: {
-                    idTela: tela.id, // Substituindo pela tela correta (Vendas, Entrada, etc.)
-                    idPermissao: acoes[acao], // Passando o id da permissão correspondente
-                  },
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                }
+              permissaoPromises.push(
+                axios.post(
+                  `http://localhost:8080/usuario/${usuarioId}/permissao`,
+                  null,
+                  {
+                    params: {
+                      idTela: tela.id,
+                      idPermissao: acoes[acao],
+                    },
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                  }
+                )
               );
             }
           }
         }
-  
+
+        await Promise.all(permissaoPromises);
+
         setTimeout(() => {
           navigate("/usuarios");
         }, 1500);
@@ -146,96 +218,61 @@ const AddUsuario = () => {
       }
     }
   };
-  
+
+  if (!hasPermission) {
+    return <div>Você não tem permissão para acessar esta página.</div>;
+  }
 
   return (
     <C.Container>
       <C.Title>Adicionar Usuário</C.Title>
       <C.Form onSubmit={handleSubmit}>
-        <C.InputGroup>
-          <C.InputWrapper>
-            <C.Label>Nome:</C.Label>
-            <C.Input
-              type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              placeholder="Ex: João"
-              required
-            />
-          </C.InputWrapper>
-
-          <C.InputWrapper>
-            <C.Label>Telefone:</C.Label>
-            <C.Input
-              type="tel"
-              value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
-              placeholder="(00) 00000-0000"
-              required
-            />
-          </C.InputWrapper>
-        </C.InputGroup>
-
-        <C.InputGroup>
-          <C.InputWrapper>
-            <C.Label>Email:</C.Label>
-            <C.Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="joao@gmail.com"
-              required
-            />
-          </C.InputWrapper>
-
-          <C.InputWrapper>
-            <C.Label>Senha:</C.Label>
-            <C.Input
-              type="password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              placeholder="****"
-              required
-            />
-          </C.InputWrapper>
-        </C.InputGroup>
-
-        <C.InputGroup>
-          <C.InputWrapper>
-            <C.Label>Login:</C.Label>
-            <C.Input
-              type="text"
-              value={login}
-              onChange={(e) => setLogin(e.target.value)}
-              placeholder="Ex: silva"
-              required
-            />
-          </C.InputWrapper>
-        </C.InputGroup>
-
-        <div>
-          <C.Label>Permissões:</C.Label>
-          <C.PermissoesContainer>
-            {telas.map((tela) => (
-              <div key={tela.id}>
-                <strong>{tela.nome}</strong>
-                <C.CheckboxContainer>
-                  {Object.keys(acoes).map((acao) => (
-                    <C.CheckboxLabel key={`${tela.id}-${acao}`}>
-                      <C.Checkbox
-                        type="checkbox"
-                        checked={permissoes[tela.nome][acao]}
-                        onChange={() => handleCheckboxChange(tela.nome, acao)}
-                      />
-                      {acao}
-                    </C.CheckboxLabel>
-                  ))}
-                </C.CheckboxContainer>
-              </div>
+        <C.Input
+          type="text"
+          placeholder="Nome"
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+        />
+        <C.Input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <C.Input
+          type="password"
+          placeholder="Senha"
+          value={senha}
+          onChange={(e) => setSenha(e.target.value)}
+        />
+        <C.Input
+          type="text"
+          placeholder="Telefone"
+          value={telefone}
+          onChange={(e) => setTelefone(e.target.value)}
+        />
+        <C.Input
+          type="text"
+          placeholder="Login"
+          value={login}
+          onChange={(e) => setLogin(e.target.value)}
+        />
+        {/* Exibição das permissões */}
+        {telas.map((tela) => (
+          <C.CheckboxContainer key={tela.id}>
+            <strong>{tela.nome}</strong>
+            {Object.keys(acoes).map((acao) => (
+              <label key={acao}>
+                <input
+                  type="checkbox"
+                  checked={permissoes[tela.nome][acao]}
+                  onChange={() => handleCheckboxChange(tela.nome, acao)}
+                />
+                {acao}
+              </label>
             ))}
-          </C.PermissoesContainer>
-        </div>
-
+          </C.CheckboxContainer>
+        ))}
         <C.Button type="submit">Adicionar Usuário</C.Button>
       </C.Form>
     </C.Container>
