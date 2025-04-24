@@ -86,3 +86,30 @@ export const Button = styled.button`
   }
 `;
 
+// 🆕 Adicionando os estilos para permissões
+export const PermissoesContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 10px;
+`;
+
+export const CheckboxContainer = styled.div`
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+`;
+
+export const CheckboxLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #333;
+`;
+
+export const Checkbox = styled.input`
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+`;

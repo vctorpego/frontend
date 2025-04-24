@@ -1,56 +1,126 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import jwt_decode from "jwt-decode";
 import { useNavigate, useParams } from "react-router-dom";
-import jwtDecode from "jwt-decode";
-import * as C from "./styles";
+import * as C from "./styles"; // Importando os estilos de 'styles.jsx'
 
-const telas = ["clientes", "produtos", "fornecedores", "usuarios"];
-const acoes = ["adicionar", "editar", "excluir"];
+const telas = [
+  { nome: "Tela de Dashboard", id: 1 },
+  { nome: "Tela de Produtos", id: 2 },
+  { nome: "Tela de Fornecedores", id: 3 },
+  { nome: "Tela de Clientes", id: 4 },
+  { nome: "Tela de Recarga", id: 5 },
+  { nome: "Tela de Vendas", id: 6 },
+  { nome: "Tela de Pagamentos", id: 7 },
+  { nome: "Tela de Relatórios", id: 8 },
+  { nome: "Tela de Entrada", id: 9 },
+  { nome: "Tela de Saída", id: 10 },
+  { nome: "Tela Usuarios", id: 11 },
+];
+
+const acoes = {
+  adicionar: 1,
+  editar: 2,
+  excluir: 3,
+  visualizar: 4,
+};
 
 const EditUsuario = () => {
-  const { id } = useParams();  // Obtemos o ID do usuário da URL
+  const { id } = useParams();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
-  const [permissoes, setPermissoes] = useState({});
+  const [login, setLogin] = useState("");
+  const [permissoes, setPermissoes] = useState(
+    telas.reduce((acc, tela) => {
+      acc[tela.nome] = {
+        adicionar: false,
+        editar: false,
+        excluir: false,
+        visualizar: false,
+      };
+      return acc;
+    }, {})
+  );
+  const [hasPermission, setHasPermission] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const token = localStorage.getItem("token");
-      
-      if (!token) {
-        alert("Você precisa estar logado!");
+  const getToken = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/auth/login");
+      return null;
+    }
+
+    try {
+      const decoded = jwt_decode(token);
+      if (decoded.exp < Date.now() / 1000) {
+        localStorage.removeItem("token");
         navigate("/auth/login");
-        return;
+        return null;
       }
+      return token;
+    } catch (error) {
+      console.error("Erro ao decodificar token:", error);
+      localStorage.removeItem("token");
+      navigate("/auth/login");
+      return null;
+    }
+  };
 
+  const getRequestConfig = () => {
+    const token = localStorage.getItem("token");
+    return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+  };
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+
+    const fetchUserData = async () => {
       try {
-        const decodedToken = jwtDecode(token);
-        const currentTime = Date.now() / 1000;
-
-        if (decodedToken.exp < currentTime) {
-          alert("Token expirado. Faça login novamente.");
-          localStorage.removeItem("token");
-          navigate("/auth/login");
-          return;
-        }
-
         const response = await axios.get(
           `http://localhost:8080/usuario/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          getRequestConfig()
+        );
+        const { nomeUsuario, emailUsuario, telefoneUsuario, login } = response.data;
+        setNome(nomeUsuario);
+        setEmail(emailUsuario);
+        setTelefone(telefoneUsuario);
+        setLogin(login);
+
+        const permissionsResponse = await axios.get(
+          `http://localhost:8080/permissao/telas/${id}`,
+          getRequestConfig()
         );
 
-        const { nome, email, telefone, permissoes } = response.data;
+        const permissoesTela = permissionsResponse.data.find(
+          (perm) => perm.tela === "Tela Usuarios"
+        );
+        
+        // Aqui imprimimos as permissões recebidas
+        console.log('Permissões de tela do usuário:', permissoesTela);
 
-        setNome(nome);
-        setEmail(email);
-        setTelefone(telefone);
-        setPermissoes(permissoes);  // Carrega as permissões existentes
+        const permissoes = permissoesTela?.permissoes || [];
+
+        setPermissoes((prev) => {
+          return telas.reduce((acc, tela) => {
+            acc[tela.nome] = {
+              adicionar: permissoes.includes("POST"),
+              editar: permissoes.includes("PUT"),
+              excluir: permissoes.includes("DELETE"),
+              visualizar: permissoes.includes("GET"),
+            };
+            return acc;
+          }, {});
+        });
+
+        const hasEditPermission = permissoes.includes("PUT");
+        setHasPermission(hasEditPermission);
+
+        if (!hasEditPermission) {
+          navigate("/nao-autorizado");
+        }
       } catch (error) {
         console.error("Erro ao carregar dados do usuário:", error);
         alert("Erro ao carregar dados do usuário.");
@@ -73,7 +143,12 @@ const EditUsuario = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem("token");
+    if (!nome || !email || !telefone || !login) {
+      alert("Preencha todos os campos.");
+      return;
+    }
+
+    const token = getToken();
 
     if (!token) {
       alert("Você precisa estar logado!");
@@ -82,23 +157,14 @@ const EditUsuario = () => {
     }
 
     try {
-      const decodedToken = jwtDecode(token);
-      const currentTime = Date.now() / 1000;
-
-      if (decodedToken.exp < currentTime) {
-        alert("Token expirado. Faça login novamente.");
-        localStorage.removeItem("token");
-        navigate("/auth/login");
-        return;
-      }
-
       const response = await axios.put(
         `http://localhost:8080/usuario/${id}`,
         {
-          nome,
-          email,
-          telefone,
-          permissoes,
+          nomeUsuario: nome,
+          emailUsuario: email,
+          telefoneUsuario: telefone,
+          login: login,
+          usuarioPermissaoTelaListUsuario: [], // Ajuste conforme a estrutura de permissões
         },
         {
           headers: {
@@ -118,6 +184,10 @@ const EditUsuario = () => {
       alert("Erro ao editar usuário.");
     }
   };
+
+  if (!hasPermission) {
+    return <div>Você não tem permissão para acessar esta página.</div>;
+  }
 
   return (
     <C.Container>
@@ -158,32 +228,43 @@ const EditUsuario = () => {
               required
             />
           </C.InputWrapper>
+
+          <C.InputWrapper>
+            <C.Label>Login:</C.Label>
+            <C.Input
+              type="text"
+              value={login}
+              onChange={(e) => setLogin(e.target.value)} // Isso pode ser removido, pois o campo é somente leitura
+              placeholder="Ex: jao"
+              required
+              disabled
+              readOnly
+            />
+          </C.InputWrapper>
         </C.InputGroup>
 
         <div>
           <C.Label>Permissões:</C.Label>
           <C.PermissoesContainer>
             {telas.map((tela) => (
-              <div key={tela}>
-                <strong>{tela.charAt(0).toUpperCase() + tela.slice(1)}</strong>
-                <C.CheckboxContainer>
-                  {acoes.map((acao) => (
-                    <C.CheckboxLabel key={`${tela}-${acao}`}>
-                      <C.Checkbox
-                        type="checkbox"
-                        checked={permissoes[tela]?.[acao] || false}
-                        onChange={() => handleCheckboxChange(tela, acao)}
-                      />
-                      {acao}
-                    </C.CheckboxLabel>
-                  ))}
-                </C.CheckboxContainer>
+              <div key={tela.id}>
+                <strong>{tela.nome}</strong>
+                {Object.keys(acoes).map((acao) => (
+                  <label key={acao}>
+                    <input
+                      type="checkbox"
+                      checked={permissoes[tela.nome][acao]}
+                      onChange={() => handleCheckboxChange(tela.nome, acao)}
+                    />
+                    {acao}
+                  </label>
+                ))}
               </div>
             ))}
           </C.PermissoesContainer>
         </div>
 
-        <C.Button type="submit">Editar Usuário</C.Button>
+        <C.Button type="submit">Salvar Alterações</C.Button>
       </C.Form>
     </C.Container>
   );

@@ -237,7 +237,7 @@ const RoutesApp = () => {
             }
           />
           <Route
-            path="/usuarios/editar/:idUsuario"
+            path="/usuarios/editar/:id"
             element={
               <ProtectedRoute>
                 <PermissaoRoute tela="Tela Usuarios">
