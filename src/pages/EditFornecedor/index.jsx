@@ -11,7 +11,63 @@ const EditFornecedor = () => {
   const [celularFornecedor, setCelularFornecedor] = useState("");
   const [emailFornecedor, setEmailFornecedor] = useState("");
   const [chavePixFornecedor, setChavePixFornecedor] = useState("");
+  const [hasPermission, setHasPermission] = useState(false);  // Verificação de permissão
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const verificarPermissao = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("Você precisa estar logado!");
+        navigate("/auth/login");
+        return;
+      }
+
+      const decoded = jwtDecode(token);
+      const userLogin = decoded.sub; // Extraindo ID do usuário do token
+
+      const getRequestConfig = () => ({
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      try {
+        // Requisição para buscar as permissões do usuário
+        const response = await axios.get(
+          `http://localhost:8080/usuario/id/${userLogin}`,
+          getRequestConfig()
+        );
+        const userId = response.data;
+
+        const permissionsResponse = await axios.get(
+          `http://localhost:8080/permissao/telas/${userId}`,
+          getRequestConfig()
+        );
+
+        // Verifica se o usuário tem permissão para "PUT" na tela de "Tela de Fornecedores"
+        const permissoesTela = permissionsResponse.data.find(
+          (perm) => perm.tela === "Tela de Fornecedores"
+        );
+
+        const permissoes = permissoesTela?.permissoes || [];
+        const hasPutPermission = permissoes.includes("PUT");
+
+        setHasPermission(hasPutPermission);
+
+        // Caso não tenha permissão, redireciona para página de acesso negado
+        if (!hasPutPermission) {
+          navigate("/nao-autorizado");
+        }
+      } catch (error) {
+        console.error("Erro ao verificar permissões:", error);
+        navigate("/nao-autorizado");
+      }
+    };
+
+    verificarPermissao();
+  }, [navigate]);
 
   useEffect(() => {
     const fetchFornecedor = async () => {
@@ -96,6 +152,11 @@ const EditFornecedor = () => {
       alert("Erro ao atualizar o fornecedor.");
     }
   };
+
+  // Exibe a tela de edição apenas se o usuário tiver permissão
+  if (!hasPermission) {
+    return <p>Você não tem permissão para editar fornecedores.</p>;
+  }
 
   return (
     <Container>

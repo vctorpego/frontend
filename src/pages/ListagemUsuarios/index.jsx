@@ -144,6 +144,9 @@ const ListagemUsuarios = () => {
   if (permissoesTelaAtual.includes("PUT")) actions.push("edit");
   if (permissoesTelaAtual.includes("DELETE")) actions.push("delete");
 
+  const showActionsColumn =
+    permissoesTelaAtual.includes("PUT") || permissoesTelaAtual.includes("DELETE");
+
   return (
     <C.Container>
       <Sidebar user={user} />
@@ -188,6 +191,7 @@ const ListagemUsuarios = () => {
             handleDelete={handleDeleteUsuario}
             handleEdit={handleEditUsuario}
             actions={actions}
+            showActionsColumn={showActionsColumn}
           />
         )}
 

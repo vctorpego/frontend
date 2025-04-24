@@ -12,7 +12,8 @@ const Grid = ({
   handlePrint, 
   handlePay, 
   idKey, 
-  actions = ["edit", "delete"] // Define as ações a serem exibidas, com "edit" e "delete" como padrão
+  actions = ["edit", "delete"], // Define as ações a serem exibidas, com "edit" e "delete" como padrão
+  showActionsColumn = true // Controle de exibição da coluna de Ações
 }) => {
   // Função para acessar valores aninhados no objeto com validações
   const getNestedValue = (obj, path) => {
@@ -57,7 +58,7 @@ const Grid = ({
           {columns.map((column, index) => (
             <C.TableHeader key={index}>{column}</C.TableHeader>
           ))}
-          <C.TableHeader>Ações</C.TableHeader>
+          {showActionsColumn && <C.TableHeader>Ações</C.TableHeader>} {/* Mostrar a coluna de ações apenas se showActionsColumn for true */}
         </tr>
       </thead>
       <tbody>
@@ -69,9 +70,11 @@ const Grid = ({
                   {getNestedValue(item, columnMap[column])}
                 </C.TableCell>
               ))}
-              <C.TableCell align="center">
-                {renderActions(item)} {/* Renderiza as ações baseadas nas escolhas */}
-              </C.TableCell>
+              {showActionsColumn && (
+                <C.TableCell align="center">
+                  {renderActions(item)} {/* Renderiza as ações baseadas nas escolhas */}
+                </C.TableCell>
+              )}
             </tr>
           ))
         ) : (

@@ -1,9 +1,7 @@
 import React from "react";
 import { CreditCard, Edit, Trash2 } from "lucide-react";
 import * as C from "./styles";
-
-const Grid = ({ data, columns, columnMap, handleDelete, handleEdit, handlePay, idKey }) => {
-  // Função para acessar valores aninhados no objeto com validações
+const Grid = ({ data, columns, columnMap, handleDelete, handleEdit, handlePay, idKey, actions = [] }) => {
   const getNestedValue = (obj, path) => {
     if (typeof path === "string" && path.trim()) {
       return path.split(".").reduce((acc, key) => acc?.[key], obj) ?? "-";
@@ -18,7 +16,7 @@ const Grid = ({ data, columns, columnMap, handleDelete, handleEdit, handlePay, i
           {columns.map((column, index) => (
             <C.TableHeader key={index}>{column}</C.TableHeader>
           ))}
-          <C.TableHeader>Ações</C.TableHeader>
+          {actions.length > 0 && <C.TableHeader>Ações</C.TableHeader>}
         </tr>
       </thead>
       <tbody>
@@ -30,17 +28,25 @@ const Grid = ({ data, columns, columnMap, handleDelete, handleEdit, handlePay, i
                   {getNestedValue(item, columnMap[column])}
                 </C.TableCell>
               ))}
-              <C.TableCell align="center">
-                <C.ActionButton onClick={() => handleEdit(item[idKey])}>
-                  <Edit style={{ color: "blue" }} />
-                </C.ActionButton>
-                <C.ActionButton onClick={() => handleDelete(item[idKey])}>
-                  <Trash2 style={{ color: "red" }} />
-                </C.ActionButton>
-                <C.ActionButton onClick={() => handlePay(item[idKey])}>
-                  <CreditCard style={{ color: "green" }} />
-                </C.ActionButton>
-              </C.TableCell>
+              {actions.length > 0 && (
+                <C.TableCell align="center">
+                  {actions.includes("edit") && (
+                    <C.ActionButton onClick={() => handleEdit(item[idKey])}>
+                      <Edit style={{ color: "blue" }} />
+                    </C.ActionButton>
+                  )}
+                  {actions.includes("delete") && (
+                    <C.ActionButton onClick={() => handleDelete(item[idKey])}>
+                      <Trash2 style={{ color: "red" }} />
+                    </C.ActionButton>
+                  )}
+                  {actions.includes("adicionar") && (
+                    <C.ActionButton onClick={() => handlePay(item[idKey])}>
+                      <CreditCard style={{ color: "green" }} />
+                    </C.ActionButton>
+                  )}
+                </C.TableCell>
+              )}
             </tr>
           ))
         ) : (
@@ -54,5 +60,7 @@ const Grid = ({ data, columns, columnMap, handleDelete, handleEdit, handlePay, i
     </C.StyledTable>
   );
 };
+
+
 
 export default Grid;

@@ -161,6 +161,8 @@ const ListagemProdutos = () => {
     permissoes.includes("POST") && "adicionar",
   ].filter(Boolean); // Filtra valores falsos (como `undefined`)
 
+  const showActionsColumn = permissoes.includes("PUT") || permissoes.includes("DELETE");
+
   return (
     <C.Container>
       <Sidebar user={user} />
@@ -206,6 +208,8 @@ const ListagemProdutos = () => {
             handleDelete={handleDeleteProduto}
             handleEdit={handleEditProduto}
             actions={actions} // Passando as ações permitidas
+            showActionsColumn={showActionsColumn}
+            
           />
         )}
 

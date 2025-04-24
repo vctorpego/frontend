@@ -170,6 +170,7 @@ const ListagemClientes = () => {
   if (permissoesTelaAtual.includes("PUT")) actions.push("edit");
   if (permissoesTelaAtual.includes("DELETE")) actions.push("delete");
   if (permissoesTelaAtual.includes("POST")) actions.push("add");
+  const showActionsColumn = permissoes.includes("PUT") || permissoes.includes("DELETE");
 
 
   return (
@@ -225,6 +226,7 @@ const ListagemClientes = () => {
             handleDelete={(clienteId) => handleDeleteCliente(clienteId)} // Passando a função corretamente
             handleEdit={(clienteId) => handleEditCliente(clienteId)} // Passando a função corretamente
             actions={actions}
+            showActionsColumn={showActionsColumn}
           />
 
 

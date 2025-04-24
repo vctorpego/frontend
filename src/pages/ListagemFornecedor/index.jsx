@@ -11,6 +11,7 @@ import SearchBar from "../../components/SearchBar";
 const Fornecedores = () => {
   const [fornecedores, setFornecedores] = useState([]);
   const [user, setUser] = useState(null);
+  const [permissoes, setPermissoes] = useState([]);
   const [openModalExcluir, setOpenModalExcluir] = useState(false);
   const [idFornecedorExcluir, setIdFornecedorExcluir] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -52,16 +53,51 @@ const Fornecedores = () => {
     return {}; // Se não tiver token, retorna um objeto vazio
   };
 
-  // Carregar fornecedores após a primeira renderização
+  // Função para carregar dados do fornecedor e permissões
   useEffect(() => {
-    const token = getToken();
-    if (!token) return;
+    const fetchData = async () => {
+      const token = getToken();
+      if (token) {
+        const userLogin = jwt_decode(token);
+        setUser(userLogin);
 
-    // Requisição para obter os fornecedores
-    axios
-      .get("http://localhost:8080/fornecedor", getRequestConfig()) // Passando a configuração com token
-      .then(({ data }) => setFornecedores(data))
-      .catch((err) => console.error("Erro ao buscar fornecedores", err));
+        try {
+          // Buscar usuário no backend para pegar ID
+          const response = await axios.get(
+            `http://localhost:8080/usuario/id/${userLogin.sub}`,
+            getRequestConfig()
+          );
+
+          const userId = response.data;
+
+          // Buscar permissões para a tela de fornecedores
+          const permissionsResponse = await axios.get(
+            `http://localhost:8080/permissao/telas/${userId}`,
+            getRequestConfig()
+          );
+
+          const telaAtual = "Tela de Fornecedores"; // Nome da tela que queremos verificar as permissões
+          const permissoesTela = permissionsResponse.data.find(
+            (perm) => perm.tela === telaAtual
+          );
+
+          const permissoes = permissoesTela?.permissoes || [];
+          setPermissoes(permissoes);
+          console.log(`Permissões para ${telaAtual}:`, permissoes);
+
+          // Carregar fornecedores
+          const fornecedoresResponse = await axios.get(
+            "http://localhost:8080/fornecedor",
+            getRequestConfig()
+          );
+          setFornecedores(fornecedoresResponse.data);
+        } catch (error) {
+          console.error("Erro ao buscar permissões ou fornecedores:", error);
+        }
+      }
+    };
+
+    fetchData();
   }, [navigate]);
 
   // Função para filtrar fornecedores com base na busca
@@ -112,10 +148,18 @@ const Fornecedores = () => {
   const columns = ["ID", "Nome Social", "Celular", "Email", "Chave Pix"];
 
   const handleEditFornecedor = (fornecedorId) => {
-    console.log("Fornecedor a ser editado:", fornecedorId); // Verifique o ID
-
     navigate(`/fornecedores/editar/${fornecedorId}`);
-  }
+  };
+
+  // Definir as ações com base nas permissões
+  const actions = [
+    permissoes.includes("PUT") && "edit",
+    permissoes.includes("DELETE") && "delete",
+    permissoes.includes("POST") && "adicionar",
+  ].filter(Boolean); // Filtra valores falsos (como `undefined`)
+
+  // Definir se deve mostrar a coluna de ações
+  const showActionsColumn = permissoes.includes("PUT") || permissoes.includes("DELETE");
 
   return (
     <C.Container>
@@ -123,22 +167,26 @@ const Fornecedores = () => {
       <C.Content>
         <C.Title>Lista de Fornecedores</C.Title>
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
-        <button
-          onClick={handleAddFornecedor}
-          style={{
-            position: "absolute",
-            top: "20px",
-            right: "20px",
-            padding: "10px 20px",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          Adicionar Fornecedor
-        </button>
+
+        {permissoes.includes("POST") && (
+          <button
+            onClick={handleAddFornecedor}
+            style={{
+              position: "absolute",
+              top: "20px",
+              right: "20px",
+              padding: "10px 20px",
+              backgroundColor: "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+            }}
+          >
+            Adicionar Fornecedor
+          </button>
+        )}
+
         {fornecedores.length === 0 ? (
           <p>Nenhum fornecedor encontrado.</p>
         ) : (
@@ -152,9 +200,11 @@ const Fornecedores = () => {
               "Email": "emailFornecedor",
               "Chave Pix": "chavePixFornecedor",
             }}
-            idKey="idFornecedor"  // 🔹 Define o campo de ID correto
+            idKey="idFornecedor"
             handleDelete={handleDeleteFornecedor}
             handleEdit={handleEditFornecedor}
+            actions={actions} // Passando as ações permitidas
+            showActionsColumn={showActionsColumn}
           />
         )}
         <ModalExcluir

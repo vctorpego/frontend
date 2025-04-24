@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import jwtDecode from "jwt-decode"; // Importa a biblioteca para decodificar o token
@@ -10,7 +10,63 @@ const AddFornecedor = () => {
   const [celularFornecedor, setCelularFornecedor] = useState("");
   const [emailFornecedor, setEmailFornecedor] = useState("");
   const [chavePixFornecedor, setChavePixFornecedor] = useState("");
+  const [hasPermission, setHasPermission] = useState(false); // Para controlar se tem permissão
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const verificarPermissao = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("Você precisa estar logado!");
+        navigate("/auth/login");
+        return;
+      }
+
+      const decoded = jwtDecode(token);
+      const userLogin = decoded.sub; // Extraindo ID do usuário do token
+
+      const getRequestConfig = () => ({
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      try {
+        // Requisição para buscar as permissões do usuário
+        const response = await axios.get(
+          `http://localhost:8080/usuario/id/${userLogin}`,
+          getRequestConfig()
+        );
+        const userId = response.data;
+
+        const permissionsResponse = await axios.get(
+          `http://localhost:8080/permissao/telas/${userId}`,
+          getRequestConfig()
+        );
+
+        // Verifica se o usuário tem permissão para "PUT" na tela de "Tela de Fornecedores"
+        const permissoesTela = permissionsResponse.data.find(
+          (perm) => perm.tela === "Tela de Fornecedores"
+        );
+
+        const permissoes = permissoesTela?.permissoes || [];
+        const hasPutPermission = permissoes.includes("POST");
+
+        setHasPermission(hasPutPermission);
+
+        // Caso não tenha permissão, redireciona para página de acesso negado
+        if (!hasPutPermission) {
+          navigate("/nao-autorizado");
+        }
+      } catch (error) {
+        console.error("Erro ao verificar permissões:", error);
+        navigate("/nao-autorizado");
+      }
+    };
+
+    verificarPermissao();
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,6 +74,11 @@ const AddFornecedor = () => {
 
     if (!cnpjFornecedor || !nomeSocialFornecedor || !celularFornecedor || !emailFornecedor || !chavePixFornecedor) {
       alert("Por favor, preencha todos os campos.");
+      return;
+    }
+
+    if (!hasPermission) {
+      alert("Você não tem permissão para adicionar fornecedores.");
       return;
     }
 
@@ -138,7 +199,7 @@ const AddFornecedor = () => {
             required
           />
         </div>
-        <Button type="submit">Adicionar Fornecedor</Button>
+        <Button type="submit" disabled={!hasPermission}>Adicionar Fornecedor</Button>
       </Form>
     </Container>
   );

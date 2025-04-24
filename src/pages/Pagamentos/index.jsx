@@ -9,62 +9,71 @@ import * as C from "./styles";
 import SearchBar from "../../components/SearchBar";
 
 const Pagamentos = () => {
-  const [contas, setContas] = useState([]); // Lista de contas
-  const [user, setUser] = useState(null); // Dados do usuário
-  const [openModalExcluir, setOpenModalExcluir] = useState(false); // Modal de confirmação de exclusão
-  const [contaExcluir, setContaExcluir] = useState(null); // Conta a ser excluída
-  const [searchQuery, setSearchQuery] = useState(""); // Estado de busca
+  const [contas, setContas] = useState([]);
+  const [user, setUser] = useState(null);
+  const [permissoes, setPermissoes] = useState([]);
+  const [openModalExcluir, setOpenModalExcluir] = useState(false);
+  const [contaExcluir, setContaExcluir] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
-  // Função para obter o token e verificar se é válido
   const getToken = () => {
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/auth/login");
       return null;
     }
-
-    try {
-      const decoded = jwt_decode(token);
-      if (decoded.exp < Date.now() / 1000) {
-        localStorage.removeItem("token");
-        navigate("/auth/login");
-        return null;
-      }
-      setUser(decoded);
-    } catch (error) {
-      console.error("Erro ao decodificar o token:", error);
-      localStorage.removeItem("token");
-      navigate("/auth/login");
-      return null;
-    }
-
     return token;
   };
 
-  // Função para obter configuração da requisição
   const getRequestConfig = () => {
     const token = getToken();
     if (!token) return {};
     return { headers: { Authorization: `Bearer ${token}` } };
   };
 
-  // Função para buscar contas
-  const fetchContas = () => {
-    const token = getToken();
-    if (!token) return;
-
-    axios
-      .get("http://localhost:8080/controlecontas", getRequestConfig())
-      .then(({ data }) => setContas(data))
-      .catch((err) => console.error("Erro ao buscar contas", err));
-  };
-
   useEffect(() => {
-    fetchContas();
+    const loadData = async () => {
+      const token = getToken();
+      if (!token) return;
+
+      try {
+        const userLogin = jwt_decode(token);
+        setUser(userLogin);
+
+        const response = await axios.get(
+          `http://localhost:8080/usuario/id/${userLogin.sub}`,
+          getRequestConfig()
+        );
+        const userId = response.data;
+
+        const permissionsResponse = await axios.get(
+          `http://localhost:8080/permissao/telas/${userId}`,
+          getRequestConfig()
+        );
+
+        const telaAtual = "Tela de Pagamentos";
+        const permissoesTela = permissionsResponse.data.find(
+          (perm) => perm.tela === telaAtual
+        );
+        const permissoes = permissoesTela?.permissoes || [];
+        setPermissoes(permissoes);
+        console.log(`Permissões para ${telaAtual}:`, permissoes);
+
+        const contasResponse = await axios.get(
+          "http://localhost:8080/controlecontas",
+          getRequestConfig()
+        );
+        setContas(contasResponse.data);
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        navigate("/auth/login");
+      }
+    };
+
+    loadData();
   }, []);
 
-  // Função de filtragem das contas
   const filterContas = () => {
     if (!searchQuery) return contas;
     return contas.filter((conta) =>
@@ -72,26 +81,22 @@ const Pagamentos = () => {
     );
   };
 
-  // Função para lidar com a exclusão de conta
   const handleDeleteConta = (contaId) => {
     setContaExcluir(contaId);
     setOpenModalExcluir(true);
   };
 
-  // Confirmar a exclusão da conta
   const handleConfirmDelete = async () => {
     try {
-      const token = getToken();
-      if (!token) return;
-
       await axios.delete(
         `http://localhost:8080/controlecontas/${contaExcluir}`,
         getRequestConfig()
       );
-
-      // Recarregar a lista de contas após a exclusão
-      fetchContas();
-
+      const contasResponse = await axios.get(
+        "http://localhost:8080/controlecontas",
+        getRequestConfig()
+      );
+      setContas(contasResponse.data);
       setOpenModalExcluir(false);
       setContaExcluir(null);
     } catch (error) {
@@ -99,47 +104,62 @@ const Pagamentos = () => {
     }
   };
 
-  // Fechar o modal de exclusão
   const handleCloseModal = () => {
     setOpenModalExcluir(false);
     setContaExcluir(null);
   };
 
-  // Função para redirecionar para a página de editar conta
   const handlePagarConta = (contaId) => {
-    navigate('/pagamentos/editar/' + contaId); // Redireciona para a página de pagamento
+    navigate("/pagamentos/editar/" + contaId);
   };
 
   const handlePayConta = (contaId) => {
-    navigate('/pagamentos/pagar/' + contaId); // Redireciona para a página de pagamento
-  }
+    navigate("/pagamentos/pagar/" + contaId);
+  };
 
+  const columns = [
+    "ID",
+    "Empresa",
+    "Data de Pagamento",
+    "Valor",
+    "Vencimento",
+    "Status",
+  ];
 
-  // Colunas para a tabela de contas
-  const columns = ["ID", "Empresa", "Data de Pagamento", "Valor", "Vencimento", "Status"];
+  // ✅ Corrigido: permissões com base em POST/PUT/DELETE
+  const actions = [
+    permissoes.includes("PUT") && "edit",
+    permissoes.includes("DELETE") && "delete",
+    permissoes.includes("POST") && "adicionar",
+  ].filter(Boolean);
 
   return (
     <C.Container>
       <Sidebar user={user} />
       <C.Content>
         <C.Title>Lista de Contas</C.Title>
+
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
-        <button
-          onClick={() => navigate("/pagamentos/adicionar")} // Redireciona para a página de adicionar conta
-          style={{
-            position: "absolute",
-            top: "20px",
-            right: "20px",
-            padding: "10px 20px",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          Adicionar Conta
-        </button>
+
+        {/* ✅ Corrigido: verificação com POST (não Incluir) */}
+        {permissoes.includes("POST") && (
+          <button
+            onClick={() => navigate("/pagamentos/adicionar")}
+            style={{
+              position: "absolute",
+              top: "20px",
+              right: "20px",
+              padding: "10px 20px",
+              backgroundColor: "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+            }}
+          >
+            Adicionar Conta
+          </button>
+        )}
 
         {contas.length === 0 ? (
           <p>Nenhuma conta encontrada.</p>
@@ -148,17 +168,18 @@ const Pagamentos = () => {
             data={filterContas()}
             columns={columns}
             columnMap={{
-              "ID": "idContaControleContas",
-              "Empresa": "fornecedor.nomeSocialFornecedor",
+              ID: "idContaControleContas",
+              Empresa: "fornecedor.nomeSocialFornecedor",
               "Data de Pagamento": "dtPagamentoControleContas",
-              "Valor": "valorControleContas",
-              "Vencimento": "dtVencimentoControleContas",
-              "Status": "statusControleContas",
+              Valor: "valorControleContas",
+              Vencimento: "dtVencimentoControleContas",
+              Status: "statusControleContas",
             }}
-            idKey="idContaControleContas"  // 🔹 Define o campo de ID correto
-            handlePay={handlePayConta} // Passa a função de pagament
+            idKey="idContaControleContas"
+            handleEdit={handlePagarConta}
             handleDelete={handleDeleteConta}
-            handleEdit={handlePagarConta} // Substituindo a função de edição pela de pagar conta
+            handlePay={handlePayConta}
+            actions={actions} // ✅ Passando as ações filtradas com base nas permissões
           />
         )}
 
