@@ -77,50 +77,72 @@ const EditUsuario = () => {
     const token = getToken();
     if (!token) return;
 
+    const decoded = jwt_decode(token);
+    const userLogin = decoded.sub;
+
     const fetchUserData = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8080/usuario/${id}`,
+          `http://localhost:8080/usuario/id/${userLogin}`,
           getRequestConfig()
         );
-        const { nomeUsuario, emailUsuario, telefoneUsuario, login } = response.data;
-        setNome(nomeUsuario);
-        setEmail(emailUsuario);
-        setTelefone(telefoneUsuario);
-        setLogin(login);
+        const userId = response.data;
 
         const permissionsResponse = await axios.get(
-          `http://localhost:8080/permissao/telas/${id}`,
+          `http://localhost:8080/permissao/telas/${userId}`,
           getRequestConfig()
         );
 
         const permissoesTela = permissionsResponse.data.find(
           (perm) => perm.tela === "Tela Usuarios"
         );
-        
-        // Aqui imprimimos as permissões recebidas
-        console.log('Permissões de tela do usuário:', permissoesTela);
 
         const permissoes = permissoesTela?.permissoes || [];
-
-        setPermissoes((prev) => {
-          return telas.reduce((acc, tela) => {
-            acc[tela.nome] = {
-              adicionar: permissoes.includes("POST"),
-              editar: permissoes.includes("PUT"),
-              excluir: permissoes.includes("DELETE"),
-              visualizar: permissoes.includes("GET"),
-            };
-            return acc;
-          }, {});
-        });
-
         const hasEditPermission = permissoes.includes("PUT");
         setHasPermission(hasEditPermission);
 
         if (!hasEditPermission) {
           navigate("/nao-autorizado");
         }
+
+        const userToEditResponse = await axios.get(
+          `http://localhost:8080/usuario/${id}`,
+          getRequestConfig()
+        );
+        const { nomeUsuario, emailUsuario, telefoneUsuario, login } = userToEditResponse.data;
+        setNome(nomeUsuario);
+        setEmail(emailUsuario);
+        setTelefone(telefoneUsuario);
+        setLogin(login);
+
+        const userPermissionsResponse = await axios.get(
+          `http://localhost:8080/permissao/telas/${id}`,
+          getRequestConfig()
+        );
+
+        const permissoesUsuario = userPermissionsResponse.data;
+
+        setPermissoes((prev) => {
+          return telas.reduce((acc, tela) => {
+            const permissoesDaTela = permissoesUsuario.find((perm) => perm.tela === tela.nome);
+            if (permissoesDaTela) {
+              acc[tela.nome] = {
+                adicionar: permissoesDaTela.permissoes.includes("POST"),
+                editar: permissoesDaTela.permissoes.includes("PUT"),
+                excluir: permissoesDaTela.permissoes.includes("DELETE"),
+                visualizar: permissoesDaTela.permissoes.includes("GET"),
+              };
+            } else {
+              acc[tela.nome] = {
+                adicionar: false,
+                editar: false,
+                excluir: false,
+                visualizar: false,
+              };
+            }
+            return acc;
+          }, {});
+        });
       } catch (error) {
         console.error("Erro ao carregar dados do usuário:", error);
         alert("Erro ao carregar dados do usuário.");
@@ -156,7 +178,22 @@ const EditUsuario = () => {
       return;
     }
 
+    // Gerar a lista de permissões a partir dos checkboxes selecionados
+    const permissoesAtivas = [];
+
+    telas.forEach((tela) => {
+      Object.keys(acoes).forEach((acao) => {
+        if (permissoes[tela.nome][acao]) {
+          permissoesAtivas.push({
+            idTela: tela.id,
+            idPermissao: acoes[acao],
+          });
+        }
+      });
+    });
+
     try {
+      // Enviar o PUT para atualizar o usuário
       const response = await axios.put(
         `http://localhost:8080/usuario/${id}`,
         {
@@ -164,7 +201,6 @@ const EditUsuario = () => {
           emailUsuario: email,
           telefoneUsuario: telefone,
           login: login,
-          usuarioPermissaoTelaListUsuario: [], // Ajuste conforme a estrutura de permissões
         },
         {
           headers: {
@@ -174,14 +210,59 @@ const EditUsuario = () => {
       );
 
       if (response.status === 200) {
-        alert("Usuário editado com sucesso!");
+        await axios.delete(
+          `http://localhost:8080/usuario/tela/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const usuarioId = response.data.idUsuario;
+
+        if (!usuarioId) {
+          throw new Error("ID do usuário não retornado.");
+        }
+
+        const permissaoPromises = [];
+
+        for (const tela of telas) {
+          for (const acao in acoes) {
+            if (permissoes[tela.nome][acao]) {
+              permissaoPromises.push(
+                axios.post(
+                  `http://localhost:8080/usuario/${usuarioId}/permissao`,
+                  null,
+                  {
+                    params: {
+                      idTela: tela.id,
+                      idPermissao: acoes[acao],
+                    },
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                  }
+                )
+              );
+            }
+          }
+        }
+
+        // Esperar todas as permissões serem adicionadas
+        await Promise.all(permissaoPromises);
+
+        alert("Usuário e permissões atualizados com sucesso!");
         setTimeout(() => {
           navigate("/usuarios");
         }, 1500);
+      }else if (response.status === 409){
+        console.log("USUARIO NAO PODE SE EDITAR");
+        return;
+
       }
     } catch (error) {
-      console.error("Erro ao editar usuário:", error);
-      alert("Erro ao editar usuário.");
+      console.error("Erro ao atualizar usuário:", error);
     }
   };
 
@@ -234,7 +315,7 @@ const EditUsuario = () => {
             <C.Input
               type="text"
               value={login}
-              onChange={(e) => setLogin(e.target.value)} // Isso pode ser removido, pois o campo é somente leitura
+              onChange={(e) => setLogin(e.target.value)}
               placeholder="Ex: jao"
               required
               disabled
