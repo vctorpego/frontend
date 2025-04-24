@@ -12,7 +12,59 @@ const EditCliente = () => {
   const [dtNascCliente, setDtNascCliente] = useState("");
   const [ultimaCompraCliente, setUltimaCompraCliente] = useState("");
   const [faturaCliente, setFaturaCliente] = useState("");
+  const [hasPermission, setHasPermission] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const verificarPermissao = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/auth/login");
+        return;
+      }
+
+      const decoded = jwtDecode(token);
+      const userLogin = decoded.sub;
+
+      const getRequestConfig = () => ({
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/usuario/id/${userLogin}`,
+          getRequestConfig()
+        );
+        const userId = response.data;
+
+        const permissionsResponse = await axios.get(
+          `http://localhost:8080/permissao/telas/${userId}`,
+          getRequestConfig()
+        );
+
+        const permissoesTela = permissionsResponse.data.find(
+          (perm) => perm.tela === "Tela de Clientes"
+        );
+
+        const permissoes = permissoesTela?.permissoes || [];
+        const hasPutPermission = permissoes.includes("PUT");
+
+        setHasPermission(hasPutPermission);
+
+        if (!hasPutPermission) {
+          navigate("/nao-autorizado");
+        }
+      } catch (error) {
+        console.error("Erro ao verificar permissões:", error);
+        navigate("/nao-autorizado");
+      }
+    };
+
+    verificarPermissao();
+  }, [navigate]);
 
   useEffect(() => {
     const fetchCliente = async () => {
@@ -57,6 +109,7 @@ const EditCliente = () => {
         alert("Erro ao carregar o cliente.");
       }
     };
+
     fetchCliente();
   }, [idCliente, navigate]);
 
@@ -107,6 +160,8 @@ const EditCliente = () => {
       alert("Erro ao atualizar o cliente.");
     }
   };
+
+  if (!hasPermission) return null;
 
   return (
     <Container>

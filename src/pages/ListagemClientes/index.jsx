@@ -11,6 +11,7 @@ import * as C from "./styles";
 const ListagemClientes = () => {
   const [clientes, setClientes] = useState([]);
   const [user, setUser] = useState(null);
+  const [permissoes, setPermissoes] = useState([]);
   const [openModalExcluir, setOpenModalExcluir] = useState(false);
   const [clienteExcluir, setClienteExcluir] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,11 +42,36 @@ const ListagemClientes = () => {
     return token;
   };
 
-  const getUserData = () => {
+  const getUserData = async () => {
     const token = getToken();
     if (token) {
-      const decoded = jwt_decode(token);
-      setUser(decoded);
+      const userLogin = jwt_decode(token);
+      setUser(userLogin);
+
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/usuario/id/${userLogin.sub}`,
+          getRequestConfig()
+        );
+
+        const userId = response.data;
+
+        const permissionsResponse = await axios.get(
+          `http://localhost:8080/permissao/telas/${userId}`,
+          getRequestConfig()
+        );
+
+        const telaAtual = "Tela de Clientes";
+        const permissoesTela = permissionsResponse.data.find(
+          (perm) => perm.tela === telaAtual
+        );
+
+        const permissoes = permissoesTela?.permissoes || [];
+        setPermissoes(permissoes);
+        console.log(`Permissões para ${telaAtual}:`, permissoes);
+      } catch (error) {
+        console.error("Erro ao buscar permissões:", error);
+      }
     }
   };
 
@@ -118,24 +144,8 @@ const ListagemClientes = () => {
     navigate("/clientes/adicionar");
   };
 
-  const columns = [
-    "Cliente",
-    "ID",
-    "Saldo",
-    "Limite",
-    "Limite Disponível",
-    "Limite Usado",
-    "Ultima Compra",
-  ];
-
-  const columnMap = {
-    Cliente: "nomeCliente",
-    ID: "idCliente",
-    Saldo: "saldoCliente",
-    Limite: "limiteCliente",
-    "Limite Disponível": "faturaCliente",
-    "Limite Usado": "limiteUsado",
-    "Ultima Compra": "ultimaCompraCliente",
+  const handleEditCliente = (clienteId) => {
+    navigate(`/clientes/editar/${clienteId}`);
   };
 
   const formatMoeda = (valor) => {
@@ -154,9 +164,13 @@ const ListagemClientes = () => {
         : "N/A",
   }));
 
-  const handleEditCliente = (clienteId) => {
-    navigate(`/clientes/editar/${clienteId}`);
-  };
+  // Lógica de permissões de ações (editar e excluir)
+  const permissoesTelaAtual = permissoes || [];
+  const actions = [];
+  if (permissoesTelaAtual.includes("PUT")) actions.push("edit");
+  if (permissoesTelaAtual.includes("DELETE")) actions.push("delete");
+  if (permissoesTelaAtual.includes("POST")) actions.push("add");
+
 
   return (
     <C.Container>
@@ -164,34 +178,56 @@ const ListagemClientes = () => {
       <C.Content>
         <C.Title>Lista de Clientes</C.Title>
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
-        <button
-          onClick={handleAddCliente}
-          style={{
-            position: "absolute",
-            top: "20px",
-            right: "20px",
-            padding: "10px 20px",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          Adicionar Cliente
-        </button>
+
+        {actions.includes("add") && ( // Verifica se o usuário tem permissão de edição
+          <button
+            onClick={handleAddCliente}
+            style={{
+              position: "absolute",
+              top: "20px",
+              right: "20px",
+              padding: "10px 20px",
+              backgroundColor: "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+            }}
+          >
+            Adicionar Cliente
+          </button>
+        )}
 
         {clientes.length === 0 ? (
           <p>Nenhum cliente encontrado.</p>
         ) : (
           <Grid
             data={clientesComLimiteUsado}
-            columns={columns}
-            columnMap={columnMap}
+            columns={[
+              "Cliente",
+              "ID",
+              "Saldo",
+              "Limite",
+              "Limite Disponível",
+              "Limite Usado",
+              "Ultima Compra",
+            ]}
+            columnMap={{
+              Cliente: "nomeCliente",
+              ID: "idCliente",
+              Saldo: "saldoCliente",
+              Limite: "limiteCliente",
+              "Limite Disponível": "faturaCliente",
+              "Limite Usado": "limiteUsado",
+              "Ultima Compra": "ultimaCompraCliente",
+            }}
             idKey="idCliente"
-            handleDelete={handleDeleteCliente}
-            handleEdit={handleEditCliente}
+            handleDelete={(clienteId) => handleDeleteCliente(clienteId)} // Passando a função corretamente
+            handleEdit={(clienteId) => handleEditCliente(clienteId)} // Passando a função corretamente
+            actions={actions}
           />
+
+
         )}
 
         <ModalExcluir
@@ -205,3 +241,4 @@ const ListagemClientes = () => {
 };
 
 export default ListagemClientes;
+

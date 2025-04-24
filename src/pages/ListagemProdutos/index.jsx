@@ -11,11 +11,13 @@ import SearchBar from "../../components/SearchBar";
 const ListagemProdutos = () => {
   const [produtos, setProdutos] = useState([]);
   const [user, setUser] = useState(null);
+  const [permissoes, setPermissoes] = useState([]); // Estado para armazenar as permissões
   const [openModalExcluir, setOpenModalExcluir] = useState(false);
   const [produtoExcluir, setProdutoExcluir] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
+  // Função para obter o token e as permissões
   const getToken = () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -42,43 +44,76 @@ const ListagemProdutos = () => {
     return token;
   };
 
-  // Função para adicionar o token diretamente nas requisições
+  // Função para configurar o cabeçalho da requisição com o token
   const getRequestConfig = () => {
     const token = getToken();
-    if (!token) return {}; // Retorna objeto vazio caso não tenha token
+    if (!token) return {};
     return {
       headers: { Authorization: `Bearer ${token}` },
     };
   };
 
   useEffect(() => {
-    const token = getToken();
-    if (!token) return;
+    const fetchData = async () => {
+      const token = getToken();
+      if (token) {
+        const userLogin = jwt_decode(token);
+        setUser(userLogin);
 
-    axios
-      .get("http://localhost:8080/produto", getRequestConfig()) // Passando o token individualmente na requisição
-      .then(({ data }) => {
-        console.log("Produtos carregados:", data);
-        setProdutos(data);
-      })
-      .catch((err) => {
-        console.error("Erro ao buscar produtos", err);
-      });
+        try {
+          // Buscar usuário no backend para pegar ID
+          const response = await axios.get(
+            `http://localhost:8080/usuario/id/${userLogin.sub}`,
+            getRequestConfig()
+          );
+
+          const userId = response.data;
+
+          // Buscar permissões para a tela de produtos
+          const permissionsResponse = await axios.get(
+            `http://localhost:8080/permissao/telas/${userId}`,
+            getRequestConfig()
+          );
+
+          const telaAtual = "Tela de Produtos"; // Nome da tela que queremos verificar as permissões
+          const permissoesTela = permissionsResponse.data.find(
+            (perm) => perm.tela === telaAtual
+          );
+
+          const permissoes = permissoesTela?.permissoes || [];
+          setPermissoes(permissoes);
+          console.log(`Permissões para ${telaAtual}:`, permissoes);
+
+          // Carregar produtos
+          const produtosResponse = await axios.get(
+            "http://localhost:8080/produto",
+            getRequestConfig()
+          );
+          setProdutos(produtosResponse.data);
+        } catch (error) {
+          console.error("Erro ao buscar permissões ou produtos:", error);
+        }
+      }
+    };
+
+    fetchData();
   }, [navigate]);
 
+  // Filtro de produtos baseado na pesquisa
   const filterProdutos = () => {
     if (!searchQuery) return produtos;
-
     return produtos.filter((produto) =>
       produto.nomeProduto.toLowerCase().includes(searchQuery.toLowerCase())
     );
   };
 
+  // Função para abrir modal de exclusão
   const handleDeleteProduto = (produtoId) => {
     setProdutoExcluir(produtoId);
     setOpenModalExcluir(true);
   };
 
+  // Confirmar exclusão do produto
   const handleConfirmDelete = async () => {
     try {
       const token = getToken();
@@ -86,38 +121,45 @@ const ListagemProdutos = () => {
 
       await axios.delete(
         `http://localhost:8080/produto/${produtoExcluir}`,
-        getRequestConfig() // Passando o token na requisição de exclusão
+        getRequestConfig()
       );
 
-      // Remover produto da lista local após exclusão
       setProdutos((prevProdutos) =>
         prevProdutos.filter((produto) => produto.idProduto !== produtoExcluir)
       );
       setOpenModalExcluir(false);
       setProdutoExcluir(null);
     } catch (error) {
-
+      console.error("Erro ao excluir produto", error);
     }
   };
 
+  // Fechar modal de exclusão
   const handleCloseModal = () => {
     setOpenModalExcluir(false);
     setProdutoExcluir(null);
   };
 
+  // Navegar para a tela de adicionar produto
   const handleAddProduto = () => {
     navigate("/produtos/adicionar");
   };
 
+  // Navegar para a tela de editar produto
   const handleEditProduto = (produtoId) => {
-    console.log("Produto a ser editado:", produtoId); // Verifique o ID
-
+    console.log("Produto a ser editado:", produtoId);
     navigate(`/produtos/editar/${produtoId}`);
-
   };
 
+  // Definindo colunas para a tabela
   const columns = ["ID", "Nome", "Código de Barras", "Estoque", "Preço", "Preço de Custo"];
-  const actions = ["edit", "delete", "printer"];
+  
+  // Condicionar as ações disponíveis de acordo com as permissões
+  const actions = [
+    permissoes.includes("PUT") && "edit",
+    permissoes.includes("DELETE") && "delete",
+    permissoes.includes("POST") && "adicionar",
+  ].filter(Boolean); // Filtra valores falsos (como `undefined`)
 
   return (
     <C.Container>
@@ -127,22 +169,24 @@ const ListagemProdutos = () => {
 
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
 
-        <button
-          onClick={handleAddProduto}
-          style={{
-            position: "absolute",
-            top: "20px",
-            right: "20px",
-            padding: "10px 20px",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          Adicionar Produto
-        </button>
+        {permissoes.includes("POST") && (
+          <button
+            onClick={handleAddProduto}
+            style={{
+              position: "absolute",
+              top: "20px",
+              right: "20px",
+              padding: "10px 20px",
+              backgroundColor: "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+            }}
+          >
+            Adicionar Produto
+          </button>
+        )}
 
         {produtos.length === 0 ? (
           <p>Nenhum produto encontrado.</p>
@@ -158,10 +202,10 @@ const ListagemProdutos = () => {
               "Preço": "precoProduto",
               "Preço de Custo": "valorDeCustoProduto",
             }}
-            idKey="idProduto"  // 🔹 Define o campo de ID correto
+            idKey="idProduto"
             handleDelete={handleDeleteProduto}
             handleEdit={handleEditProduto}
-            actions={actions} // Passando as ações para o Grid
+            actions={actions} // Passando as ações permitidas
           />
         )}
 

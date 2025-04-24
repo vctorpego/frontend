@@ -11,12 +11,68 @@ const EditProduto = () => {
   const [precoVenda, setPrecoVenda] = useState("");
   const [estoque, setEstoque] = useState("");
   const [codigoBarrasProduto, setCodigoBarrasProduto] = useState("");  // Alterado para 'codigoBarrasProduto'
+  const [hasPermission, setHasPermission] = useState(false);  // Estado para verificar permissão
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const verificarPermissao = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/auth/login");
+        return;
+      }
+
+      const decoded = jwtDecode(token);
+      const userLogin = decoded.sub; // Extrai o ID do usuário do token
+
+      const getRequestConfig = () => ({
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      try {
+        // Faz a requisição para pegar os dados do usuário
+        const response = await axios.get(
+          `http://localhost:8080/usuario/id/${userLogin}`,
+          getRequestConfig()
+        );
+        const userId = response.data;
+
+        // Requisição para pegar as permissões do usuário
+        const permissionsResponse = await axios.get(
+          `http://localhost:8080/permissao/telas/${userId}`,
+          getRequestConfig()
+        );
+
+        // Verifica se o usuário tem permissão para "PUT" na tela de "Tela de Produtos"
+        const permissoesTela = permissionsResponse.data.find(
+          (perm) => perm.tela === "Tela de Produtos" // Alterado para "Tela de Produtos"
+        );
+
+        const permissoes = permissoesTela?.permissoes || [];
+        const hasPutPermission = permissoes.includes("PUT");
+
+        setHasPermission(hasPutPermission);
+
+        // Caso não tenha permissão de PUT, redireciona para uma página de acesso negado
+        if (!hasPutPermission) {
+          navigate("/nao-autorizado");
+        }
+      } catch (error) {
+        console.error("Erro ao verificar permissões:", error);
+        navigate("/nao-autorizado");
+      }
+    };
+
+    verificarPermissao();
+  }, [navigate]);
 
   useEffect(() => {
     const fetchProduto = async () => {
       const token = localStorage.getItem("token");
-      
+
       // Verifica se o token existe
       if (!token) {
         alert("Você precisa estar logado!");
@@ -55,6 +111,11 @@ const EditProduto = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!hasPermission) {
+      alert("Você não tem permissão para editar produtos.");
+      return;
+    }
 
     if (!nomeProduto || !precoCusto || !precoVenda || !estoque) {
       alert("Por favor, preencha todos os campos.");
@@ -99,6 +160,11 @@ const EditProduto = () => {
       alert("Erro ao atualizar o produto.");
     }
   };
+
+  // Se o usuário não tem permissão para editar, exibe mensagem de acesso negado
+  if (!hasPermission) {
+    return <p>Você não tem permissão para editar produtos.</p>;
+  }
 
   return (
     <Container>

@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import jwtDecode from "jwt-decode"; // Importa a biblioteca para decodificar o token
+import jwt_decode from "jwt-decode"; // Biblioteca para decodificar o token
+
 import { Container, Title, Form, Input, Button, Label } from '../AddCliente/styles';  
 
 const AddProduto = () => {
@@ -9,11 +10,72 @@ const AddProduto = () => {
   const [precoCusto, setPrecoCusto] = useState("");
   const [precoVenda, setPrecoVenda] = useState("");
   const [estoque, setEstoque] = useState("");
+  const [hasPermission, setHasPermission] = useState(false); // Estado para verificar permissão
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const verificarPermissao = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/auth/login");
+        return;
+      }
+
+      const decoded = jwt_decode(token);
+      const userLogin = decoded.sub; // Extrai o ID do usuário do token
+
+      const getRequestConfig = () => ({
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      try {
+        // Faz a requisição para pegar os dados do usuário
+        const response = await axios.get(
+          `http://localhost:8080/usuario/id/${userLogin}`,
+          getRequestConfig()
+        );
+        const userId = response.data;
+
+        // Requisição para pegar as permissões do usuário
+        const permissionsResponse = await axios.get(
+          `http://localhost:8080/permissao/telas/${userId}`,
+          getRequestConfig()
+        );
+
+        // Verifica se o usuário tem permissão para "POST" na tela de "Tela de Clientes"
+        const permissoesTela = permissionsResponse.data.find(
+          (perm) => perm.tela === "Tela de Produtos" // Alterado para "Tela de Produtos"
+        );
+
+        const permissoes = permissoesTela?.permissoes || [];
+        const hasPostPermission = permissoes.includes("POST");
+
+        setHasPermission(hasPostPermission);
+
+        // Caso não tenha permissão de POST, redireciona para uma página de acesso negado
+        if (!hasPostPermission) {
+          navigate("/nao-autorizado");
+        }
+      } catch (error) {
+        console.error("Erro ao verificar permissões:", error);
+        navigate("/nao-autorizado");
+      }
+    };
+
+    verificarPermissao();
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Formulário enviado");
+
+    // Verifica se a permissão de POST foi concedida antes de permitir o envio do formulário
+    if (!hasPermission) {
+      alert("Você não tem permissão para adicionar produtos.");
+      return;
+    }
 
     if (!nomeProduto || !precoCusto || !precoVenda || !estoque) {
       alert("Por favor, preencha todos os campos.");
@@ -30,7 +92,7 @@ const AddProduto = () => {
 
     try {
       // Decodifica o token para verificar a expiração
-      const decodedToken = jwtDecode(token);
+      const decodedToken = jwt_decode(token);
       const currentTime = Date.now() / 1000; // Tempo atual em segundos
 
       if (decodedToken.exp < currentTime) {
@@ -81,6 +143,11 @@ const AddProduto = () => {
       }
     }
   };
+
+  // Se o usuário não tem permissão para adicionar, exibe mensagem de acesso negado
+  if (!hasPermission) {
+    return <p>Você não tem permissão para adicionar produtos.</p>;
+  }
 
   return (
     <Container>

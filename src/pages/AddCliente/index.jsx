@@ -1,24 +1,75 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
+import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import { Container, Title, Form, Input, Button, Label } from '../AddProduto/styles';
-import useCardScanner from "../../hooks/useCardScanner"; // Importa o hook do cartão
+import useCardScanner from "../../hooks/useCardScanner";
 
 const AddCliente = () => {
   const [nomeCliente, setNomeCliente] = useState("");
   const [saldoCliente, setSaldoCliente] = useState("");
   const [limiteCliente, setLimiteCliente] = useState("");
   const [dtNascCliente, setDtNascCliente] = useState("");
-  const [faturaCliente, setFaturaCliente] = useState(""); // Novo estado para faturaCliente
-  const [codigoCartao, setCodigoCartao] = useState(""); // Novo estado para o cartão
+  const [faturaCliente, setFaturaCliente] = useState("");
+  const [codigoCartao, setCodigoCartao] = useState("");
+  const [hasPermission, setHasPermission] = useState(false);
 
   const navigate = useNavigate();
 
-  // Ativa o leitor de cartão
   useCardScanner((codigoLido) => {
-    // Atualiza apenas o estado do código do cartão quando o cartão for lido
     setCodigoCartao(codigoLido);
   });
+
+  useEffect(() => {
+    const verificarPermissao = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/auth/login");
+        return;
+      }
+
+      const decoded = jwt_decode(token);
+      const userLogin = decoded.sub;
+
+      const getRequestConfig = () => ({
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/usuario/id/${userLogin}`,
+          getRequestConfig()
+        );
+        const userId = response.data;
+
+        const permissionsResponse = await axios.get(
+          `http://localhost:8080/permissao/telas/${userId}`,
+          getRequestConfig()
+        );
+
+        const permissoesTela = permissionsResponse.data.find(
+          (perm) => perm.tela === "Tela de Clientes"
+        );
+
+        const permissoes = permissoesTela?.permissoes || [];
+        const hasPostPermission = permissoes.includes("POST");
+
+        setHasPermission(hasPostPermission);
+
+        if (!hasPostPermission) {
+          navigate("/nao-autorizado");
+        }
+      } catch (error) {
+        console.error("Erro ao verificar permissões:", error);
+        navigate("/nao-autorizado");
+      }
+    };
+
+    verificarPermissao();
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,14 +89,14 @@ const AddCliente = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/cliente", 
-        { 
-          nomeCliente, 
+        "http://localhost:8080/cliente",
+        {
+          nomeCliente,
           saldoCliente: parseFloat(saldoCliente),
           limiteCliente: parseFloat(limiteCliente),
           dtNascCliente,
-          faturaCliente: parseFloat(faturaCliente), // Inclui o campo faturaCliente
-          idCartaoCliente: codigoCartao // Inclui o campo idCartaoCliente
+          faturaCliente: parseFloat(faturaCliente),
+          idCartaoCliente: codigoCartao,
         },
         {
           headers: {
@@ -79,6 +130,10 @@ const AddCliente = () => {
       }
     }
   };
+
+  if (!hasPermission) {
+    return null; // ou um loader, se preferir
+  }
 
   return (
     <Container>
@@ -139,7 +194,7 @@ const AddCliente = () => {
           <Input
             type="text"
             value={codigoCartao}
-            onChange={(e) => setCodigoCartao(e.target.value)} // Apenas atualiza o valor do código do cartão
+            onChange={(e) => setCodigoCartao(e.target.value)}
             placeholder="Passe o cartão ou digite o código"
             required
           />
