@@ -6,17 +6,72 @@ import { Container, Title, Form, Input, Button, Label } from "../AddCliente/styl
 
 const EditConta = () => {
   const { idConta } = useParams();
+  const navigate = useNavigate();
+
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
   const [dtVencimento, setDtVencimento] = useState("");
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [hasPermission, setHasPermission] = useState(false);
+
+  useEffect(() => {
+    const verificarPermissao = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/auth/login");
+        return;
+      }
+
+      const decoded = jwtDecode(token);
+      const userLogin = decoded.sub;
+
+      const getRequestConfig = () => ({
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/usuario/id/${userLogin}`,
+          getRequestConfig()
+        );
+        const userId = response.data;
+
+        const permissionsResponse = await axios.get(
+          `http://localhost:8080/permissao/telas/${userId}`,
+          getRequestConfig()
+        );
+
+        const permissoesTela = permissionsResponse.data.find(
+          (perm) => perm.tela === "Tela de Pagamentos"
+        );
+
+        const permissoes = permissoesTela?.permissoes || [];
+        const hasPutPermission = permissoes.includes("PUT");
+
+        setHasPermission(hasPutPermission);
+
+        if (!hasPutPermission) {
+          navigate("/nao-autorizado");
+        }
+      } catch (error) {
+        console.error("Erro ao verificar permissões:", error);
+        navigate("/nao-autorizado");
+      }
+    };
+
+    verificarPermissao();
+  }, [navigate]);
 
   useEffect(() => {
     const fetchConta = async () => {
       const token = localStorage.getItem("token");
-      
+
       if (!token) {
-        alert("Você precisa estar logado!");
+        setError("Você precisa estar logado!");
         navigate("/auth/login");
         return;
       }
@@ -24,8 +79,8 @@ const EditConta = () => {
       try {
         const decodedToken = jwtDecode(token);
         if (decodedToken.exp * 1000 < Date.now()) {
-          alert("Token expirado. Faça login novamente.");
           localStorage.removeItem("token");
+          setError("Token expirado. Faça login novamente.");
           navigate("/auth/login");
           return;
         }
@@ -40,11 +95,12 @@ const EditConta = () => {
           setValor(valorControleContas || "");
           setDtVencimento(dtVencimentoControleContas || "");
         } else {
-          alert("Erro ao carregar a conta. Resposta inesperada do servidor.");
+          setError("Conta não encontrada.");
         }
-      } catch (error) {
-        console.error("Erro ao buscar a conta:", error);
-        alert("Erro ao carregar a conta. Verifique sua conexão com o servidor.");
+      } catch (err) {
+        setError("Erro ao carregar os dados da conta.");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -54,15 +110,10 @@ const EditConta = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!descricao || !valor || !dtVencimento) {
-      alert("Por favor, preencha todos os campos.");
-      return;
-    }
-
     const token = localStorage.getItem("token");
 
     if (!token) {
-      alert("Você precisa estar logado!");
+      setError("Você precisa estar logado!");
       navigate("/auth/login");
       return;
     }
@@ -70,8 +121,8 @@ const EditConta = () => {
     try {
       const decodedToken = jwtDecode(token);
       if (decodedToken.exp * 1000 < Date.now()) {
-        alert("Token expirado. Faça login novamente.");
         localStorage.removeItem("token");
+        setError("Token expirado. Faça login novamente.");
         navigate("/auth/login");
         return;
       }
@@ -90,11 +141,14 @@ const EditConta = () => {
 
       alert("Conta atualizada com sucesso!");
       navigate("/pagamentos");
-    } catch (error) {
-      console.error("Erro ao atualizar a conta:", error);
-      alert("Erro ao atualizar a conta.");
+    } catch (err) {
+      setError("Erro ao atualizar a conta. Verifique os dados e tente novamente.");
     }
   };
+
+  if (!hasPermission) return null;
+  if (loading) return <p>Carregando...</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <Container>
@@ -102,29 +156,29 @@ const EditConta = () => {
       <Form onSubmit={handleSubmit}>
         <div>
           <Label>Descrição:</Label>
-          <Input 
-            type="text" 
-            value={descricao} 
-            onChange={(e) => setDescricao(e.target.value)} 
-            required 
+          <Input
+            type="text"
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            required
           />
         </div>
         <div>
           <Label>Valor:</Label>
-          <Input 
-            type="number" 
-            value={valor} 
-            onChange={(e) => setValor(e.target.value)} 
-            required 
+          <Input
+            type="number"
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+            required
           />
         </div>
         <div>
           <Label>Data de Vencimento:</Label>
-          <Input 
-            type="date" 
-            value={dtVencimento} 
-            onChange={(e) => setDtVencimento(e.target.value)} 
-            required 
+          <Input
+            type="date"
+            value={dtVencimento}
+            onChange={(e) => setDtVencimento(e.target.value)}
+            required
           />
         </div>
         <Button type="submit">Atualizar Conta</Button>

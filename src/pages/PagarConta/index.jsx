@@ -1,48 +1,81 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+import jwt_decode from "jwt-decode"; // Adicionado
 import * as C from "./styles"; // Importa estilos personalizados
 
 const PagarConta = () => {
-  const { id } = useParams(); // Obtém o ID da URL
-  const [conta, setConta] = useState(null); // Estado para armazenar os dados da conta
-  const [loading, setLoading] = useState(true); // Controle de carregamento
-  const [error, setError] = useState(null); // Controle de erros
+  const { id } = useParams();
+  const [conta, setConta] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [hasPermission, setHasPermission] = useState(false); // Novo estado
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchConta = async () => {
+    const verificarPermissao = async () => {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        setError("Token não encontrado. Faça login novamente.");
-        setLoading(false);
+        navigate("/auth/login");
         return;
       }
 
-      try {
-        const response = await axios.get(`http://localhost:8080/controlecontas/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+      const decoded = jwt_decode(token);
+      const userLogin = decoded.sub;
 
-        setConta(response.data);
+      const getRequestConfig = () => ({
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      try {
+        const userResponse = await axios.get(
+          `http://localhost:8080/usuario/id/${userLogin}`,
+          getRequestConfig()
+        );
+        const userId = userResponse.data;
+
+        const permissionsResponse = await axios.get(
+          `http://localhost:8080/permissao/telas/${userId}`,
+          getRequestConfig()
+        );
+
+        const permissoesTela = permissionsResponse.data.find(
+          (perm) => perm.tela === "Tela de Pagamentos"
+        );
+
+        const permissoes = permissoesTela?.permissoes || [];
+        const hasPostPermission = permissoes.includes("POST");
+
+        setHasPermission(hasPostPermission);
+
+        if (!hasPostPermission) {
+          navigate("/nao-autorizado");
+        } else {
+          // Se tiver permissão, então carrega os dados da conta
+          if (id) {
+            const response = await axios.get(
+              `http://localhost:8080/controlecontas/${id}`,
+              getRequestConfig()
+            );
+            setConta(response.data);
+          } else {
+            setError("ID da conta inválido.");
+          }
+        }
       } catch (error) {
-        setError("Erro ao carregar os dados da conta. Tente novamente mais tarde.");
+        console.error("Erro ao verificar permissões ou carregar conta:", error);
+        setError("Erro ao verificar permissões ou carregar dados.");
+        navigate("/nao-autorizado");
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) {
-      fetchConta();
-    } else {
-      setError("ID da conta inválido.");
-      setLoading(false);
-    }
-  }, [id]);
-
-  if (loading) return <p>Carregando...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+    verificarPermissao();
+  }, [id, navigate]);
 
   const handlePagamento = async () => {
     const token = localStorage.getItem("token");
@@ -59,8 +92,8 @@ const PagarConta = () => {
 
     if (conta.statusControleContas === "Paga") {
       alert("Conta já está paga.");
-      navigate("/pagamentos", { replace: true }); // Redireciona imediatamente
-      return; // Impede que o restante do código seja executado
+      navigate("/pagamentos", { replace: true });
+      return;
     }
 
     try {
@@ -75,7 +108,6 @@ const PagarConta = () => {
       if (response.status === 201) {
         alert("Pagamento realizado com sucesso!");
         navigate("/pagamentos", { replace: true });
-
         setConta((prev) => ({ ...prev, statusControleContas: "Paga" }));
       } else {
         setError("Erro ao processar o pagamento. Tente novamente.");
@@ -92,8 +124,11 @@ const PagarConta = () => {
   };
 
   const handleRedirectToPagamentos = () => {
-    navigate("/pagamentos", { replace: true }); // Redireciona diretamente para a página de pagamentos
+    navigate("/pagamentos", { replace: true });
   };
+
+  if (loading) return <p>Carregando...</p>;
+  if (!hasPermission) return null; // Evita renderização antes da verificação
 
   return (
     <C.Container>
@@ -109,7 +144,7 @@ const PagarConta = () => {
         <C.Label><strong>Status:</strong></C.Label>
         <p>{conta.statusControleContas}</p>
         <C.Button onClick={handlePagamento}>Efetuar Pagamento</C.Button>
-        <C.Button onClick={handleRedirectToPagamentos}>Voltar</C.Button> {/* Novo botão */}
+        <C.Button onClick={handleRedirectToPagamentos}>Voltar</C.Button>
       </C.Form>
       {error && <p style={{ color: "red" }}>{error}</p>}
     </C.Container>

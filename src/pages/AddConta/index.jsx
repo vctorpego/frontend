@@ -2,7 +2,15 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import jwt_decode from "jwt-decode";
-import { Container, Title, Form, Input, Button, Label, Select } from '../AddConta/styles';  // Importando o Select estilizado
+import {
+  Container,
+  Title,
+  Form,
+  Input,
+  Button,
+  Label,
+  Select,
+} from "../AddConta/styles";
 
 const AddConta = () => {
   const [dtVencimento, setDtVencimento] = useState("");
@@ -11,69 +19,81 @@ const AddConta = () => {
   const [status, setStatus] = useState("Não Paga");
   const [fornecedorId, setFornecedorId] = useState("");
   const [fornecedores, setFornecedores] = useState([]);
+  const [hasPermission, setHasPermission] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchFornecedores = async () => {
+    const verificarPermissao = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/auth/login");
+        return;
+      }
+
+      const decoded = jwt_decode(token);
+      const userLogin = decoded.sub;
+
+      const getRequestConfig = () => ({
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       try {
-        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `http://localhost:8080/usuario/id/${userLogin}`,
+          getRequestConfig()
+        );
+        const userId = response.data;
 
-        if (!token) {
-          alert("Você precisa estar logado!");
-          navigate("/auth/login");
-          return;
+        const permissionsResponse = await axios.get(
+          `http://localhost:8080/permissao/telas/${userId}`,
+          getRequestConfig()
+        );
+
+        const permissoesTela = permissionsResponse.data.find(
+          (perm) => perm.tela === "Tela de Pagamentos"
+        );
+
+        const permissoes = permissoesTela?.permissoes || [];
+        const hasPostPermission = permissoes.includes("POST");
+
+        setHasPermission(hasPostPermission);
+
+        if (!hasPostPermission) {
+          navigate("/nao-autorizado");
+        } else {
+          const fornecedoresResp = await axios.get(
+            "http://localhost:8080/fornecedor",
+            getRequestConfig()
+          );
+          setFornecedores(fornecedoresResp.data);
         }
-
-        // Adicionando o token no cabeçalho da requisição
-        const response = await axios.get("http://localhost:8080/fornecedor", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        // Certifique-se de que a resposta tem a estrutura correta
-        console.log(response.data); // Verifique se o que chega da API tem a propriedade 'id' e 'nome'
-        setFornecedores(response.data); // Armazenando os fornecedores no estado
       } catch (error) {
-        console.error("Erro ao carregar fornecedores:", error);
-        alert("Erro ao carregar fornecedores.");
+        console.error("Erro ao verificar permissões:", error);
+        navigate("/nao-autorizado");
       }
     };
 
-    fetchFornecedores();
+    verificarPermissao();
   }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Verifica se todos os campos estão preenchidos
     if (!dtVencimento || !descricao || !valor || !fornecedorId) {
       alert("Por favor, preencha todos os campos.");
       return;
     }
 
     const token = localStorage.getItem("token");
-
     if (!token) {
-      alert("Você precisa estar logado!");
       navigate("/auth/login");
       return;
     }
 
     try {
-      // Decodificando o token para verificar se ele é válido
-      const decodedToken = jwt_decode(token);
-
-      // Verifica se o token está expirado
-      const currentTime = Date.now() / 1000; // Em segundos
-      if (decodedToken.exp < currentTime) {
-        alert("O token expirou. Por favor, faça login novamente.");
-        localStorage.removeItem("token");
-        navigate("/auth/login");
-        return;
-      }
-
-      // Envia a requisição para adicionar a conta
       const response = await axios.post(
         "http://localhost:8080/controlecontas",
         {
@@ -81,12 +101,10 @@ const AddConta = () => {
           descricaoControleContas: descricao,
           valorControleContas: parseFloat(valor),
           statusControleContas: status,
-          fornecedor: { idFornecedor: parseInt(fornecedorId, 10) } // Converte o ID do fornecedor para número
+          fornecedor: { idFornecedor: parseInt(fornecedorId, 10) },
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
@@ -95,25 +113,24 @@ const AddConta = () => {
         navigate("/pagamentos");
       }
     } catch (error) {
-      console.error("Erro ao adicionar a conta:", error);
-
+      console.error("Erro ao adicionar conta:", error);
       if (error.response) {
         if (error.response.status === 409) {
           alert("Erro: A conta já foi cadastrada.");
         } else if (error.response.status === 401) {
-          alert("Token inválido ou expirado. Por favor, faça login novamente.");
+          alert("Token expirado. Faça login novamente.");
           localStorage.removeItem("token");
           navigate("/auth/login");
-        } else if (error.response.status === 500) {
-          alert("Erro interno do servidor. Tente novamente mais tarde.");
         } else {
-          alert("Erro ao adicionar a conta: " + error.response.data);
+          alert("Erro ao adicionar a conta.");
         }
       } else {
-        alert("Erro ao se comunicar com o servidor.");
+        alert("Erro de comunicação com o servidor.");
       }
     }
   };
+
+  if (!hasPermission) return null;
 
   return (
     <Container>
@@ -128,6 +145,7 @@ const AddConta = () => {
             required
           />
         </div>
+
         <div>
           <Label>Descrição:</Label>
           <Input
@@ -138,6 +156,7 @@ const AddConta = () => {
             required
           />
         </div>
+
         <div>
           <Label>Valor:</Label>
           <Input
@@ -153,19 +172,15 @@ const AddConta = () => {
           <Label>Fornecedor:</Label>
           <Select
             value={fornecedorId}
-            onChange={(e) => setFornecedorId(e.target.value)} // Aqui você define o ID do fornecedor
+            onChange={(e) => setFornecedorId(e.target.value)}
             required
           >
             <option value="">Selecione um Fornecedor</option>
-            {fornecedores && fornecedores.length > 0 ? (
-              fornecedores.map((fornecedor) => (
-                <option key={fornecedor.idFornecedor} value={fornecedor.idFornecedor}>
-                  {fornecedor.nomeSocialFornecedor}
-                </option>
-              ))
-            ) : (
-              <option value="">Nenhum fornecedor encontrado</option>
-            )}
+            {fornecedores.map((f) => (
+              <option key={f.idFornecedor} value={f.idFornecedor}>
+                {f.nomeSocialFornecedor}
+              </option>
+            ))}
           </Select>
         </div>
 

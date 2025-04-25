@@ -1,4 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import jwt_decode from "jwt-decode";
+import axios from "axios";
 import styled from "styled-components";
 
 // Estilos inspirados no padrão existente
@@ -48,7 +51,103 @@ const Button = styled.button`
 `;
 
 const NaoAutorizado = () => {
-  const handleBack = () => window.history.back();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true); // Para controlar o carregamento da verificação
+  const [error, setError] = useState(false); // Controlar se houve erro na verificação
+
+  // Mapeamento de telas e suas URLs
+  const screenMapping = {
+    "Tela de Dashboard": "/home",
+    "Tela de Produtos": "/produtos",
+    "Tela de Fornecedores": "/fornecedores",
+    "Tela de Clientes": "/clientes",
+    "Tela de Recarga": "/recarga",
+    "Tela de Vendas": "/vendas",
+    "Tela de Pagamentos": "/pagamentos",
+    "Tela de Relatórios": "/relatorios",
+    "Tela de Entrada": "/entrada",
+    "Tela de Saída": "/saida",
+    "Tela Usuarios": "/usuarios",
+  };
+
+  useEffect(() => {
+    const verificarPermissao = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/auth/login");
+        return;
+      }
+
+      const decoded = jwt_decode(token);
+      const userLogin = decoded.sub; // Extrai o ID do usuário do token
+
+      const getRequestConfig = () => ({
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      try {
+        // Faz a requisição para pegar os dados do usuário
+        const response = await axios.get(
+          `http://localhost:8080/usuario/id/${userLogin}`,
+          getRequestConfig()
+        );
+        const userId = response.data;
+
+        // Requisição para pegar as permissões do usuário
+        const permissionsResponse = await axios.get(
+          `http://localhost:8080/permissao/telas/${userId}`,
+          getRequestConfig()
+        );
+
+        // Verifica as permissões do usuário para cada tela
+        const permissoes = permissionsResponse.data;
+
+        // Encontrar a primeira tela com permissão
+        const firstAllowedScreen = permissoes.find((perm) =>
+          perm.permissoes.includes("GET")
+        );
+
+        if (firstAllowedScreen) {
+          const screenName = firstAllowedScreen.tela;
+          
+          // Normaliza o nome da tela e verifica no mapeamento
+          const normalizedScreenName = screenName.trim();
+          const screenUrl = screenMapping[normalizedScreenName];
+
+          if (screenUrl) {
+            // Redireciona para a URL da tela com permissão
+            setTimeout(() => {
+              navigate(screenUrl);
+            }, 4000); // Aguarda 4 segundos para navegar
+          } else {
+            console.error("URL da tela não encontrada no mapeamento.");
+            navigate("/nao-autorizado"); // Página de erro caso não encontre o mapeamento
+          }
+        } else {
+          navigate("/nao-autorizado");
+        }
+      } catch (error) {
+        console.error("Erro ao verificar permissões:", error);
+        setError(true);
+        navigate("/nao-autorizado");
+      } finally {
+        setLoading(false); // Marca que a verificação foi concluída
+      }
+    };
+
+    verificarPermissao();
+  }, [navigate]);
+
+  const handleBack = () => {
+    window.history.back();
+  };
+
+  // Não exibe a tela até a verificação de permissões estar completa
+  if (loading) {
+    return null;
+  }
 
   return (
     <Container>
