@@ -11,7 +11,6 @@ const EditCliente = () => {
   const [limiteCliente, setLimiteCliente] = useState("");
   const [dtNascCliente, setDtNascCliente] = useState("");
   const [ultimaCompraCliente, setUltimaCompraCliente] = useState("");
-  const [faturaCliente, setFaturaCliente] = useState("");
   const [hasPermission, setHasPermission] = useState(false);
   const navigate = useNavigate();
 
@@ -95,7 +94,6 @@ const EditCliente = () => {
           limiteCliente,
           dtNascCliente,
           ultimaCompraCliente,
-          faturaCliente,
         } = response.data;
 
         setNomeCliente(nomeCliente);
@@ -103,7 +101,6 @@ const EditCliente = () => {
         setLimiteCliente(limiteCliente);
         setDtNascCliente(dtNascCliente);
         setUltimaCompraCliente(ultimaCompraCliente);
-        setFaturaCliente(faturaCliente);
       } catch (error) {
         console.error("Erro ao buscar o cliente:", error);
         alert("Erro ao carregar o cliente.");
@@ -146,7 +143,6 @@ const EditCliente = () => {
           limiteCliente: parseFloat(limiteCliente),
           dtNascCliente,
           ultimaCompraCliente,
-          faturaCliente: parseFloat(faturaCliente),
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -200,23 +196,6 @@ const EditCliente = () => {
             type="date"
             value={dtNascCliente}
             onChange={(e) => setDtNascCliente(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <Label>Última Compra:</Label>
-          <Input
-            type="date"
-            value={ultimaCompraCliente}
-            onChange={(e) => setUltimaCompraCliente(e.target.value)}
-          />
-        </div>
-        <div>
-          <Label>Fatura:</Label>
-          <Input
-            type="number"
-            value={faturaCliente}
-            onChange={(e) => setFaturaCliente(e.target.value)}
             required
           />
         </div>

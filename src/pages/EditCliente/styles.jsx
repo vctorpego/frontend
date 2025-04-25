@@ -39,13 +39,13 @@ export const Input = styled.input`
   transition: border-color 0.3s ease;
 
   &:focus {
-    border-color: #28a745;
+    border-color: #007BFF;
     outline: none;
   }
 `;
 
 export const Button = styled.button`
-  background-color: #28a745;
+  background-color: #007BFF;
   color: white;
   padding: 12px;
   font-size: 18px;
@@ -55,7 +55,7 @@ export const Button = styled.button`
   transition: background-color 0.3s ease;
 
   &:hover {
-    background-color: #218838;
+    background-color: #0056b3;
   }
 `;
 
