@@ -10,7 +10,6 @@ const AddCliente = () => {
   const [saldoCliente, setSaldoCliente] = useState("");
   const [limiteCliente, setLimiteCliente] = useState("");
   const [dtNascCliente, setDtNascCliente] = useState("");
-  const [faturaCliente, setFaturaCliente] = useState("");
   const [codigoCartao, setCodigoCartao] = useState("");
   const [hasPermission, setHasPermission] = useState(false);
 
@@ -74,7 +73,7 @@ const AddCliente = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!nomeCliente || !saldoCliente || !limiteCliente || !dtNascCliente || !faturaCliente || !codigoCartao) {
+    if (!nomeCliente || !saldoCliente || !limiteCliente || !dtNascCliente  || !codigoCartao) {
       alert("Por favor, preencha todos os campos.");
       return;
     }
@@ -95,7 +94,6 @@ const AddCliente = () => {
           saldoCliente: parseFloat(saldoCliente),
           limiteCliente: parseFloat(limiteCliente),
           dtNascCliente,
-          faturaCliente: parseFloat(faturaCliente),
           idCartaoCliente: codigoCartao,
         },
         {
@@ -157,6 +155,7 @@ const AddCliente = () => {
             onChange={(e) => setSaldoCliente(e.target.value)}
             placeholder="Saldo do Cliente"
             required
+            disabled
           />
         </div>
         <div>
@@ -176,16 +175,6 @@ const AddCliente = () => {
             value={dtNascCliente}
             onChange={(e) => setDtNascCliente(e.target.value)}
             placeholder="Data de Nascimento"
-            required
-          />
-        </div>
-        <div>
-          <Label>Fatura do Cliente:</Label>
-          <Input
-            type="number"
-            value={faturaCliente}
-            onChange={(e) => setFaturaCliente(e.target.value)}
-            placeholder="Fatura do Cliente"
             required
           />
         </div>

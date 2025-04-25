@@ -10,7 +10,6 @@ const EditCliente = () => {
   const [saldoCliente, setSaldoCliente] = useState("");
   const [limiteCliente, setLimiteCliente] = useState("");
   const [dtNascCliente, setDtNascCliente] = useState("");
-  const [ultimaCompraCliente, setUltimaCompraCliente] = useState("");
   const [hasPermission, setHasPermission] = useState(false);
   const navigate = useNavigate();
 
@@ -93,14 +92,13 @@ const EditCliente = () => {
           saldoCliente,
           limiteCliente,
           dtNascCliente,
-          ultimaCompraCliente,
+
         } = response.data;
 
         setNomeCliente(nomeCliente);
         setSaldoCliente(saldoCliente);
         setLimiteCliente(limiteCliente);
         setDtNascCliente(dtNascCliente);
-        setUltimaCompraCliente(ultimaCompraCliente);
       } catch (error) {
         console.error("Erro ao buscar o cliente:", error);
         alert("Erro ao carregar o cliente.");
@@ -141,8 +139,7 @@ const EditCliente = () => {
           nomeCliente,
           saldoCliente: parseFloat(saldoCliente),
           limiteCliente: parseFloat(limiteCliente),
-          dtNascCliente,
-          ultimaCompraCliente,
+          dtNascCliente
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -179,6 +176,8 @@ const EditCliente = () => {
             value={saldoCliente}
             onChange={(e) => setSaldoCliente(e.target.value)}
             required
+            disabled
+            readOnly
           />
         </div>
         <div>
