@@ -257,12 +257,16 @@ const EditUsuario = () => {
           navigate("/usuarios");
         }, 1500);
       } else if (response.status === 409) {
-        console.log("USUARIO NAO PODE SE EDITAR");
+        alert("⚠️ Você não pode editar o próprio usuário.");
         return;
-
       }
     } catch (error) {
-      console.error("Erro ao atualizar usuário:", error);
+      if (error.response?.status === 409) {
+        alert("⚠️ Você não pode editar o próprio usuário.");
+      } else {
+        console.error("Erro ao atualizar usuário:", error);
+        alert("❌ Ocorreu um erro ao atualizar o usuário.");
+      }
     }
   };
 

@@ -121,7 +121,12 @@ const ListagemUsuarios = () => {
       setOpenModalExcluir(false);
       setUsuarioExcluir(null);
     } catch (error) {
-      console.error("Erro ao deletar usuário:", error);
+      if (error.response?.status === 409) {
+        alert("⚠️ Você não pode excluir o próprio usuário.");
+      } else{
+        console.error("Erro ao deletar usuário:", error);
+        alert("❌ Ocorreu um erro ao deletar o usuário.");
+      }
     }
   };
 
