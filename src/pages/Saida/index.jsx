@@ -2,8 +2,23 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import jwtDecode from "jwt-decode";
-import { Container, Title, Label, ErrorMessage } from "./styles";
-import { debounce } from "lodash";
+import {
+  Container,
+  Title,
+  Label,
+  ErrorMessage,
+  Card,
+  SaldoCard,
+  SaldoText,
+  ComandaInfo,
+  ErrorCard, // Novo card de erro
+  ErrorText, // Novo texto de erro
+  CartaoCard, // Novo card para o cartão
+  CartaoTexto, // Novo texto para o cartão
+  CartaoTextoLabel, // Novo label para o cartão
+  CartaoCodigo, // Novo código do cartão
+  CartaoCodigoText, // Novo texto do código do cartão
+} from "./styles";
 
 const SaidaCliente = () => {
   const [cartaoCliente, setCartaoCliente] = useState("");
@@ -29,23 +44,15 @@ const SaidaCliente = () => {
 
     const handleKeyPress = (e) => {
       const key = e.key;
-
-      if (/^[0-9a-zA-Z]$/.test(key)) {
-        buffer += key;
-      }
-
+      if (/^[0-9a-zA-Z]$/.test(key)) buffer += key;
       if (key === "Enter") {
-        if (buffer.length >= 8) {
-          setCartaoCliente(buffer);
-        }
+        if (buffer.length >= 8) setCartaoCliente(buffer);
         buffer = "";
       }
     };
 
     document.addEventListener("keydown", handleKeyPress);
-    return () => {
-      document.removeEventListener("keydown", handleKeyPress);
-    };
+    return () => document.removeEventListener("keydown", handleKeyPress);
   }, []);
 
   const enviarParaImpressao = async (cliente, comanda, produtos) => {
@@ -67,10 +74,6 @@ const SaidaCliente = () => {
         const res = await axios.get(`http://localhost:8080/produto/${idProduto}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
-        // Logando a resposta para verificar o valor
-        console.log("Produto Detalhado:", res.data);  // Verifique os dados do produto aqui
-
         return {
           ...res.data,
           quantidade,
@@ -94,7 +97,7 @@ const SaidaCliente = () => {
 
       const token = localStorage.getItem("token");
       if (!token) {
-        setErro("❌ Você precisa estar logado!");
+        setErro("Você precisa estar logado.");
         navigate("/auth/login");
         return;
       }
@@ -102,7 +105,7 @@ const SaidaCliente = () => {
       try {
         const decodedToken = jwtDecode(token);
         if (decodedToken.exp < Date.now() / 1000) {
-          setErro("⚠️ Sessão expirada. Faça login novamente.");
+          setErro("Sessão expirada. Faça login novamente.");
           localStorage.removeItem("token");
           navigate("/auth/login");
           return;
@@ -112,7 +115,6 @@ const SaidaCliente = () => {
           `http://localhost:8080/cliente/cartao/${cartaoCliente}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-
         const clienteData = clienteResponse.data;
 
         const comandaResponse = await axios.get(
@@ -147,11 +149,11 @@ const SaidaCliente = () => {
 
           resetarPagina();
         } else {
-          setErro("⚠️ Não há comanda ativa para este cliente.");
+          setErro("Não há comanda ativa para este cliente.");
         }
       } catch (error) {
         console.error("Erro ao processar saída:", error);
-        setErro("❌ Erro ao registrar saída. Verifique o cartão.");
+        setErro("Erro ao registrar saída. Verifique o cartão.");
       } finally {
         setLoading(false);
       }
@@ -160,25 +162,42 @@ const SaidaCliente = () => {
     processarSaida();
   }, [cartaoCliente, navigate]);
 
+  const statusSaldo = cliente?.saldoCliente > 0
+    ? "positivo"
+    : cliente?.saldoCliente < 0
+      ? "negativo"
+      : "neutro";
+
   return (
     <Container>
       <Title>Saída do Cliente</Title>
+      <CartaoCard>
+        <CartaoTexto>
+          <CartaoTextoLabel>Cartão:</CartaoTextoLabel>
+          <CartaoCodigo>
+            <CartaoCodigoText>{cartaoCliente}</CartaoCodigoText>
+          </CartaoCodigo>
+        </CartaoTexto>
+      </CartaoCard>
 
-      <Label>Cartão:</Label>
-      <div>{cartaoCliente}</div>
-
-      {loading && <p>🔄 Processando...</p>}
-      {erro && <ErrorMessage>{erro}</ErrorMessage>}
+      {loading && <p>Processando saída...</p>}
+      {erro && (
+        <ErrorCard>
+          <ErrorText>{erro}</ErrorText>
+        </ErrorCard>
+      )}
 
       {cliente && (
-        <div>
-          <h2>Até logo, {cliente.nomeCliente}!</h2>
-          <p>Saldo final: R$ {cliente.saldoCliente?.toFixed(2) || "0.00"}</p>
-        </div>
+        <Card>
+          <h2>Até logo, {cliente.nomeCliente}</h2>
+          <SaldoCard status={statusSaldo}>
+            <SaldoText>Saldo final: R$ {cliente.saldoCliente?.toFixed(2)}</SaldoText>
+          </SaldoCard>
+        </Card>
       )}
 
       {comanda && (
-        <div style={{ marginTop: "1rem", borderTop: "1px solid #ccc", paddingTop: "1rem" }}>
+        <ComandaInfo>
           <h3>Comanda Finalizada</h3>
           <p><strong>ID:</strong> {comanda.idCompraComanda}</p>
           <p><strong>Entrada:</strong> {comanda.horaEntradaComanda}</p>
@@ -197,7 +216,7 @@ const SaidaCliente = () => {
               </ul>
             </>
           )}
-        </div>
+        </ComandaInfo>
       )}
     </Container>
   );

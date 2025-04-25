@@ -3,77 +3,175 @@ import styled from 'styled-components';
 export const Container = styled.div`
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   flex-direction: column;
   height: 100vh;
-  background-color: #f5f5f5;
-  gap: 30px;
-  padding: 20px;
+  background-color: #f9f9f9;
+  padding: 40px;
+
+  @media (max-width: 768px) {
+    padding: 20px;
+  }
 `;
 
 export const Title = styled.h2`
   font-size: 32px;
   color: #333;
   margin-bottom: 20px;
-  text-align: center;
-`;
 
-export const Form = styled.form`
-  background-color: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 500px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-`;
-
-export const Input = styled.input`
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  width: 100%;
-  transition: border-color 0.3s ease;
-
-  &:focus {
-    border-color: #007BFF;
-    outline: none;
-  }
-`;
-
-export const Button = styled.button`
-  background-color: #007BFF;
-  color: white;
-  padding: 12px;
-  font-size: 18px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-
-  &:hover {
-    background-color: #007BFF;
+  @media (max-width: 768px) {
+    font-size: 24px;
+    margin-bottom: 15px;
   }
 `;
 
 export const Label = styled.label`
   font-size: 16px;
   color: #555;
-`;
+  margin-right: 10px;
 
-export const CancelButton = styled(Button)`
-  background-color: #dc3545;
-
-  &:hover {
-    background-color: #c82333;
+  @media (max-width: 768px) {
+    font-size: 14px;
   }
 `;
-// 🔹 Novo estilo para mensagens de erro
+
 export const ErrorMessage = styled.p`
-  color: red;
+  color: #c0392b;
   font-size: 14px;
   margin-top: 10px;
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+  }
+`;
+
+export const Card = styled.div`
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 600px;
+  margin-top: 20px;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+    padding: 15px;
+  }
+`;
+
+export const SaldoCard = styled.div`
+  margin-top: 15px;
+  padding: 15px;
+  border-radius: 6px;
+  background-color: ${({ status }) =>
+    status === 'positivo' ? '#d4edda' :
+    status === 'negativo' ? '#f8d7da' :
+    '#fefefe'};
+  color: ${({ status }) =>
+    status === 'positivo' ? '#155724' :
+    status === 'negativo' ? '#721c24' :
+    '#333'};
+
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
+`;
+
+export const SaldoText = styled.p`
+  font-size: 18px;
+  font-weight: bold;
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
+`;
+
+export const ComandaInfo = styled(Card)`
+  text-align: left;
+
+  ul {
+    margin-top: 10px;
+    padding-left: 20px;
+  }
+
+  li {
+    margin-bottom: 4px;
+  }
+
+  @media (max-width: 768px) {
+    text-align: center;
+    padding-left: 15px;
+  }
+`;
+
+// Novo estilo para o Card de erro com responsividade
+export const ErrorCard = styled.div`
+  background-color: #f8d7da;
+  border-radius: 8px;
+  padding: 20px;
+  width: 80%;
+  max-width: 400px;
+  margin-top: 20px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 15px;
+  }
+`;
+
+export const ErrorText = styled.p`
+  color: #721c24;
+  font-size: 18px;
+  font-weight: bold;
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
+`;
+
+// Novo Card para o Cartão e código do Cartão com os textos na mesma linha
+export const CartaoCard = styled(Card)`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  width: 100%;
+  max-width: 600px;
+  margin-top: 20px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 10px;
+  }
+`;
+
+export const CartaoTexto = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+export const CartaoTextoLabel = styled(Label)`
+  margin-right: 10px;
+`;
+
+export const CartaoCodigo = styled.div`
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
+`;
+
+export const CartaoCodigoText = styled.p`
+  font-weight: normal;
+  margin-left: 5px;
+  color: #555;
 `;

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import jwtDecode from "jwt-decode";
-import { Container, Title, Label, ErrorMessage } from "./styles";
+import { Container, Title, Label, ErrorMessage, CartaoCard, CartaoTexto, CartaoTextoLabel, CartaoCodigo, CartaoCodigoText, SaldoCard, SaldoText, SaldoValue, WelcomeCard } from "./styles";
 
 const EntradaCliente = () => {
   const [cartaoCliente, setCartaoCliente] = useState("");
@@ -49,7 +49,7 @@ const EntradaCliente = () => {
 
         const token = localStorage.getItem("token");
         if (!token) {
-          setErro("❌ Você precisa estar logado!");
+          setErro("Você precisa estar logado!");
           navigate("/auth/login");
           return;
         }
@@ -57,7 +57,7 @@ const EntradaCliente = () => {
         try {
           const decodedToken = jwtDecode(token);
           if (decodedToken.exp < Date.now() / 1000) {
-            setErro("⚠️ Sessão expirada. Faça login novamente.");
+            setErro("Sessão expirada. Faça login novamente.");
             localStorage.removeItem("token");
             navigate("/auth/login");
             return;
@@ -77,7 +77,7 @@ const EntradaCliente = () => {
           if (ultimaCompra) {
             const diasDesdeUltimaCompra = Math.floor((hoje - ultimaCompra) / (1000 * 60 * 60 * 24));
             if (diasDesdeUltimaCompra > 30) {
-              setErro("⚠️ Cliente com débitos acima de 30 dias. Favor procurar a gerência.");
+              setErro("Cliente com débitos acima de 30 dias. Favor procurar a gerência.");
               resetarPagina();
               return;
             }
@@ -90,7 +90,7 @@ const EntradaCliente = () => {
             );
 
             if (comandaExistente.status === 200 && comandaExistente.data?.idCompraComanda) {
-              setErro("⚠️ Cliente já possui uma comanda ativa.");
+              setErro("Cliente já possui uma comanda ativa.");
               resetarPagina();
               return;
             }
@@ -108,12 +108,12 @@ const EntradaCliente = () => {
                 resetarPagina();
                 return;
               } catch {
-                setErro("❌ Erro ao criar comanda.");
+                setErro("Erro ao criar comanda.");
                 resetarPagina();
                 return;
               }
             } else {
-              setErro("❌ Erro ao verificar comanda ativa.");
+              setErro("Erro ao verificar comanda ativa.");
               resetarPagina();
               return;
             }
@@ -122,14 +122,14 @@ const EntradaCliente = () => {
           if (error.response) {
             const status = error.response.status;
             if (status === 401) {
-              setErro("❌ Cliente não encontrado.");
+              setErro("Cliente não encontrado.");
             } else if (status === 409) {
-              setErro("⚠️ Cliente já está no salão.");
+              setErro("Cliente já está no salão.");
             } else {
-              setErro("❌ Erro ao processar. Tente novamente.");
+              setErro("Erro ao processar. Tente novamente.");
             }
           } else {
-            setErro("❌ Erro na conexão com o servidor.");
+            setErro("Erro na conexão com o servidor.");
           }
           resetarPagina();
         } finally {
@@ -138,7 +138,7 @@ const EntradaCliente = () => {
       };
 
       identificarCliente();
-    }, 500); // pequena pausa para evitar múltiplas chamadas
+    }, 500);
 
     return () => clearTimeout(timeoutId);
   }, [cartaoCliente, navigate]);
@@ -146,19 +146,27 @@ const EntradaCliente = () => {
   return (
     <Container>
       <Title>Entrada do Cliente</Title>
-      <div>
-        <Label>Cartão:</Label>
-        <div>{cartaoCliente}</div>
-      </div>
 
-      {loading && <p>⏳ Processando...</p>}
+      <CartaoCard>
+        <CartaoTexto>
+          <CartaoTextoLabel>Cartão:</CartaoTextoLabel>
+          <CartaoCodigo>
+            <CartaoCodigoText>{cartaoCliente}</CartaoCodigoText>
+          </CartaoCodigo>
+        </CartaoTexto>
+      </CartaoCard>
+
+      {loading && <p>Processando...</p>}
       {erro && <ErrorMessage>{erro}</ErrorMessage>}
 
       {cliente && (
-        <div>
+        <WelcomeCard>
           <h2>Seja bem-vindo, {cliente.nomeCliente}!</h2>
-          <p>Saldo: R$ {cliente.saldoCliente?.toFixed(2) || "0.00"}</p>
-        </div>
+          <SaldoCard saldo={cliente.saldoCliente}>
+            <SaldoText>Saldo:</SaldoText>
+            <SaldoValue>{cliente.saldoCliente?.toFixed(2) || "0.00"}</SaldoValue>
+          </SaldoCard>
+        </WelcomeCard>
       )}
     </Container>
   );
