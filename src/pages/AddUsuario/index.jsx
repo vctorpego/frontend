@@ -77,10 +77,10 @@ const AddUsuario = () => {
   useEffect(() => {
     const token = getToken();
     if (!token) return;
-  
+
     const decoded = jwt_decode(token);
     const userLogin = decoded.sub;
-  
+
     const fetchUserPermissions = async () => {
       try {
         const response = await axios.get(
@@ -88,17 +88,17 @@ const AddUsuario = () => {
           getRequestConfig()
         );
         const userId = response.data;
-  
+
         const permissionsResponse = await axios.get(
           `http://localhost:8080/permissao/telas/${userId}`,
           getRequestConfig()
         );
         setUserPermissions(permissionsResponse.data);
-  
+
         const permissoesTela = permissionsResponse.data.find(
           (perm) => perm.tela === "Tela Usuarios"
         );
-  
+
         const permissoes = permissoesTela?.permissoes || [];
         setPermissoes((prev) => {
           return telas.reduce((acc, tela) => {
@@ -123,7 +123,7 @@ const AddUsuario = () => {
         console.error("Erro ao buscar permissões:", error);
       }
     };
-  
+
     fetchUserPermissions();
   }, [navigate]);
 
@@ -183,7 +183,10 @@ const AddUsuario = () => {
 
         for (const tela of telas) {
           for (const acao in acoes) {
-            if (permissoes[tela.nome][acao]) {
+            if (
+              permissoes[tela.nome][acao] &&
+              !(["Tela de Dashboard", "Tela de Recarga", "Tela de Vendas", "Tela de Entrada", "Tela de Saída"].includes(tela.nome) && acao !== "visualizar")
+            ) {
               permissaoPromises.push(
                 axios.post(
                   `http://localhost:8080/usuario/${usuarioId}/permissao`,
@@ -261,16 +264,27 @@ const AddUsuario = () => {
         {telas.map((tela) => (
           <C.CheckboxContainer key={tela.id}>
             <strong>{tela.nome}</strong>
-            {Object.keys(acoes).map((acao) => (
-              <label key={acao}>
+            {["Tela de Dashboard", "Tela de Recarga", "Tela de Vendas", "Tela de Entrada", "Tela de Saída"].includes(tela.nome) ? (
+              <label>
                 <input
                   type="checkbox"
-                  checked={permissoes[tela.nome][acao]}
-                  onChange={() => handleCheckboxChange(tela.nome, acao)}
+                  checked={permissoes[tela.nome]["visualizar"]}
+                  onChange={() => handleCheckboxChange(tela.nome, "visualizar")}
                 />
-                {acao}
+                visualizar
               </label>
-            ))}
+            ) : (
+              Object.keys(acoes).map((acao) => (
+                <label key={acao}>
+                  <input
+                    type="checkbox"
+                    checked={permissoes[tela.nome][acao]}
+                    onChange={() => handleCheckboxChange(tela.nome, acao)}
+                  />
+                  {acao}
+                </label>
+              ))
+            )}
           </C.CheckboxContainer>
         ))}
         <C.Button type="submit">Adicionar Usuário</C.Button>

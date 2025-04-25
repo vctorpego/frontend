@@ -256,7 +256,7 @@ const EditUsuario = () => {
         setTimeout(() => {
           navigate("/usuarios");
         }, 1500);
-      }else if (response.status === 409){
+      } else if (response.status === 409) {
         console.log("USUARIO NAO PODE SE EDITAR");
         return;
 
@@ -330,16 +330,25 @@ const EditUsuario = () => {
             {telas.map((tela) => (
               <div key={tela.id}>
                 <strong>{tela.nome}</strong>
-                {Object.keys(acoes).map((acao) => (
-                  <label key={acao}>
-                    <input
-                      type="checkbox"
-                      checked={permissoes[tela.nome][acao]}
-                      onChange={() => handleCheckboxChange(tela.nome, acao)}
-                    />
-                    {acao}
-                  </label>
-                ))}
+                {Object.keys(acoes).map((acao) => {
+                  const isVisualizarOnly =
+                    ["Tela de Entrada", "Tela de Saída", "Tela de Vendas", "Tela de Recarga", "Tela de Dashboard"].includes(tela.nome);
+                  const isAllowed = !isVisualizarOnly || acao === "visualizar";
+
+                  return (
+                    isAllowed && (
+                      <label key={acao}>
+                        <input
+                          type="checkbox"
+                          checked={permissoes[tela.nome][acao]}
+                          onChange={() => handleCheckboxChange(tela.nome, acao)}
+                        />
+                        {acao}
+                      </label>
+                    )
+                  );
+                })}
+
               </div>
             ))}
           </C.PermissoesContainer>
