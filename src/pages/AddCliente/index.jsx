@@ -155,7 +155,7 @@ const AddCliente = () => {
             onChange={(e) => setSaldoCliente(e.target.value)}
             placeholder="Saldo do Cliente"
             required
-            disabled
+            
           />
         </div>
         <div>

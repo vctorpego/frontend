@@ -79,7 +79,7 @@ const ListagemUsuarios = () => {
         );
         setUserPermissions(permissionsResponse.data);
 
-        const telaAtual = "Tela Usuarios";
+        const telaAtual = "Tela de Usuarios";
         const permissoesTela = permissionsResponse.data.find(
           (perm) => perm.tela === telaAtual
         );

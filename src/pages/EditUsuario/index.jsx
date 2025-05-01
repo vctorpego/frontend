@@ -2,21 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate, useParams } from "react-router-dom";
-import * as C from "./styles"; // Importando os estilos de 'styles.jsx'
-
-const telas = [
-  { nome: "Tela de Dashboard", id: 1 },
-  { nome: "Tela de Produtos", id: 2 },
-  { nome: "Tela de Fornecedores", id: 3 },
-  { nome: "Tela de Clientes", id: 4 },
-  { nome: "Tela de Recarga", id: 5 },
-  { nome: "Tela de Vendas", id: 6 },
-  { nome: "Tela de Pagamentos", id: 7 },
-  { nome: "Tela de Relatórios", id: 8 },
-  { nome: "Tela de Entrada", id: 9 },
-  { nome: "Tela de Saída", id: 10 },
-  { nome: "Tela Usuarios", id: 11 },
-];
+import * as C from "./styles";
 
 const acoes = {
   adicionar: 1,
@@ -31,17 +17,8 @@ const EditUsuario = () => {
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
   const [login, setLogin] = useState("");
-  const [permissoes, setPermissoes] = useState(
-    telas.reduce((acc, tela) => {
-      acc[tela.nome] = {
-        adicionar: false,
-        editar: false,
-        excluir: false,
-        visualizar: false,
-      };
-      return acc;
-    }, {})
-  );
+  const [permissoes, setPermissoes] = useState({});
+  const [telas, setTelas] = useState([]);
   const [hasPermission, setHasPermission] = useState(false);
   const navigate = useNavigate();
 
@@ -82,67 +59,75 @@ const EditUsuario = () => {
 
     const fetchUserData = async () => {
       try {
-        const response = await axios.get(
+        const userResponse = await axios.get(
           `http://localhost:8080/usuario/id/${userLogin}`,
           getRequestConfig()
         );
-        const userId = response.data;
 
+        const currentUserId = userResponse.data;
         const permissionsResponse = await axios.get(
-          `http://localhost:8080/permissao/telas/${userId}`,
+          `http://localhost:8080/permissao/telas/${currentUserId}`,
           getRequestConfig()
         );
 
-        const permissoesTela = permissionsResponse.data.find(
-          (perm) => perm.tela === "Tela Usuarios"
+        const telaUsuarios = permissionsResponse.data.find(
+          (perm) => perm.tela === "Tela de Usuarios"
         );
 
-        const permissoes = permissoesTela?.permissoes || [];
-        const hasEditPermission = permissoes.includes("PUT");
-        setHasPermission(hasEditPermission);
+        const temPermissaoPUT = telaUsuarios?.permissoes?.includes("PUT") || false;
+        setHasPermission(temPermissaoPUT);
 
-        if (!hasEditPermission) {
+        if (!temPermissaoPUT) {
           navigate("/nao-autorizado");
+          return;
         }
 
+        // Dados do usuário sendo editado
         const userToEditResponse = await axios.get(
           `http://localhost:8080/usuario/${id}`,
           getRequestConfig()
         );
+
         const { nomeUsuario, emailUsuario, telefoneUsuario, login } = userToEditResponse.data;
         setNome(nomeUsuario);
         setEmail(emailUsuario);
         setTelefone(telefoneUsuario);
         setLogin(login);
 
-        const userPermissionsResponse = await axios.get(
+        // Permissões atuais do usuário
+        const permissoesUsuario = await axios.get(
           `http://localhost:8080/permissao/telas/${id}`,
           getRequestConfig()
         );
 
-        const permissoesUsuario = userPermissionsResponse.data;
-
-        setPermissoes((prev) => {
-          return telas.reduce((acc, tela) => {
-            const permissoesDaTela = permissoesUsuario.find((perm) => perm.tela === tela.nome);
-            if (permissoesDaTela) {
-              acc[tela.nome] = {
-                adicionar: permissoesDaTela.permissoes.includes("POST"),
-                editar: permissoesDaTela.permissoes.includes("PUT"),
-                excluir: permissoesDaTela.permissoes.includes("DELETE"),
-                visualizar: permissoesDaTela.permissoes.includes("GET"),
-              };
-            } else {
-              acc[tela.nome] = {
-                adicionar: false,
-                editar: false,
-                excluir: false,
-                visualizar: false,
-              };
-            }
-            return acc;
-          }, {});
+        const permissoesObj = {};
+        permissoesUsuario.data.forEach((telaPermissao) => {
+          permissoesObj[telaPermissao.tela] = {
+            adicionar: telaPermissao.permissoes.includes("POST"),
+            editar: telaPermissao.permissoes.includes("PUT"),
+            excluir: telaPermissao.permissoes.includes("DELETE"),
+            visualizar: telaPermissao.permissoes.includes("GET"),
+          };
         });
+
+        // Carregar todas as telas do sistema
+        const telasResponse = await axios.get("http://localhost:8080/tela", getRequestConfig());
+        const todasAsTelas = telasResponse.data;
+        setTelas(todasAsTelas);
+
+        // Garante que todas as telas tenham um objeto no estado de permissões
+        todasAsTelas.forEach((tela) => {
+          if (!permissoesObj[tela.nomeTela]) {
+            permissoesObj[tela.nomeTela] = {
+              adicionar: false,
+              editar: false,
+              excluir: false,
+              visualizar: false,
+            };
+          }
+        });
+
+        setPermissoes(permissoesObj);
       } catch (error) {
         console.error("Erro ao carregar dados do usuário:", error);
         alert("Erro ao carregar dados do usuário.");
@@ -157,7 +142,7 @@ const EditUsuario = () => {
       ...prev,
       [tela]: {
         ...prev[tela],
-        [acao]: !prev[tela][acao],
+        [acao]: !prev[tela]?.[acao],
       },
     }));
   };
@@ -171,72 +156,39 @@ const EditUsuario = () => {
     }
 
     const token = getToken();
-
-    if (!token) {
-      alert("Você precisa estar logado!");
-      navigate("/auth/login");
-      return;
-    }
-
-    // Gerar a lista de permissões a partir dos checkboxes selecionados
-    const permissoesAtivas = [];
-
-    telas.forEach((tela) => {
-      Object.keys(acoes).forEach((acao) => {
-        if (permissoes[tela.nome][acao]) {
-          permissoesAtivas.push({
-            idTela: tela.id,
-            idPermissao: acoes[acao],
-          });
-        }
-      });
-    });
+    if (!token) return;
 
     try {
-      // Enviar o PUT para atualizar o usuário
-      const response = await axios.put(
+      const updateResponse = await axios.put(
         `http://localhost:8080/usuario/${id}`,
         {
           nomeUsuario: nome,
           emailUsuario: email,
           telefoneUsuario: telefone,
-          login: login,
+          login,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        getRequestConfig()
       );
 
-      if (response.status === 200) {
-        await axios.delete(
-          `http://localhost:8080/usuario/tela/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+      if (updateResponse.status === 200) {
+        await axios.delete(`http://localhost:8080/usuario/tela/${id}`, getRequestConfig());
 
-        const usuarioId = response.data.idUsuario;
+        const usuarioId = updateResponse.data.idUsuario;
+        const permissaoRequests = [];
 
-        if (!usuarioId) {
-          throw new Error("ID do usuário não retornado.");
-        }
+        for (const [nomeTela, permissoesTela] of Object.entries(permissoes)) {
+          const telaId = telas.find((t) => t.nomeTela === nomeTela)?.idTela;
+          if (!telaId) continue;
 
-        const permissaoPromises = [];
-
-        for (const tela of telas) {
-          for (const acao in acoes) {
-            if (permissoes[tela.nome][acao]) {
-              permissaoPromises.push(
+          for (const [acao, ativa] of Object.entries(permissoesTela)) {
+            if (ativa) {
+              permissaoRequests.push(
                 axios.post(
                   `http://localhost:8080/usuario/${usuarioId}/permissao`,
                   null,
                   {
                     params: {
-                      idTela: tela.id,
+                      idTela: telaId,
                       idPermissao: acoes[acao],
                     },
                     headers: {
@@ -249,24 +201,12 @@ const EditUsuario = () => {
           }
         }
 
-        // Esperar todas as permissões serem adicionadas
-        await Promise.all(permissaoPromises);
-
-        alert("Usuário e permissões atualizados com sucesso!");
-        setTimeout(() => {
-          navigate("/usuarios");
-        }, 1500);
-      } else if (response.status === 409) {
-        alert("⚠️ Você não pode editar o próprio usuário.");
-        return;
+        await Promise.all(permissaoRequests);
+        navigate("/usuarios");
       }
     } catch (error) {
-      if (error.response?.status === 409) {
-        alert("⚠️ Você não pode editar o próprio usuário.");
-      } else {
-        console.error("Erro ao atualizar usuário:", error);
-        alert("❌ Ocorreu um erro ao atualizar o usuário.");
-      }
+      console.error("Erro ao atualizar usuário:", error);
+      alert("Erro ao atualizar usuário.");
     }
   };
 
@@ -278,85 +218,28 @@ const EditUsuario = () => {
     <C.Container>
       <C.Title>Editar Usuário</C.Title>
       <C.Form onSubmit={handleSubmit}>
-        <C.InputGroup>
-          <C.InputWrapper>
-            <C.Label>Nome:</C.Label>
-            <C.Input
-              type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              placeholder="Ex: João"
-              required
-            />
-          </C.InputWrapper>
+        <C.Input type="text" placeholder="Nome" value={nome} onChange={(e) => setNome(e.target.value)} />
+        <C.Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <C.Input type="text" placeholder="Telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+        <C.Input type="text" placeholder="Login" value={login} onChange={(e) => setLogin(e.target.value)} />
 
-          <C.InputWrapper>
-            <C.Label>Telefone:</C.Label>
-            <C.Input
-              type="tel"
-              value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
-              placeholder="(00) 00000-0000"
-              required
-            />
-          </C.InputWrapper>
-        </C.InputGroup>
-
-        <C.InputGroup>
-          <C.InputWrapper>
-            <C.Label>Email:</C.Label>
-            <C.Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="joao@gmail.com"
-              required
-            />
-          </C.InputWrapper>
-
-          <C.InputWrapper>
-            <C.Label>Login:</C.Label>
-            <C.Input
-              type="text"
-              value={login}
-              onChange={(e) => setLogin(e.target.value)}
-              placeholder="Ex: jao"
-              required
-              disabled
-              readOnly
-            />
-          </C.InputWrapper>
-        </C.InputGroup>
-
-        <div>
-          <C.Label>Permissões:</C.Label>
-          <C.PermissoesContainer>
-            {telas.map((tela) => (
-              <div key={tela.id}>
-                <strong>{tela.nome}</strong>
-                {Object.keys(acoes).map((acao) => {
-                  const isVisualizarOnly =
-                    ["Tela de Entrada", "Tela de Saída", "Tela de Vendas", "Tela de Recarga", "Tela de Dashboard"].includes(tela.nome);
-                  const isAllowed = !isVisualizarOnly || acao === "visualizar";
-
-                  return (
-                    isAllowed && (
-                      <label key={acao}>
-                        <input
-                          type="checkbox"
-                          checked={permissoes[tela.nome][acao]}
-                          onChange={() => handleCheckboxChange(tela.nome, acao)}
-                        />
-                        {acao}
-                      </label>
-                    )
-                  );
-                })}
-
-              </div>
-            ))}
-          </C.PermissoesContainer>
-        </div>
+        {telas
+          .filter((tela) => tela.nomeTela !== "Tela de Tela")
+          .map((tela) => (
+            <C.CheckboxContainer key={tela.idTela}>
+              <strong>{tela.nomeTela}</strong>
+              {Object.keys(acoes).map((acao) => (
+                <label key={acao}>
+                  <input
+                    type="checkbox"
+                    checked={permissoes[tela.nomeTela]?.[acao] || false}
+                    onChange={() => handleCheckboxChange(tela.nomeTela, acao)}
+                  />
+                  {acao}
+                </label>
+              ))}
+            </C.CheckboxContainer>
+          ))}
 
         <C.Button type="submit">Salvar Alterações</C.Button>
       </C.Form>

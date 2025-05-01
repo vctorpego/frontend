@@ -13,7 +13,7 @@ const Sidebar = () => {
   const [permissoes, setPermissoes] = useState([]);
   const [usuario, setUsuario] = useState(null);
   const [carregando, setCarregando] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // <- começa como false
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const { signout } = useAuth();
   const navigate = useNavigate();
@@ -71,11 +71,7 @@ const Sidebar = () => {
     navigate("/", { replace: true });
   };
 
-  // Enquanto carrega, não mostra nada
-  if (carregando) return null;
-
-  // Se não estiver logado, também não mostra nada
-  if (!isLoggedIn) return null;
+  if (carregando || !isLoggedIn) return null;
 
   return (
     <C.SidebarContainer>
@@ -85,63 +81,20 @@ const Sidebar = () => {
       </C.Logo>
 
       <C.Menu>
-        {temPermissao('Tela de Dashboard', 'GET') && (
-          <C.MenuItem onClick={() => navigate("/home")} isActive={isActive("/home")}>
-            <LayoutDashboard size={20} /> Dashboard
-          </C.MenuItem>
-        )}
-        {temPermissao('Tela de Produtos', 'GET') && (
-          <C.MenuItem onClick={() => navigate("/produtos")} isActive={isActive("/produtos")}>
-            <Box size={20} /> Produtos
-          </C.MenuItem>
-        )}
-        {temPermissao('Tela de Fornecedores', 'GET') && (
-          <C.MenuItem onClick={() => navigate("/fornecedores")} isActive={isActive("/fornecedores")}>
-            <Users size={20} /> Fornecedores
-          </C.MenuItem>
-        )}
-        {temPermissao('Tela de Clientes', 'GET') && (
-          <C.MenuItem onClick={() => navigate("/clientes")} isActive={isActive("/clientes")}>
-            <Users size={20} /> Clientes
-          </C.MenuItem>
-        )}
-        {temPermissao('Tela de Recarga', 'GET') && (
-          <C.MenuItem onClick={() => navigate("/recarga")} isActive={isActive("/recarga")}>
-            <DollarSign size={20} /> Recarga
-          </C.MenuItem>
-        )}
-        {temPermissao('Tela de Vendas', 'GET') && (
-          <C.MenuItem onClick={() => navigate("/vendas")} isActive={isActive("/vendas")}>
-            <ShoppingCart size={20} /> Vendas
-          </C.MenuItem>
-        )}
-        {temPermissao('Tela de Pagamentos', 'GET') && (
-          <C.MenuItem onClick={() => navigate("/pagamentos")} isActive={isActive("/pagamentos")}>
-            <Banknote size={20} /> Pagamentos
-          </C.MenuItem>
-        )}
-        {temPermissao('Tela de Relatórios', 'GET') && (
-          <C.MenuItem onClick={() => navigate("/relatorios")} isActive={isActive("/relatorios")}>
-            <FileText size={20} /> Relatórios
-          </C.MenuItem>
-        )}
-        {temPermissao('Tela Usuarios', 'GET') && (
-          <C.MenuItem onClick={() => navigate("/usuarios")} isActive={isActive("/usuarios")}>
-            <User size={20} /> Usuários
-          </C.MenuItem>
-        )}
-        {temPermissao('Tela de Entrada', 'GET') && (
-          <C.MenuItem onClick={() => navigate("/entrada")} isActive={isActive("/entrada")}>
-            <ArrowRightCircle size={20} /> Entrada
-          </C.MenuItem>
-        )}
-        {temPermissao('Tela de Saída', 'GET') && (
-          <C.MenuItem onClick={() => navigate("/saida")} isActive={isActive("/saida")}>
-            <ArrowRightCircle size={20} /> Saída
-          </C.MenuItem>
-        )}
+        {permissoes
+          .filter(p => p.permissoes.includes("GET"))
+          .map((p) => (
+            <C.MenuItem
+              key={p.urlTela}
+              onClick={() => navigate(p.urlTela)}
+              isActive={isActive(p.urlTela)}
+            >
+              {p.tela.replace("Tela de ", "").trim()}
+            </C.MenuItem>
+          ))}
+
         <C.MenuItem onClick={logout}>
-          <LogOut size={20} /> Logout
+          Logout
         </C.MenuItem>
       </C.Menu>
 

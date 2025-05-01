@@ -67,7 +67,7 @@ const NaoAutorizado = () => {
     "Tela de Relatórios": "/relatorios",
     "Tela de Entrada": "/entrada",
     "Tela de Saída": "/saida",
-    "Tela Usuarios": "/usuarios",
+    "Tela de Usuarios": "/usuarios",
   };
 
   useEffect(() => {
