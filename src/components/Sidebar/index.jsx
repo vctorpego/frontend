@@ -46,6 +46,7 @@ const Sidebar = () => {
           return;
         }
 
+
         const responseUser = await api.get(`/usuario/id/${userId}`);
         const user = responseUser.data;
         setUsuario(user);
@@ -53,7 +54,15 @@ const Sidebar = () => {
         const responsePermissoes = await api.get(`/permissao/telas/${user}`);
         setPermissoes(responsePermissoes.data);
 
+        const logadoResponse = await api.get(
+          `http://localhost:8080/usuario/${user}`,
+
+        );
+        setUsuario(logadoResponse.data);
+        console.log(logadoResponse.data)
+
         setIsLoggedIn(true);
+
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
         setPermissoes([]);
@@ -61,10 +70,13 @@ const Sidebar = () => {
       } finally {
         setCarregando(false);
       }
+
+
     };
 
+
     fetchDados();
-  }, []);
+  }, [isLoggedIn]);  // Adiciona 'isLoggedIn' como dependência
 
   const logout = () => {
     signout();
@@ -101,8 +113,9 @@ const Sidebar = () => {
       <C.UserInfo>
         {usuario ? (
           <>
-            <C.UserName>{usuario.name}</C.UserName>
-            <C.UserEmail>{usuario.email}</C.UserEmail>
+            <C.UserName>{usuario.nomeUsuario}</C.UserName>
+            <C.UserEmail>{usuario.emailUsuario}</C.UserEmail>
+
           </>
         ) : (
           <p>Carregando usuário...</p>
