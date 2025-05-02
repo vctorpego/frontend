@@ -80,6 +80,14 @@ const CadastroTela = () => {
     if (!token) return;
 
     try {
+      const decoded = jwt_decode(token);
+      const userLogin = decoded.sub;
+
+      // 1. Buscar ID do usuário logado
+      const userResponse = await axios.get(`http://localhost:8080/usuario/id/${userLogin}`, getRequestConfig());
+      const idUsuario = userResponse.data;
+
+      // 2. Criar nova tela
       const response = await axios.post("http://localhost:8080/tela", {
         nomeTela,
         urlTela,
@@ -90,13 +98,25 @@ const CadastroTela = () => {
       });
 
       if (response.status === 201 || response.status === 200) {
-        alert("Tela cadastrada com sucesso!");
+        const novaTela = response.data;
+        const idTela = novaTela.idTela;
+
+        // 3. Vincular permissões ao usuário (GET, POST, PUT, DELETE = 1, 2, 3, 4)
+        const permissoes = [1, 2, 3, 4];
+
+        await Promise.all(permissoes.map(idPermissao =>
+          axios.post(`http://localhost:8080/usuario/${idUsuario}/permissao?idTela=${idTela}&idPermissao=${idPermissao}`, {}, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        ));
+
+        alert("Tela cadastrada e permissões atribuídas com sucesso!");
         setNomeTela("");
         setUrlTela("");
       }
     } catch (error) {
-      console.error("Erro ao cadastrar tela:", error);
-      alert("Erro ao cadastrar tela.");
+      console.error("Erro ao cadastrar tela ou associar permissões:", error);
+      alert("Erro ao cadastrar tela ou associar permissões.");
     }
   };
 

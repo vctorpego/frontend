@@ -20,6 +20,8 @@ const AddUsuario = () => {
   const [telas, setTelas] = useState([]);
   const [permissoes, setPermissoes] = useState({});
   const [hasPermission, setHasPermission] = useState(false);
+  const [isSuperAdm, setIsSuperAdm] = useState(false);
+  const [adminChecked, setAdminChecked] = useState(false);
   const navigate = useNavigate();
 
   const getToken = () => {
@@ -88,6 +90,16 @@ const AddUsuario = () => {
           getRequestConfig()
         );
 
+        const logadoResponse = await axios.get(
+          `http://localhost:8080/usuario/${userId}`,
+          getRequestConfig()
+        );
+        console.log("Esse é o usuario logado", logadoResponse.data);
+        setIsSuperAdm(logadoResponse.data.isSuperAdm);
+
+        // Definir o valor do checkbox "Administrador"
+        setAdminChecked(false);
+
         const permissoesTela = permissionsResponse.data.find(
           (perm) => perm.tela === "Tela de Usuarios"
         );
@@ -107,12 +119,35 @@ const AddUsuario = () => {
     fetchData();
   }, [navigate]);
 
+  const toggleAllCheckboxes = (checked) => {
+    const novaPermissao = {};
+    const todasTelas = telas
+      .filter((t) => t.nomeTela !== "Tela de Tela")
+      .map((t) => t.nomeTela);
+
+    if (isSuperAdm) todasTelas.push("Tela de Usuarios");
+
+    todasTelas.forEach((tela) => {
+      novaPermissao[tela] = {};
+      Object.keys(acoes).forEach((acao) => {
+        novaPermissao[tela][acao] = checked;
+      });
+    });
+    setPermissoes(novaPermissao);
+  };
+
+  const handleAdminCheckboxChange = () => {
+    const novoValor = !adminChecked;
+    setAdminChecked(novoValor);
+    toggleAllCheckboxes(novoValor); // Marca ou desmarca todos os checkboxes
+  };
+
   const handleCheckboxChange = (telaNome, acao) => {
-    setPermissoes((prev) => ({
-      ...prev,
+    setPermissoes((prevPermissoes) => ({
+      ...prevPermissoes,
       [telaNome]: {
-        ...prev[telaNome],
-        [acao]: !prev[telaNome][acao],
+        ...prevPermissoes[telaNome],
+        [acao]: !prevPermissoes[telaNome]?.[acao],
       },
     }));
   };
@@ -137,6 +172,8 @@ const AddUsuario = () => {
           nomeUsuario: nome,
           login: login,
           senhaUsuario: senha,
+          isAdm: adminChecked,
+          isSuperAdm: false,
           usuarioPermissaoTelaListUsuario: [],
         },
         {
@@ -233,6 +270,20 @@ const AddUsuario = () => {
           value={login}
           onChange={(e) => setLogin(e.target.value)}
         />
+
+        {isSuperAdm && (
+          <C.CheckboxContainer>
+            <label>
+              <input
+                type="checkbox"
+                checked={adminChecked}
+                onChange={handleAdminCheckboxChange}
+              />
+              Administrador
+            </label>
+          </C.CheckboxContainer>
+        )}
+
 
         {telas
           .filter((tela) => tela.nomeTela !== "Tela de Tela") // Oculta a "Tela de Tela"

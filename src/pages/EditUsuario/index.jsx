@@ -20,6 +20,8 @@ const EditUsuario = () => {
   const [permissoes, setPermissoes] = useState({});
   const [telas, setTelas] = useState([]);
   const [hasPermission, setHasPermission] = useState(false);
+  const [isSuperAdm, setIsSuperAdm] = useState(false);
+  const [adminChecked, setAdminChecked] = useState(false);
   const navigate = useNavigate();
 
   const getToken = () => {
@@ -69,6 +71,13 @@ const EditUsuario = () => {
           `http://localhost:8080/permissao/telas/${currentUserId}`,
           getRequestConfig()
         );
+        const logadoResponse = await axios.get(
+          `http://localhost:8080/usuario/${currentUserId}`,
+          getRequestConfig()
+        );
+
+        console.log("Esse é o usuario a ser editado", logadoResponse.data);
+        setIsSuperAdm(logadoResponse.data.isSuperAdm);
 
         const telaUsuarios = permissionsResponse.data.find(
           (perm) => perm.tela === "Tela de Usuarios"
@@ -88,11 +97,12 @@ const EditUsuario = () => {
           getRequestConfig()
         );
 
-        const { nomeUsuario, emailUsuario, telefoneUsuario, login } = userToEditResponse.data;
+        const { nomeUsuario, emailUsuario, telefoneUsuario, login, isAdm } = userToEditResponse.data;
         setNome(nomeUsuario);
         setEmail(emailUsuario);
         setTelefone(telefoneUsuario);
         setLogin(login);
+        setAdminChecked(isAdm); // define se o checkbox de administrador deve estar marcado
 
         // Permissões atuais do usuário
         const permissoesUsuario = await axios.get(
@@ -110,12 +120,10 @@ const EditUsuario = () => {
           };
         });
 
-        // Carregar todas as telas do sistema
         const telasResponse = await axios.get("http://localhost:8080/tela", getRequestConfig());
         const todasAsTelas = telasResponse.data;
         setTelas(todasAsTelas);
 
-        // Garante que todas as telas tenham um objeto no estado de permissões
         todasAsTelas.forEach((tela) => {
           if (!permissoesObj[tela.nomeTela]) {
             permissoesObj[tela.nomeTela] = {
@@ -137,12 +145,49 @@ const EditUsuario = () => {
     fetchUserData();
   }, [id, navigate]);
 
-  const handleCheckboxChange = (tela, acao) => {
-    setPermissoes((prev) => ({
-      ...prev,
-      [tela]: {
-        ...prev[tela],
-        [acao]: !prev[tela]?.[acao],
+  const toggleAllCheckboxes = (checked) => {
+    const novasPermissoes = {};
+    telas.forEach((tela) => {
+      if (tela.nomeTela === "Tela de Tela") return; // Ignora a tela de controle
+      novasPermissoes[tela.nomeTela] = {
+        adicionar: checked,
+        editar: checked,
+        excluir: checked,
+        visualizar: checked,
+      };
+    });
+    setPermissoes(novasPermissoes);
+  };
+
+  const handleAdminCheckboxChange = () => {
+    const novoValor = !adminChecked;
+    setAdminChecked(novoValor);
+
+    // Se marcar "Administrador", marque todos os checkboxes
+    if (novoValor) {
+      const novasPermissoes = {};
+      telas.forEach((tela) => {
+        if (tela.nomeTela === "Tela de Tela") return; // Ignora a tela de controle
+        novasPermissoes[tela.nomeTela] = {
+          adicionar: true,
+          editar: true,
+          excluir: true,
+          visualizar: true,
+        };
+      });
+      setPermissoes(novasPermissoes);
+    } else {
+      // Caso contrário, desmarque todos os checkboxes
+      toggleAllCheckboxes(false);
+    }
+  };
+
+  const handleCheckboxChange = (telaNome, acao) => {
+    setPermissoes((prevPermissoes) => ({
+      ...prevPermissoes,
+      [telaNome]: {
+        ...prevPermissoes[telaNome],
+        [acao]: !prevPermissoes[telaNome]?.[acao],
       },
     }));
   };
@@ -166,6 +211,7 @@ const EditUsuario = () => {
           emailUsuario: email,
           telefoneUsuario: telefone,
           login,
+          isAdm: adminChecked,
         },
         getRequestConfig()
       );
@@ -222,6 +268,18 @@ const EditUsuario = () => {
         <C.Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <C.Input type="text" placeholder="Telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
         <C.Input type="text" placeholder="Login" value={login} onChange={(e) => setLogin(e.target.value)} />
+        {isSuperAdm && (
+          <C.CheckboxContainer>
+            <label>
+              <input
+                type="checkbox"
+                checked={adminChecked}
+                onChange={handleAdminCheckboxChange}
+              />
+              Administrador
+            </label>
+          </C.CheckboxContainer>
+        )}
 
         {telas
           .filter((tela) => tela.nomeTela !== "Tela de Tela")
