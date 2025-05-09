@@ -247,6 +247,12 @@ const AddUsuario = () => {
           onChange={(e) => setNome(e.target.value)}
         />
         <C.Input
+          type="text"
+          placeholder="Telefone"
+          value={telefone}
+          onChange={(e) => setTelefone(e.target.value)}
+        />
+        <C.Input
           type="email"
           placeholder="Email"
           value={email}
@@ -257,12 +263,6 @@ const AddUsuario = () => {
           placeholder="Senha"
           value={senha}
           onChange={(e) => setSenha(e.target.value)}
-        />
-        <C.Input
-          type="text"
-          placeholder="Telefone"
-          value={telefone}
-          onChange={(e) => setTelefone(e.target.value)}
         />
         <C.Input
           type="text"
