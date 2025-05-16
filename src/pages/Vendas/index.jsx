@@ -15,7 +15,9 @@ function Vendas() {
   const [pesoGramas, setPesoGramas] = useState("");
   const [clienteBuscado, setClienteBuscado] = useState(null);
   const [mensagem, setMensagem] = useState("");
-  const [clienteCartao, setClienteCartao] = useState(""); // Novo estado para armazenar o cartão
+  const [clienteCartao, setClienteCartao] = useState("");
+   const [mostrarPesoManual, setMostrarPesoManual] = useState(true); 
+  const [valorUltimaRefeicao, setValorUltimaRefeicao] = useState(null);
 
   const navigate = useNavigate();
   const pesoInputRef = useRef(null);
@@ -204,12 +206,25 @@ function Vendas() {
     }
   };
 
+  const obterPesoDaBalanca = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/peso");
+      if (response.status === 200 && response.data && response.data.peso) {
+        setPesoGramas(response.data.peso.toString());
+        setMostrarPesoManual(false); // esconde o input manual
+      } else {
+        exibirMensagem("Não foi possível obter o peso da balança.");
+      }
+    } catch {
+      exibirMensagem("Erro ao se comunicar com a balança.");
+    }
+  };
+
+
   const adicionarRefeicao = async () => {
-    if (!comandaAtiva) return exibirMensagem("Cliente não possui comanda ativa. Não é possível adicionar refeições.");
-
+    if (!comandaAtiva) return exibirMensagem("Cliente não possui comanda ativa.");
     const peso = parseFloat(pesoGramas);
-    if (isNaN(peso) || peso <= 0) return exibirMensagem("Informe um peso válido em gramas!");
-
+    if (isNaN(peso) || peso <= 0) return exibirMensagem("Peso inválido!");
     const token = getToken();
     if (!token) return;
 
@@ -217,7 +232,6 @@ function Vendas() {
       const response = await axios.get("http://localhost:8080/produto/1", {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       if (response.status === 200 && response.data) {
         const produtoRefeicao = response.data;
         const precoPorKg = produtoRefeicao.precoProduto;
@@ -225,7 +239,7 @@ function Vendas() {
 
         const limitePermitido = cliente.saldoCliente + cliente.faturaCliente;
         if (valorTotal + valorProporcional > limitePermitido) {
-          return exibirMensagem("O total já atingiu o seu saldo + limite disponível!");
+          return exibirMensagem("Total excede saldo + limite.");
         }
 
         const produtoComPeso = {
@@ -236,6 +250,7 @@ function Vendas() {
 
         setProdutos((prev) => [...prev, produtoComPeso]);
         setValorTotal((prevTotal) => prevTotal + valorProporcional);
+        setValorUltimaRefeicao(valorProporcional); // exibe abaixo o valor da refeição
         setPesoGramas("");
         pesoInputRef.current?.blur();
       } else {
@@ -245,6 +260,7 @@ function Vendas() {
       exibirMensagem("Erro ao buscar produto refeição!");
     }
   };
+
 
   useCardScanner((card) => {
     setClienteCartao(card); // Captura o código do cartão
@@ -266,15 +282,23 @@ function Vendas() {
           <>
             <C.SubTitle>Adicionar Refeição (por peso)</C.SubTitle>
             <C.FieldGroup>
-              <C.Input
-                ref={pesoInputRef}
-                type="number"
-                placeholder="Peso em gramas"
-                value={pesoGramas}
-                onChange={(e) => setPesoGramas(e.target.value)}
-              />
+              {mostrarPesoManual && (
+                <C.Input
+                  ref={pesoInputRef}
+                  type="number"
+                  placeholder="Peso em gramas"
+                  value={pesoGramas}
+                  onChange={(e) => setPesoGramas(e.target.value)}
+                />
+              )}
+              <C.Button onClick={obterPesoDaBalanca}>Pegar Peso da Balança</C.Button>
               <C.Button onClick={adicionarRefeicao}>Adicionar Refeição</C.Button>
             </C.FieldGroup>
+
+            {/* Exibir valor da última refeição */}
+            {valorUltimaRefeicao !== null && (
+              <C.ValorTotal>Valor da Refeição: R$ {valorUltimaRefeicao.toFixed(2)}</C.ValorTotal>
+            )}
           </>
         )}
 
