@@ -15,9 +15,7 @@ function Vendas() {
   const [pesoGramas, setPesoGramas] = useState("");
   const [clienteBuscado, setClienteBuscado] = useState(null);
   const [mensagem, setMensagem] = useState("");
-  const [clienteCartao, setClienteCartao] = useState("");
-   const [mostrarPesoManual, setMostrarPesoManual] = useState(true); 
-  const [valorUltimaRefeicao, setValorUltimaRefeicao] = useState(null);
+  const [clienteCartao, setClienteCartao] = useState(""); // Novo estado para armazenar o cartão
 
   const navigate = useNavigate();
   const pesoInputRef = useRef(null);
@@ -212,6 +210,7 @@ function Vendas() {
       if (response.status === 200 && response.data && response.data.peso) {
         setPesoGramas(response.data.peso.toString());
         console.log("Peso obtido da balança:", response.data.peso);
+
       } else {
         exibirMensagem("Não foi possível obter o peso da balança.");
       }
@@ -219,7 +218,6 @@ function Vendas() {
       exibirMensagem("Erro ao se comunicar com a balança.");
     }
   };
-
 
   const adicionarRefeicao = async () => {
     if (!comandaAtiva) return exibirMensagem("Cliente não possui comanda ativa.");
@@ -233,9 +231,11 @@ function Vendas() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.status === 200 && response.data) {
+        console.log("Produto de refeição encontrado:", response.data);
+
         const produtoRefeicao = response.data;
         const precoPorKg = produtoRefeicao.precoProduto;
-        const valorProporcional = (peso / 1000) * precoPorKg;
+        const valorProporcional = (peso) * precoPorKg;
 
         const limitePermitido = cliente.saldoCliente + cliente.faturaCliente;
         if (valorTotal + valorProporcional > limitePermitido) {
@@ -253,14 +253,14 @@ function Vendas() {
         setValorUltimaRefeicao(valorProporcional); // exibe abaixo o valor da refeição
         setPesoGramas("");
         pesoInputRef.current?.blur();
+
+        console.log("Produto adicionado:", valorProporcional);
       } else {
         exibirMensagem("Produto de refeição não encontrado!");
       }
     } catch {
-      exibirMensagem("Erro ao buscar produto refeição!");
     }
   };
-
 
   useCardScanner((card) => {
     setClienteCartao(card); // Captura o código do cartão
@@ -282,23 +282,16 @@ function Vendas() {
           <>
             <C.SubTitle>Adicionar Refeição (por peso)</C.SubTitle>
             <C.FieldGroup>
-              {mostrarPesoManual && (
-                <C.Input
-                  ref={pesoInputRef}
-                  type="number"
-                  placeholder="Peso em gramas"
-                  value={pesoGramas}
-                  onChange={(e) => setPesoGramas(e.target.value)}
-                />
-              )}
+              <C.Input
+                ref={pesoInputRef}
+                type="number"
+                placeholder="Peso em gramas"
+                value={pesoGramas}
+                onChange={(e) => setPesoGramas(e.target.value)}
+              />
               <C.Button onClick={obterPesoDaBalanca}>Pegar Peso da Balança</C.Button>
               <C.Button onClick={adicionarRefeicao}>Adicionar Refeição</C.Button>
             </C.FieldGroup>
-
-            {/* Exibir valor da última refeição */}
-            {valorUltimaRefeicao !== null && (
-              <C.ValorTotal>Valor da Refeição: R$ {valorUltimaRefeicao.toFixed(2)}</C.ValorTotal>
-            )}
           </>
         )}
 
