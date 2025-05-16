@@ -5,7 +5,7 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const SERIAL_PORT = process.env.SERIAL_PORT || '/dev/ttyUSB0';  // Ajuste para sua porta serial
+const SERIAL_PORT = process.env.SERIAL_PORT || 'COM5';  // Ajuste para sua porta serial
 const BAUD_RATE = parseInt(process.env.BAUD_RATE || '9600');
 
 // Último peso lido
