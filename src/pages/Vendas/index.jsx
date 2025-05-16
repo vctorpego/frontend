@@ -208,10 +208,10 @@ function Vendas() {
 
   const obterPesoDaBalanca = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/peso");
+      const response = await axios.get("http://localhost:3000/getPeso");
       if (response.status === 200 && response.data && response.data.peso) {
         setPesoGramas(response.data.peso.toString());
-        setMostrarPesoManual(false); // esconde o input manual
+        console.log("Peso obtido da balança:", response.data.peso);
       } else {
         exibirMensagem("Não foi possível obter o peso da balança.");
       }
