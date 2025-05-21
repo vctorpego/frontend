@@ -1,10 +1,11 @@
 import { useRef, useState } from "react";
-import useCardScanner from "../../hooks/useCardScanner"; // Aqui, vamos usar o hook para ler o cartão
+import useCodeScanner from "../../hooks/useCodeScanner"; // Aqui, vamos usar o hook para ler o cartão
+
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import * as C from "./styles";
-import Sidebar from "../../components/Sidebar";
+
 
 function Vendas() {
   const [user, setUser] = useState(null);
@@ -159,11 +160,19 @@ function Vendas() {
 
       setProdutos([]);
       setValorTotal(0);
+      setCliente(null);
+      setComandaAtiva(null);
+      setClienteBuscado(null);
+      setPesoGramas("");
+      setClienteCartao("");
+      exibirMensagem("Venda finalizada com sucesso!");
       exibirMensagem("Venda finalizada com sucesso!");
     } catch {
       exibirMensagem("Erro ao finalizar venda!");
     }
   };
+
+  // (só a parte do handleScan e hooks scanner aqui, para foco)
 
   const handleScan = async (code) => {
     document.activeElement.blur();
@@ -198,15 +207,30 @@ function Vendas() {
 
         setProdutos((prev) => [...prev, produto]);
         setValorTotal(novoTotal);
+        // NÃO ALTERE cliente ou clienteBuscado aqui!
       }
     } catch {
       exibirMensagem("Erro ao buscar produto!");
     }
   };
 
+  // RFID - cartão do cliente
+  useCodeScanner((data, tipo) => {
+    console.log("Scanner callback:", data, tipo);
+    if (tipo === "card") {
+      setClienteCartao(data);
+      buscarClientePorCartao(data);
+    } else if (tipo === "barcode") {
+      handleScan(data);
+    }
+  });
+
+
   const obterPesoDaBalanca = async () => {
+    console.log("entrou na funcao")
     try {
       const response = await axios.get("http://localhost:3000/getPeso");
+
       if (response.status === 200 && response.data && response.data.peso) {
         setPesoGramas(response.data.peso.toString());
         console.log("Peso obtido da balança:", response.data.peso);
@@ -262,14 +286,10 @@ function Vendas() {
     }
   };
 
-  useCardScanner((card) => {
-    setClienteCartao(card); // Captura o código do cartão
-    buscarClientePorCartao(card); // Realiza a busca do cliente por cartão
-  });
+
 
   return (
     <C.Container>
-      <Sidebar user={user} />
       <C.Content>
         <C.Title>Nova Comanda - TechMeal</C.Title>
 
@@ -289,8 +309,10 @@ function Vendas() {
                 value={pesoGramas}
                 onChange={(e) => setPesoGramas(e.target.value)}
               />
-              <C.Button onClick={obterPesoDaBalanca}>Pegar Peso da Balança</C.Button>
-              <C.Button onClick={adicionarRefeicao}>Adicionar Refeição</C.Button>
+
+              <C.Button onClick={() => { obterPesoDaBalanca(); adicionarRefeicao(); }}>
+                Adicionar Refeição
+              </C.Button>
             </C.FieldGroup>
           </>
         )}

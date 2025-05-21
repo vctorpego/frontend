@@ -56,6 +56,7 @@ const SaidaCliente = () => {
   }, []);
 
   const enviarParaImpressao = async (cliente, comanda, produtos) => {
+    console.log ("impressao enviada")
     try {
       await axios.post("http://localhost:3001/imprimir", {
         cliente,
