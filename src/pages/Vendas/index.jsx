@@ -310,7 +310,10 @@ function Vendas() {
                 onChange={(e) => setPesoGramas(e.target.value)}
               />
 
-              <C.Button onClick={() => { obterPesoDaBalanca(); adicionarRefeicao(); }}>
+              <C.Button onClick={() => { obterPesoDaBalanca(); }}>
+                Obter Peso
+              </C.Button>
+              <C.Button onClick={() => {adicionarRefeicao(); }}>
                 Adicionar Refeição
               </C.Button>
             </C.FieldGroup>
