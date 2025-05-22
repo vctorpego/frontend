@@ -4,6 +4,7 @@ import jwt_decode from "jwt-decode";
 import Grid from "../../components/Grid";
 import Sidebar from "../../components/Sidebar";
 import ModalExcluir from "../../components/ModalExcluir";
+import ModalPrinter from "../../components/ModalPrinter";
 import { useNavigate } from "react-router-dom";
 import * as C from "./styles";
 import SearchBar from "../../components/SearchBar";
@@ -11,17 +12,18 @@ import SearchBar from "../../components/SearchBar";
 const ListagemProdutos = () => {
   const [produtos, setProdutos] = useState([]);
   const [user, setUser] = useState(null);
-  const [permissoes, setPermissoes] = useState([]); // Estado para armazenar as permissões
+  const [permissoes, setPermissoes] = useState([]);
   const [openModalExcluir, setOpenModalExcluir] = useState(false);
   const [produtoExcluir, setProdutoExcluir] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [openModalPrinter, setOpenModalPrinter] = useState(false);
+  const [produtoPrinter, setProdutoPrinter] = useState(null);
+  const [quantidadeImpressao, setQuantidadeImpressao] = useState(1);
   const navigate = useNavigate();
 
-  // Função para obter o token e as permissões
   const getToken = () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      console.warn("Token não encontrado. Redirecionando para login...");
       navigate("/auth/login");
       return null;
     }
@@ -35,7 +37,6 @@ const ListagemProdutos = () => {
       }
       setUser(decoded);
     } catch (error) {
-      console.error("Erro ao decodificar o token:", error);
       localStorage.removeItem("token");
       navigate("/auth/login");
       return null;
@@ -44,7 +45,6 @@ const ListagemProdutos = () => {
     return token;
   };
 
-  // Função para configurar o cabeçalho da requisição com o token
   const getRequestConfig = () => {
     const token = getToken();
     if (!token) return {};
@@ -61,37 +61,32 @@ const ListagemProdutos = () => {
         setUser(userLogin);
 
         try {
-          // Buscar usuário no backend para pegar ID
           const response = await axios.get(
             `http://localhost:8080/usuario/id/${userLogin.sub}`,
             getRequestConfig()
           );
-
           const userId = response.data;
 
-          // Buscar permissões para a tela de produtos
           const permissionsResponse = await axios.get(
             `http://localhost:8080/permissao/telas/${userId}`,
             getRequestConfig()
           );
 
-          const telaAtual = "Tela de Produtos"; // Nome da tela que queremos verificar as permissões
+          const telaAtual = "Tela de Produtos";
           const permissoesTela = permissionsResponse.data.find(
             (perm) => perm.tela === telaAtual
           );
 
           const permissoes = permissoesTela?.permissoes || [];
           setPermissoes(permissoes);
-          console.log(`Permissões para ${telaAtual}:`, permissoes);
 
-          // Carregar produtos
           const produtosResponse = await axios.get(
             "http://localhost:8080/produto",
             getRequestConfig()
           );
           setProdutos(produtosResponse.data);
         } catch (error) {
-          console.error("Erro ao buscar permissões ou produtos:", error);
+          console.error("Erro ao buscar dados:", error);
         }
       }
     };
@@ -99,7 +94,6 @@ const ListagemProdutos = () => {
     fetchData();
   }, [navigate]);
 
-  // Filtro de produtos baseado na pesquisa
   const filterProdutos = () => {
     if (!searchQuery) return produtos;
     return produtos.filter((produto) =>
@@ -107,13 +101,11 @@ const ListagemProdutos = () => {
     );
   };
 
-  // Função para abrir modal de exclusão
   const handleDeleteProduto = (produtoId) => {
     setProdutoExcluir(produtoId);
     setOpenModalExcluir(true);
   };
 
-  // Confirmar exclusão do produto
   const handleConfirmDelete = async () => {
     try {
       const token = getToken();
@@ -124,8 +116,8 @@ const ListagemProdutos = () => {
         getRequestConfig()
       );
 
-      setProdutos((prevProdutos) =>
-        prevProdutos.filter((produto) => produto.idProduto !== produtoExcluir)
+      setProdutos((prev) =>
+        prev.filter((produto) => produto.idProduto !== produtoExcluir)
       );
       setOpenModalExcluir(false);
       setProdutoExcluir(null);
@@ -134,34 +126,68 @@ const ListagemProdutos = () => {
     }
   };
 
-  // Fechar modal de exclusão
   const handleCloseModal = () => {
     setOpenModalExcluir(false);
     setProdutoExcluir(null);
   };
 
-  // Navegar para a tela de adicionar produto
   const handleAddProduto = () => {
     navigate("/produtos/adicionar");
   };
 
-  // Navegar para a tela de editar produto
   const handleEditProduto = (produtoId) => {
-    console.log("Produto a ser editado:", produtoId);
     navigate(`/produtos/editar/${produtoId}`);
   };
 
-  // Definindo colunas para a tabela
-  const columns = ["ID", "Nome", "Código de Barras", "Estoque", "Preço", "Preço de Custo"];
-  
-  // Condicionar as ações disponíveis de acordo com as permissões
+  const handlePrintProduto = (produto) => {
+    setProdutoPrinter(produto);
+    setOpenModalPrinter(true);
+  };
+
+  const handleConfirmImpressao = async () => {
+    if (!produtoPrinter) return;
+
+    try {
+      await axios.post("http://localhost:3001/imprimir", {
+        codigo: produtoPrinter.codigoBarrasProduto,
+        quantidade: quantidadeImpressao,
+      });
+
+      alert("Etiqueta enviada para impressão.");
+      setOpenModalPrinter(false);
+      setProdutoPrinter(null);
+      setQuantidadeImpressao(1);
+    } catch (error) {
+      alert("Erro ao enviar etiqueta para impressão.");
+      console.error(error);
+    }
+  };
+
+  const handleClosePrinter = () => {
+    setOpenModalPrinter(false);
+    setProdutoPrinter(null);
+    setQuantidadeImpressao(1);
+  };
+
+  const columns = [
+    "ID",
+    "Nome",
+    "Código de Barras",
+    "Estoque",
+    "Preço",
+    "Preço de Custo",
+  ];
+
   const actions = [
     permissoes.includes("PUT") && "edit",
     permissoes.includes("DELETE") && "delete",
-    permissoes.includes("POST") && "adicionar",
-  ].filter(Boolean); // Filtra valores falsos (como `undefined`)
+    "print",
+  ].filter(Boolean);
 
-  const showActionsColumn = permissoes.includes("PUT") || permissoes.includes("DELETE");
+  const showActionsColumn =
+    permissoes.includes("PUT") ||
+    permissoes.includes("DELETE") ||
+    true;
 
   return (
     <C.Container>
@@ -197,19 +223,19 @@ const ListagemProdutos = () => {
             data={filterProdutos()}
             columns={columns}
             columnMap={{
-              "ID": "idProduto",
-              "Nome": "nomeProduto",
+              ID: "idProduto",
+              Nome: "nomeProduto",
               "Código de Barras": "codigoBarrasProduto",
-              "Estoque": "quantProduto",
-              "Preço": "precoProduto",
+              Estoque: "quantProduto",
+              Preço: "precoProduto",
               "Preço de Custo": "valorDeCustoProduto",
             }}
             idKey="idProduto"
             handleDelete={handleDeleteProduto}
             handleEdit={handleEditProduto}
-            actions={actions} // Passando as ações permitidas
+            handlePrint={handlePrintProduto}
+            actions={actions}
             showActionsColumn={showActionsColumn}
-            
           />
         )}
 
@@ -217,6 +243,15 @@ const ListagemProdutos = () => {
           open={openModalExcluir}
           onClose={handleCloseModal}
           onConfirm={handleConfirmDelete}
+        />
+
+        <ModalPrinter
+          open={openModalPrinter}
+          onClose={handleClosePrinter}
+          onConfirm={handleConfirmImpressao}
+          quantidade={quantidadeImpressao}
+          setQuantidade={setQuantidadeImpressao}
+          produto={produtoPrinter}
         />
       </C.Content>
     </C.Container>
