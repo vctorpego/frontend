@@ -10,6 +10,7 @@ const AddConta = lazy(() => import("../pages/AddConta"));
 const AddFornecedor = lazy(() => import("../pages/AddFornecedor"));
 const AddProduto = lazy(() => import("../pages/AddProduto"));
 const AddUsuario = lazy(() => import("../pages/AddUsuario"));
+const Dashboard = lazy(() => import("../pages/Dashboard"));
 const EditCliente = lazy(() => import("../pages/EditCliente"));
 const EditConta = lazy(() => import("../pages/EditConta"));
 const EditFornecedor = lazy(() => import("../pages/EditFornecedor"));
@@ -22,6 +23,7 @@ const ListagemProdutos = lazy(() => import("../pages/ListagemProdutos"));
 const Pagamentos = lazy(() => import("../pages/Pagamentos"));
 const PagarConta = lazy(() => import("../pages/PagarConta"));
 const Recarga = lazy(() => import("../pages/Recarga"));
+const Relatorios = lazy(() => import("../pages/Relatorios"));
 const Signin = lazy(() => import("../pages/Signin"));
 const SwaggerPage = lazy(() => import("../pages/Swagger"));
 const Vendas = lazy(() => import("../pages/Vendas"));
@@ -66,6 +68,17 @@ const RoutesApp = () => {
                 </ProtectedRoute>
               }
             />
+
+            {/* Dashboard */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+
 
             {/* Clientes */}
             <Route
@@ -217,6 +230,18 @@ const RoutesApp = () => {
               }
             />
 
+            {/* Relatórios */}
+            <Route
+              path="/relatorios"
+              element={
+                <ProtectedRoute>
+                  <PermissaoRoute tela="Tela de Relatórios">
+                    <Relatorios />
+                  </PermissaoRoute>
+                </ProtectedRoute>
+              }
+            />
+
             {/* Usuários */}
             <Route
               path="/usuarios"
@@ -254,7 +279,7 @@ const RoutesApp = () => {
               path="/swagger"
               element={
                 <ProtectedRoute>
-                  <PermissaoRoute tela="Tela de Relatórios">
+                  <PermissaoRoute tela="Tela Swagger">
                     <SwaggerPage />
                   </PermissaoRoute>
                 </ProtectedRoute>
