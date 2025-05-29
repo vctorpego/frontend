@@ -55,7 +55,7 @@ app.post('/imprimir', (req, res) => {
   });
 });
 
-const PORT = 3001;
+const PORT = 3002;
 app.listen(PORT, () => {
   console.log(`Servidor de impressão escutando em http://localhost:${PORT}`);
 });
