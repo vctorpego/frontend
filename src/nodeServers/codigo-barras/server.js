@@ -1,10 +1,18 @@
 const express = require('express');
+const cors = require('cors'); // Importa o pacote CORS
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 
 const app = express();
+
+// Habilita o CORS para todas as origens (ou configure abaixo para um domínio específico)
+app.use(cors());
+
+// Se quiser permitir apenas um domínio específico, use:
+// app.use(cors({ origin: 'http://localhost:5173' }));
+
 app.use(bodyParser.json());
 
 // Nome da impressora no Windows
@@ -19,24 +27,20 @@ app.post('/imprimir', (req, res) => {
 
   const etiquetasPorLinha = 3;
   const arrayX = [50, 330, 610];
-  const posY = 60;
+  const alturaEtiqueta = 150; // Espaçamento vertical entre linhas
+  const baseY = 60;
 
-  let etiquetas = '';
+  let etiquetas = '\n^XA\n^BY2'; // Início do único bloco ZPL
+
   for (let i = 0; i < quantidade; i++) {
     const posX = arrayX[i % etiquetasPorLinha];
-
-    // Início de novo bloco ZPL a cada 3 etiquetas
-    if (i % etiquetasPorLinha === 0) {
-      if (i !== 0) {
-        etiquetas += `\n^XZ`; // Fecha bloco anterior
-      }
-      etiquetas += `\n^XA\n^BY2`; // Inicia novo bloco
-    }
+    const linhaAtual = Math.floor(i / etiquetasPorLinha);
+    const posY = baseY + (linhaAtual * alturaEtiqueta);
 
     etiquetas += `\n^FO${posX},${posY}^BCN,100,Y,N,N^FD${codigo}^FS`;
   }
 
-  etiquetas += `\n^XZ`; // Finaliza o último bloco
+  etiquetas += '\n^XZ'; // Final do bloco
 
   console.log(etiquetas); // Debug
 

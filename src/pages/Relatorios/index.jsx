@@ -24,7 +24,7 @@ const Relatorios = () => {
     { nome: "Ticket Médio", endpoint: "ticket-medio-clientes" },
     { nome: "Relatório DRE", endpoint: "" },
     { nome: "Consumo", endpoint: "" },
-    { nome: "Aniversariantes do Mês", endpoint: "aniversariantes-dia" },
+    { nome: "Aniversariantes do Dia", endpoint: "aniversariantes-dia" },
   ];
 
   const getToken = () => {

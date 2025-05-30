@@ -148,20 +148,30 @@ const ListagemProdutos = () => {
     if (!produtoPrinter) return;
 
     try {
-      await axios.post("http://localhost:3001/imprimir", {
-        codigo: produtoPrinter.codigoBarrasProduto,
-        quantidade: quantidadeImpressao,
-      });
+      await axios.post(
+        "http://localhost:3002/imprimir",
+        {
+          codigo: String(produtoPrinter.codigoBarrasProduto),
+          quantidade: quantidadeImpressao,
+        },
+
+      );
 
       alert("Etiqueta enviada para impressão.");
+
       setOpenModalPrinter(false);
       setProdutoPrinter(null);
       setQuantidadeImpressao(1);
+      console.log("Produto:", produtoPrinter);
+      console.log("Código:", produtoPrinter?.codigoBarrasProduto);
+      console.log("Quantidade:", quantidadeImpressao);
+
     } catch (error) {
       alert("Erro ao enviar etiqueta para impressão.");
       console.error(error);
     }
   };
+
 
   const handleClosePrinter = () => {
     setOpenModalPrinter(false);
