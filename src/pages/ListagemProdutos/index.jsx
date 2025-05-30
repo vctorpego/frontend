@@ -18,7 +18,7 @@ const ListagemProdutos = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [openModalPrinter, setOpenModalPrinter] = useState(false);
   const [produtoPrinter, setProdutoPrinter] = useState(null);
-  const [quantidadeImpressao, setQuantidadeImpressao] = useState(1);
+
   const navigate = useNavigate();
 
   const getToken = () => {
@@ -144,28 +144,25 @@ const ListagemProdutos = () => {
     setOpenModalPrinter(true);
   };
 
-  const handleConfirmImpressao = async () => {
+  const handleConfirmImpressao = async ({ quantidade }) => {
     if (!produtoPrinter) return;
 
     try {
       await axios.post(
         "http://localhost:3002/imprimir",
         {
-          codigo: String(produtoPrinter.codigoBarrasProduto),
-          quantidade: quantidadeImpressao,
+          codigo: String(produtoPrinter?.codigoBarrasProduto),
+          quantidade: quantidade,
         },
-
       );
 
       alert("Etiqueta enviada para impressão.");
 
       setOpenModalPrinter(false);
       setProdutoPrinter(null);
-      setQuantidadeImpressao(1);
-      console.log("Produto:", produtoPrinter);
-      console.log("Código:", produtoPrinter?.codigoBarrasProduto);
-      console.log("Quantidade:", quantidadeImpressao);
 
+      console.log("Código:", produtoPrinter?.codigoBarrasProduto);
+      console.log("Quantidade:", quantidade);
     } catch (error) {
       alert("Erro ao enviar etiqueta para impressão.");
       console.error(error);
@@ -173,10 +170,13 @@ const ListagemProdutos = () => {
   };
 
 
+
+
+
   const handleClosePrinter = () => {
     setOpenModalPrinter(false);
     setProdutoPrinter(null);
-    setQuantidadeImpressao(1);
+
   };
 
   const columns = [
@@ -259,8 +259,6 @@ const ListagemProdutos = () => {
           open={openModalPrinter}
           onClose={handleClosePrinter}
           onConfirm={handleConfirmImpressao}
-          quantidade={quantidadeImpressao}
-          setQuantidade={setQuantidadeImpressao}
           produto={produtoPrinter}
         />
       </C.Content>

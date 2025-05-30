@@ -38,7 +38,7 @@ const Grid = ({
           </C.ActionButton>
         )}
         {actions.includes("print") && (
-          <C.ActionButton onClick={() => handlePrint(item[idKey])}>
+          <C.ActionButton onClick={() => handlePrint(item)}>
             <Printer style={{ color: "green", fontSize: "18px" }} />
           </C.ActionButton>
         )}
