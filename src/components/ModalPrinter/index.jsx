@@ -8,7 +8,7 @@ const ModalPrinter = ({ open, onClose, onConfirm, codigo }) => {
 
   const incrementar = () => setQuantidade(prev => prev + 1);
   const decrementar = () => {
-    if (quantidade > 3) setQuantidade(prev => prev - 1);
+    if (quantidade > 1) setQuantidade(prev => prev - 1);
   };
 
   const confirmarImpressao = () => {
