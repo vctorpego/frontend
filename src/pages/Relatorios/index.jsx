@@ -25,13 +25,17 @@ const Relatorios = () => {
   const [dreInicio, setDreInicio] = useState("");
   const [dreFim, setDreFim] = useState("");
   const [pendingDreDownload, setPendingDreDownload] = useState(null);
+  const [showConsumoPopup, setShowConsumoPopup] = useState(false);
+  const [consumoInicio, setConsumoInicio] = useState("");
+  const [consumoFim, setConsumoFim] = useState("");
+  const [pendingConsumoDownload, setPendingConsumoDownload] = useState(null);
 
   const relatorios = [
     { nome: "Relatório de Vendas", endpoint: "vendas-por-produto" },
     { nome: "Clientes Devedores", endpoint: "" },
     { nome: "Ticket Médio", endpoint: "ticket-medio-clientes" },
     { nome: "Relatório DRE", endpoint: "dred-diario" },
-    { nome: "Consumo", endpoint: "" },
+    { nome: "Consumo", endpoint: "consumo" },
     { nome: "Aniversariantes do Dia", endpoint: "aniversariantes-dia" },
   ];
 
@@ -84,9 +88,13 @@ const Relatorios = () => {
       if (endpoint === "dred-diario" && params.inicio && params.fim) {
         url += `?dataInicio=${encodeURIComponent(params.inicio)}&dataFim=${encodeURIComponent(params.fim)}`;
       }
+      // Se for consumo, envie como query string
+      if (endpoint === "consumo" && params.inicio && params.fim) {
+        url += `?dataInicio=${encodeURIComponent(params.inicio)}&dataFim=${encodeURIComponent(params.fim)}`;
+      }
       const response = await axios.post(
         url,
-        (endpoint === "ticket-medio-clientes" || endpoint === "aniversariantes-dia" || endpoint === "vendas-por-produto" || endpoint === "dred-diario") ? {} : params,
+        (endpoint === "ticket-medio-clientes" || endpoint === "aniversariantes-dia" || endpoint === "vendas-por-produto" || endpoint === "dred-diario" || endpoint === "consumo") ? {} : params,
         getRequestConfig()
       );
 
@@ -116,6 +124,9 @@ const Relatorios = () => {
     } else if (rel.endpoint === "dred-diario") {
       setShowDrePopup(true);
       setPendingDreDownload(rel.endpoint);
+    } else if (rel.endpoint === "consumo") {
+      setShowConsumoPopup(true);
+      setPendingConsumoDownload(rel.endpoint);
     } else {
       handleDownload(rel.endpoint);
     }
@@ -175,35 +186,19 @@ const Relatorios = () => {
     setPendingDreDownload(null);
   };
 
-  const handleVendasSubmit = (e) => {
+  const handleConsumoSubmit = (e) => {
     e.preventDefault();
-    if (!vendasInicio || !vendasFim) {
+    if (!consumoInicio || !consumoFim) {
       alert("Preencha as duas datas.");
       return;
     }
-    setShowVendasPopup(false);
-    handleDownload(pendingVendasDownload, { inicio: vendasInicio, fim: vendasFim });
-    setVendasInicio("");
-    setVendasFim("");
-    setPendingVendasDownload(null);
+    setShowConsumoPopup(false);
+    handleDownload(pendingConsumoDownload, { inicio: consumoInicio, fim: consumoFim });
+    setConsumoInicio("");
+    setConsumoFim("");
+    setPendingConsumoDownload(null);
   };
 
-<<<<<<< HEAD
-=======
-  const handleDreSubmit = (e) => {
-    e.preventDefault();
-    if (!dreInicio || !dreFim) {
-      alert("Preencha as duas datas.");
-      return;
-    }
-    setShowDrePopup(false);
-    handleDownload(pendingDreDownload, { inicio: dreInicio, fim: dreFim });
-    setDreInicio("");
-    setDreFim("");
-    setPendingDreDownload(null);
-  };
-
->>>>>>> ad05ec34ae4644b2b2903d9327b84fce09d6cb40
   useEffect(() => {
     getToken();
   }, []);
@@ -428,6 +423,58 @@ const Relatorios = () => {
               </label>
               <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
                 <button type="button" onClick={() => setShowDrePopup(false)}>Cancelar</button>
+                <button type="submit">Baixar Relatório</button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {showConsumoPopup && (
+          <div style={{
+            position: "fixed",
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: "rgba(0,0,0,0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000
+          }}>
+            <form
+              onSubmit={handleConsumoSubmit}
+              style={{
+                background: "#fff",
+                padding: 32,
+                borderRadius: 8,
+                boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 16,
+                minWidth: 280
+              }}
+            >
+              <h3>Informe o período</h3>
+              <label>
+                Data de início:
+                <input
+                  type="date"
+                  value={consumoInicio}
+                  onChange={e => setConsumoInicio(e.target.value)}
+                  required
+                  style={{ marginLeft: 8 }}
+                />
+              </label>
+              <label>
+                Data de fim:
+                <input
+                  type="date"
+                  value={consumoFim}
+                  onChange={e => setConsumoFim(e.target.value)}
+                  required
+                  style={{ marginLeft: 8 }}
+                />
+              </label>
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                <button type="button" onClick={() => setShowConsumoPopup(false)}>Cancelar</button>
                 <button type="submit">Baixar Relatório</button>
               </div>
             </form>
