@@ -4,11 +4,11 @@ import Modal from "../Modal";
 import { useState } from "react";
 
 const ModalPrinter = ({ open, onClose, onConfirm, codigo }) => {
-  const [quantidade, setQuantidade] = useState(3);
+  const [quantidade, setQuantidade] = useState(1);
 
-  const incrementar = () => setQuantidade(prev => prev + 3);
+  const incrementar = () => setQuantidade(prev => prev + 1);
   const decrementar = () => {
-    if (quantidade > 3) setQuantidade(prev => prev - 3);
+    if (quantidade > 1) setQuantidade(prev => prev - 1);
   };
 
   const confirmarImpressao = () => {

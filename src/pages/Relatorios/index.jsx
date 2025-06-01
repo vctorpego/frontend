@@ -21,12 +21,16 @@ const Relatorios = () => {
   const [vendasInicio, setVendasInicio] = useState("");
   const [vendasFim, setVendasFim] = useState("");
   const [pendingVendasDownload, setPendingVendasDownload] = useState(null);
+  const [showDrePopup, setShowDrePopup] = useState(false);
+  const [dreInicio, setDreInicio] = useState("");
+  const [dreFim, setDreFim] = useState("");
+  const [pendingDreDownload, setPendingDreDownload] = useState(null);
 
   const relatorios = [
     { nome: "Relatório de Vendas", endpoint: "vendas-por-produto" },
     { nome: "Clientes Devedores", endpoint: "" },
     { nome: "Ticket Médio", endpoint: "ticket-medio-clientes" },
-    { nome: "Relatório DRE", endpoint: "" },
+    { nome: "Relatório DRE", endpoint: "dred-diario" },
     { nome: "Consumo", endpoint: "" },
     { nome: "Aniversariantes do Dia", endpoint: "aniversariantes-dia" },
   ];
@@ -76,9 +80,13 @@ const Relatorios = () => {
       if (endpoint === "vendas-por-produto" && params.inicio && params.fim) {
         url += `?dataInicio=${encodeURIComponent(params.inicio)}&dataFim=${encodeURIComponent(params.fim)}`;
       }
+      // Se for dred-diario, envie como query string
+      if (endpoint === "dred-diario" && params.inicio && params.fim) {
+        url += `?dataInicio=${encodeURIComponent(params.inicio)}&dataFim=${encodeURIComponent(params.fim)}`;
+      }
       const response = await axios.post(
         url,
-        (endpoint === "ticket-medio-clientes" || endpoint === "aniversariantes-dia" || endpoint === "vendas-por-produto") ? {} : params,
+        (endpoint === "ticket-medio-clientes" || endpoint === "aniversariantes-dia" || endpoint === "vendas-por-produto" || endpoint === "dred-diario") ? {} : params,
         getRequestConfig()
       );
 
@@ -105,6 +113,9 @@ const Relatorios = () => {
     } else if (rel.endpoint === "vendas-por-produto") {
       setShowVendasPopup(true);
       setPendingVendasDownload(rel.endpoint);
+    } else if (rel.endpoint === "dred-diario") {
+      setShowDrePopup(true);
+      setPendingDreDownload(rel.endpoint);
     } else {
       handleDownload(rel.endpoint);
     }
@@ -151,6 +162,48 @@ const Relatorios = () => {
     setPendingVendasDownload(null);
   };
 
+  const handleDreSubmit = (e) => {
+    e.preventDefault();
+    if (!dreInicio || !dreFim) {
+      alert("Preencha as duas datas.");
+      return;
+    }
+    setShowDrePopup(false);
+    handleDownload(pendingDreDownload, { inicio: dreInicio, fim: dreFim });
+    setDreInicio("");
+    setDreFim("");
+    setPendingDreDownload(null);
+  };
+
+  const handleVendasSubmit = (e) => {
+    e.preventDefault();
+    if (!vendasInicio || !vendasFim) {
+      alert("Preencha as duas datas.");
+      return;
+    }
+    setShowVendasPopup(false);
+    handleDownload(pendingVendasDownload, { inicio: vendasInicio, fim: vendasFim });
+    setVendasInicio("");
+    setVendasFim("");
+    setPendingVendasDownload(null);
+  };
+
+<<<<<<< HEAD
+=======
+  const handleDreSubmit = (e) => {
+    e.preventDefault();
+    if (!dreInicio || !dreFim) {
+      alert("Preencha as duas datas.");
+      return;
+    }
+    setShowDrePopup(false);
+    handleDownload(pendingDreDownload, { inicio: dreInicio, fim: dreFim });
+    setDreInicio("");
+    setDreFim("");
+    setPendingDreDownload(null);
+  };
+
+>>>>>>> ad05ec34ae4644b2b2903d9327b84fce09d6cb40
   useEffect(() => {
     getToken();
   }, []);
@@ -323,6 +376,58 @@ const Relatorios = () => {
               </label>
               <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
                 <button type="button" onClick={() => setShowVendasPopup(false)}>Cancelar</button>
+                <button type="submit">Baixar Relatório</button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {showDrePopup && (
+          <div style={{
+            position: "fixed",
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: "rgba(0,0,0,0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000
+          }}>
+            <form
+              onSubmit={handleDreSubmit}
+              style={{
+                background: "#fff",
+                padding: 32,
+                borderRadius: 8,
+                boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 16,
+                minWidth: 280
+              }}
+            >
+              <h3>Informe o período</h3>
+              <label>
+                Data de início:
+                <input
+                  type="date"
+                  value={dreInicio}
+                  onChange={e => setDreInicio(e.target.value)}
+                  required
+                  style={{ marginLeft: 8 }}
+                />
+              </label>
+              <label>
+                Data de fim:
+                <input
+                  type="date"
+                  value={dreFim}
+                  onChange={e => setDreFim(e.target.value)}
+                  required
+                  style={{ marginLeft: 8 }}
+                />
+              </label>
+              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                <button type="button" onClick={() => setShowDrePopup(false)}>Cancelar</button>
                 <button type="submit">Baixar Relatório</button>
               </div>
             </form>

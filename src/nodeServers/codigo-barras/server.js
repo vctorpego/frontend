@@ -1,65 +1,132 @@
 const express = require('express');
-const cors = require('cors'); // Importa o pacote CORS
 const bodyParser = require('body-parser');
+const cors = require('cors'); // Importa o pacote CORS
 const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 
 const app = express();
 
-// Habilita o CORS para todas as origens (ou configure abaixo para um domínio específico)
 app.use(cors());
 
-// Se quiser permitir apenas um domínio específico, use:
-// app.use(cors({ origin: 'http://localhost:5173' }));
+// Configuração do CORS para permitir requisições do frontend
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
 
+// Middleware para parsear JSON
 app.use(bodyParser.json());
 
-// Nome da impressora no Windows
-const nomeImpressora = 'Generic / Text Only';
+// Configurações da impressora
+const PRINTER_NAME = 'Generic / Text Only'; // Substitua pelo nome exato da sua impressora no Windows
+const PORT = 3002;
 
-app.post('/imprimir', (req, res) => {
-  const { codigo, quantidade } = req.body;
+/**
+ * Gera o código ZPL para as etiquetas
+ * @param {string} codigo - Código do produto para o código de barras
+ * @param {number} quantidade - Quantidade de etiquetas a gerar
+ * @returns {string} Código ZPL pronto para impressão
+ */
+function gerarCodigoZPL(codigo, quantidade) {
+  const ETIQUETAS_POR_LINHA = 3;
+  const POSICOES_X = [50, 330, 610]; // Posições horizontais das etiquetas
+  const POSICAO_Y = 60; // Posição vertical fixa
 
-  if (!codigo || !quantidade || isNaN(quantidade)) {
-    return res.status(400).json({ erro: 'Código ou quantidade inválida.' });
-  }
-
-  const etiquetasPorLinha = 3;
-  const arrayX = [50, 330, 610];
-  const alturaEtiqueta = 150; // Espaçamento vertical entre linhas
-  const baseY = 60;
-
-  let etiquetas = '\n^XA\n^BY2'; // Início do único bloco ZPL
+  let zpl = '';
 
   for (let i = 0; i < quantidade; i++) {
-    const posX = arrayX[i % etiquetasPorLinha];
-    const linhaAtual = Math.floor(i / etiquetasPorLinha);
-    const posY = baseY + (linhaAtual * alturaEtiqueta);
+    const posX = POSICOES_X[i % ETIQUETAS_POR_LINHA];
 
-    etiquetas += `\n^FO${posX},${posY}^BCN,100,Y,N,N^FD${codigo}^FS`;
-  }
-
-  etiquetas += '\n^XZ'; // Final do bloco
-
-  console.log(etiquetas); // Debug
-
-  const zplPath = path.join(__dirname, 'etiqueta.zpl');
-  fs.writeFileSync(zplPath, etiquetas.trim());
-
-  const comando = `powershell -Command "Get-Content -Path '${zplPath}' | Out-Printer -Name '${nomeImpressora}'"`;
-
-  exec(comando, (error, stdout, stderr) => {
-    if (error) {
-      console.error('Erro ao imprimir:', stderr || error);
-      return res.status(500).json({ erro: 'Falha ao enviar para impressão.' });
+    // Inicia novo bloco ZPL a cada 3 etiquetas
+    if (i % ETIQUETAS_POR_LINHA === 0) {
+      if (i !== 0) zpl += '^XZ\n'; // Fecha bloco anterior
+      zpl += '^XA\n^BY1\n'; // Inicia novo bloco com configurações
     }
 
-    return res.status(200).json({ mensagem: 'Etiqueta(s) enviada(s) para impressão.' });
+    // Adiciona código de barras
+    zpl += `^FO${posX},${POSICAO_Y}^BCN,100,Y,N,N^FD${codigo}^FS\n`;
+  }
+
+  return zpl + '^XZ'; // Fecha o último bloco
+}
+
+/**
+ * Rota para impressão de etiquetas
+ */
+app.post('/imprimir', (req, res) => {
+  console.log('Recebendo requisição:', req.body); // Log para debug
+
+  try {
+    const { codigo, quantidade } = req.body;
+
+    // Validação dos dados
+    if (!codigo || !quantidade || isNaN(quantidade)) {
+      console.error('Dados inválidos recebidos:', { codigo, quantidade });
+      return res.status(400).json({
+        success: false,
+        error: 'Por favor, forneça um código válido e a quantidade de etiquetas'
+      });
+    }
+
+    // Gera o código ZPL
+    const zpl = gerarCodigoZPL(codigo, quantidade);
+    console.log('Código ZPL gerado:\n', zpl);
+
+    // Cria arquivo temporário
+    const arquivoTemp = path.join(__dirname, 'etiqueta_temp.zpl');
+    fs.writeFileSync(arquivoTemp, zpl);
+
+    // Comando para imprimir no Windows
+    const comando = `powershell -Command "Get-Content -Path '${arquivoTemp}' | Out-Printer -Name '${PRINTER_NAME}'"`;
+
+    // Executa o comando de impressão
+    exec(comando, (error, stdout, stderr) => {
+      // Remove o arquivo temporário após impressão
+      try {
+        fs.unlinkSync(arquivoTemp);
+      } catch (err) {
+        console.error('Erro ao remover arquivo temporário:', err);
+      }
+
+      if (error) {
+        console.error('Erro na impressão:', error.message);
+        return res.status(500).json({
+          success: false,
+          error: 'Falha ao enviar para a impressora. Verifique a conexão.'
+        });
+      }
+
+      console.log('Etiquetas impressas com sucesso!');
+      res.json({
+        success: true,
+        message: `${quantidade} etiqueta(s) enviada(s) para impressão com sucesso!`
+      });
+    });
+
+  } catch (error) {
+    console.error('Erro no servidor:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno no servidor'
+    });
+  }
+});
+
+// Rota de teste para verificar se o servidor está online
+app.get('/imprimir', (req, res) => {
+  res.json({
+    status: 'online',
+    message: 'Servidor de impressão está funcionando',
+    printer: PRINTER_NAME
   });
 });
 
-const PORT = 3002;
+// Inicia o servidor
 app.listen(PORT, () => {
-  console.log(`Servidor de impressão escutando em http://localhost:${PORT}`);
+  console.log(`\nServidor de impressão rodando na porta ${PORT}`);
+  console.log(`Impressora configurada: ${PRINTER_NAME}`);
+  console.log(`Teste o servidor acessando: http://localhost:${PORT}\n`);
 });
