@@ -32,7 +32,7 @@ const Relatorios = () => {
 
   const relatorios = [
     { nome: "Relatório de Vendas", endpoint: "vendas-por-produto" },
-    { nome: "Clientes Devedores", endpoint: "" },
+    { nome: "Clientes Devedores", endpoint: "clientes-devedores" },
     { nome: "Ticket Médio", endpoint: "ticket-medio-clientes" },
     { nome: "Relatório DRE", endpoint: "dred-diario" },
     { nome: "Consumo", endpoint: "consumo" },
@@ -127,6 +127,8 @@ const Relatorios = () => {
     } else if (rel.endpoint === "consumo") {
       setShowConsumoPopup(true);
       setPendingConsumoDownload(rel.endpoint);
+    } else if (rel.endpoint === "clientes-devedores") {
+      handleDownload(rel.endpoint); // Chama direto, sem popup
     } else {
       handleDownload(rel.endpoint);
     }
