@@ -48,3 +48,88 @@ export const Card = styled.div`
     color: #444;
   }
 `;
+
+/* ====== ESTILOS DOS MODAIS ====== */
+export const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`;
+
+export const ModalForm = styled.form`
+  background: #fff;
+  padding: 32px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 280px;
+`;
+
+export const ModalTitle = styled.h3`
+  margin: 0 0 12px 0;
+  color: #007bff;
+  font-weight: bold;
+  font-size: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+`;
+
+export const ModalLabel = styled.label`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-size: 14px;
+  color: #444;
+  font-weight: 600;
+`;
+
+export const ModalInput = styled.input`
+  margin-left: 8px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  flex: 1;
+`;
+
+export const ModalButtonContainer = styled.div`
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 12px;
+`;
+
+export const ModalCancelButton = styled.button`
+  background-color: #f44336;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+
+  &:hover {
+    background-color: #d32f2f;
+  }
+`;
+
+export const ModalSubmitButton = styled.button`
+  background-color: #007bff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+
+  &:hover {
+    background-color: #0056b3;
+  }
+`;

@@ -4,10 +4,7 @@ import jwtDecode from "jwt-decode";
 import useAuth from "../../hooks/useAuth";
 import api from "../../services/api";
 import * as C from "./styles";
-import {
-  CupSoda, LayoutDashboard, Box, Users, ShoppingCart,
-  DollarSign, FileText, User, ArrowRightCircle, LogOut, Banknote
-} from "lucide-react";
+import { CupSoda } from "lucide-react";
 
 const Sidebar = () => {
   const [permissoes, setPermissoes] = useState([]);
@@ -46,7 +43,6 @@ const Sidebar = () => {
           return;
         }
 
-
         const responseUser = await api.get(`/usuario/id/${userId}`);
         const user = responseUser.data;
         setUsuario(user);
@@ -70,10 +66,7 @@ const Sidebar = () => {
       } finally {
         setCarregando(false);
       }
-
-
     };
-
 
     fetchDados();
   }, [isLoggedIn]);  // Adiciona 'isLoggedIn' como dependência

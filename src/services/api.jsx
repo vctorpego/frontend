@@ -50,4 +50,31 @@ export const getUserData = async () => {
   }
 };
 
+export const fetchConsumoClientes = async () => {
+  try {
+    const response = await api.get('/api/consumo-clientes');
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const fetchStatusClientes = async () => {
+  try {
+    const response = await api.get('/api/status-clientes');
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const fetchFaturamentoMensal = async () => {
+  try {
+    const response = await api.get('/api/faturamento-mensal');
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
 export default api;

@@ -2,29 +2,35 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import Sidebar from "../../components/Sidebar";
-import * as C from "./styles";
+import * as C from "./styles"; // aponta para o styles.jsx separado
 import { FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Relatorios = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+
+  // Estados de exibição dos popups e seus campos
   const [showTicketPopup, setShowTicketPopup] = useState(false);
   const [ticketInicio, setTicketInicio] = useState("");
   const [ticketFim, setTicketFim] = useState("");
   const [pendingDownload, setPendingDownload] = useState(null);
+
   const [showAniversarioPopup, setShowAniversarioPopup] = useState(false);
   const [aniversarioDia, setAniversarioDia] = useState("");
   const [aniversarioMes, setAniversarioMes] = useState("");
   const [pendingAniversarioDownload, setPendingAniversarioDownload] = useState(null);
+
   const [showVendasPopup, setShowVendasPopup] = useState(false);
   const [vendasInicio, setVendasInicio] = useState("");
   const [vendasFim, setVendasFim] = useState("");
   const [pendingVendasDownload, setPendingVendasDownload] = useState(null);
+
   const [showDrePopup, setShowDrePopup] = useState(false);
   const [dreInicio, setDreInicio] = useState("");
   const [dreFim, setDreFim] = useState("");
   const [pendingDreDownload, setPendingDreDownload] = useState(null);
+
   const [showConsumoPopup, setShowConsumoPopup] = useState(false);
   const [consumoInicio, setConsumoInicio] = useState("");
   const [consumoFim, setConsumoFim] = useState("");
@@ -45,7 +51,6 @@ const Relatorios = () => {
       navigate("/auth/login");
       return null;
     }
-
     try {
       const decoded = jwt_decode(token);
       if (decoded.exp < Date.now() / 1000) {
@@ -72,33 +77,38 @@ const Relatorios = () => {
   const handleDownload = async (endpoint, params = {}) => {
     try {
       let url = `http://localhost:8080/relatorios/${endpoint}`;
-      // Se for ticket-medio-clientes, envie como query string
       if (endpoint === "ticket-medio-clientes" && params.inicio && params.fim) {
         url += `?inicio=${encodeURIComponent(params.inicio)}&fim=${encodeURIComponent(params.fim)}`;
       }
-      // Se for aniversariantes-dia, envie como query string
       if (endpoint === "aniversariantes-dia" && params.dia && params.mes) {
         url += `?dia=${encodeURIComponent(params.dia)}&mes=${encodeURIComponent(params.mes)}`;
       }
-      // Se for vendas-por-produto, envie como query string
       if (endpoint === "vendas-por-produto" && params.inicio && params.fim) {
         url += `?dataInicio=${encodeURIComponent(params.inicio)}&dataFim=${encodeURIComponent(params.fim)}`;
       }
-      // Se for dred-diario, envie como query string
       if (endpoint === "dred-diario" && params.inicio && params.fim) {
         url += `?dataInicio=${encodeURIComponent(params.inicio)}&dataFim=${encodeURIComponent(params.fim)}`;
       }
-      // Se for consumo, envie como query string
       if (endpoint === "consumo" && params.inicio && params.fim) {
         url += `?dataInicio=${encodeURIComponent(params.inicio)}&dataFim=${encodeURIComponent(params.fim)}`;
       }
       const response = await axios.post(
         url,
-        (endpoint === "ticket-medio-clientes" || endpoint === "aniversariantes-dia" || endpoint === "vendas-por-produto" || endpoint === "dred-diario" || endpoint === "consumo") ? {} : params,
+        ([
+          "ticket-medio-clientes",
+          "aniversariantes-dia",
+          "vendas-por-produto",
+          "dred-diario",
+          "consumo",
+        ].includes(endpoint)
+          ? {}
+          : params),
         getRequestConfig()
       );
 
-      const blobUrl = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+      const blobUrl = window.URL.createObjectURL(
+        new Blob([response.data], { type: "application/pdf" })
+      );
       const link = document.createElement("a");
       link.href = blobUrl;
       link.setAttribute("download", `${endpoint}.pdf`);
@@ -112,25 +122,32 @@ const Relatorios = () => {
   };
 
   const handleCardClick = (rel) => {
-    if (rel.endpoint === "ticket-medio-clientes") {
-      setShowTicketPopup(true);
-      setPendingDownload(rel.endpoint);
-    } else if (rel.endpoint === "aniversariantes-dia") {
-      setShowAniversarioPopup(true);
-      setPendingAniversarioDownload(rel.endpoint);
-    } else if (rel.endpoint === "vendas-por-produto") {
-      setShowVendasPopup(true);
-      setPendingVendasDownload(rel.endpoint);
-    } else if (rel.endpoint === "dred-diario") {
-      setShowDrePopup(true);
-      setPendingDreDownload(rel.endpoint);
-    } else if (rel.endpoint === "consumo") {
-      setShowConsumoPopup(true);
-      setPendingConsumoDownload(rel.endpoint);
-    } else if (rel.endpoint === "clientes-devedores") {
-      handleDownload(rel.endpoint); // Chama direto, sem popup
-    } else {
-      handleDownload(rel.endpoint);
+    switch (rel.endpoint) {
+      case "ticket-medio-clientes":
+        setShowTicketPopup(true);
+        setPendingDownload(rel.endpoint);
+        break;
+      case "aniversariantes-dia":
+        setShowAniversarioPopup(true);
+        setPendingAniversarioDownload(rel.endpoint);
+        break;
+      case "vendas-por-produto":
+        setShowVendasPopup(true);
+        setPendingVendasDownload(rel.endpoint);
+        break;
+      case "dred-diario":
+        setShowDrePopup(true);
+        setPendingDreDownload(rel.endpoint);
+        break;
+      case "consumo":
+        setShowConsumoPopup(true);
+        setPendingConsumoDownload(rel.endpoint);
+        break;
+      case "clientes-devedores":
+        handleDownload(rel.endpoint);
+        break;
+      default:
+        handleDownload(rel.endpoint);
     }
   };
 
@@ -220,267 +237,192 @@ const Relatorios = () => {
         </C.CardContainer>
 
         {showTicketPopup && (
-          <div style={{
-            position: "fixed",
-            top: 0, left: 0, right: 0, bottom: 0,
-            background: "rgba(0,0,0,0.4)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000
-          }}>
-            <form
-              onSubmit={handleTicketSubmit}
-              style={{
-                background: "#fff",
-                padding: 32,
-                borderRadius: 8,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 16,
-                minWidth: 280
-              }}
-            >
-              <h3>Informe o período</h3>
-              <label>
+          <C.ModalOverlay>
+            <C.ModalForm onSubmit={handleTicketSubmit}>
+              <C.ModalTitle>Informe o período</C.ModalTitle>
+              <C.ModalLabel>
                 Data de início:
-                <input
+                <C.ModalInput
                   type="date"
                   value={ticketInicio}
-                  onChange={e => setTicketInicio(e.target.value)}
+                  onChange={(e) => setTicketInicio(e.target.value)}
                   required
-                  style={{ marginLeft: 8 }}
                 />
-              </label>
-              <label>
+              </C.ModalLabel>
+              <C.ModalLabel>
                 Data de fim:
-                <input
+                <C.ModalInput
                   type="date"
                   value={ticketFim}
-                  onChange={e => setTicketFim(e.target.value)}
+                  onChange={(e) => setTicketFim(e.target.value)}
                   required
-                  style={{ marginLeft: 8 }}
                 />
-              </label>
-              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-                <button type="button" onClick={() => setShowTicketPopup(false)}>Cancelar</button>
-                <button type="submit">Baixar Relatório</button>
-              </div>
-            </form>
-          </div>
+              </C.ModalLabel>
+              <C.ModalButtonContainer>
+                <C.ModalCancelButton
+                  type="button"
+                  onClick={() => setShowTicketPopup(false)}
+                >
+                  Cancelar
+                </C.ModalCancelButton>
+                <C.ModalSubmitButton type="submit">
+                  Baixar Relatório
+                </C.ModalSubmitButton>
+              </C.ModalButtonContainer>
+            </C.ModalForm>
+          </C.ModalOverlay>
         )}
 
         {showAniversarioPopup && (
-          <div style={{
-            position: "fixed",
-            top: 0, left: 0, right: 0, bottom: 0,
-            background: "rgba(0,0,0,0.4)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000
-          }}>
-            <form
-              onSubmit={handleAniversarioSubmit}
-              style={{
-                background: "#fff",
-                padding: 32,
-                borderRadius: 8,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 16,
-                minWidth: 280
-              }}
-            >
-              <h3>Informe dia e mês</h3>
-              <label>
+          <C.ModalOverlay>
+            <C.ModalForm onSubmit={handleAniversarioSubmit}>
+              <C.ModalTitle>Informe dia e mês</C.ModalTitle>
+              <C.ModalLabel>
                 Dia:
-                <input
+                <C.ModalInput
                   type="number"
                   min="1"
                   max="31"
                   value={aniversarioDia}
-                  onChange={e => setAniversarioDia(e.target.value)}
+                  onChange={(e) => setAniversarioDia(e.target.value)}
                   required
-                  style={{ marginLeft: 8 }}
                 />
-              </label>
-              <label>
+              </C.ModalLabel>
+              <C.ModalLabel>
                 Mês:
-                <input
+                <C.ModalInput
                   type="number"
                   min="1"
                   max="12"
                   value={aniversarioMes}
-                  onChange={e => setAniversarioMes(e.target.value)}
+                  onChange={(e) => setAniversarioMes(e.target.value)}
                   required
-                  style={{ marginLeft: 8 }}
                 />
-              </label>
-              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-                <button type="button" onClick={() => setShowAniversarioPopup(false)}>Cancelar</button>
-                <button type="submit">Baixar Relatório</button>
-              </div>
-            </form>
-          </div>
+              </C.ModalLabel>
+              <C.ModalButtonContainer>
+                <C.ModalCancelButton
+                  type="button"
+                  onClick={() => setShowAniversarioPopup(false)}
+                >
+                  Cancelar
+                </C.ModalCancelButton>
+                <C.ModalSubmitButton type="submit">
+                  Baixar Relatório
+                </C.ModalSubmitButton>
+              </C.ModalButtonContainer>
+            </C.ModalForm>
+          </C.ModalOverlay>
         )}
 
         {showVendasPopup && (
-          <div style={{
-            position: "fixed",
-            top: 0, left: 0, right: 0, bottom: 0,
-            background: "rgba(0,0,0,0.4)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000
-          }}>
-            <form
-              onSubmit={handleVendasSubmit}
-              style={{
-                background: "#fff",
-                padding: 32,
-                borderRadius: 8,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 16,
-                minWidth: 280
-              }}
-            >
-              <h3>Informe o período</h3>
-              <label>
+          <C.ModalOverlay>
+            <C.ModalForm onSubmit={handleVendasSubmit}>
+              <C.ModalTitle>Informe o período</C.ModalTitle>
+              <C.ModalLabel>
                 Data de início:
-                <input
+                <C.ModalInput
                   type="date"
                   value={vendasInicio}
-                  onChange={e => setVendasInicio(e.target.value)}
+                  onChange={(e) => setVendasInicio(e.target.value)}
                   required
-                  style={{ marginLeft: 8 }}
                 />
-              </label>
-              <label>
+              </C.ModalLabel>
+              <C.ModalLabel>
                 Data de fim:
-                <input
+                <C.ModalInput
                   type="date"
                   value={vendasFim}
-                  onChange={e => setVendasFim(e.target.value)}
+                  onChange={(e) => setVendasFim(e.target.value)}
                   required
-                  style={{ marginLeft: 8 }}
                 />
-              </label>
-              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-                <button type="button" onClick={() => setShowVendasPopup(false)}>Cancelar</button>
-                <button type="submit">Baixar Relatório</button>
-              </div>
-            </form>
-          </div>
+              </C.ModalLabel>
+              <C.ModalButtonContainer>
+                <C.ModalCancelButton
+                  type="button"
+                  onClick={() => setShowVendasPopup(false)}
+                >
+                  Cancelar
+                </C.ModalCancelButton>
+                <C.ModalSubmitButton type="submit">
+                  Baixar Relatório
+                </C.ModalSubmitButton>
+              </C.ModalButtonContainer>
+            </C.ModalForm>
+          </C.ModalOverlay>
         )}
 
         {showDrePopup && (
-          <div style={{
-            position: "fixed",
-            top: 0, left: 0, right: 0, bottom: 0,
-            background: "rgba(0,0,0,0.4)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000
-          }}>
-            <form
-              onSubmit={handleDreSubmit}
-              style={{
-                background: "#fff",
-                padding: 32,
-                borderRadius: 8,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 16,
-                minWidth: 280
-              }}
-            >
-              <h3>Informe o período</h3>
-              <label>
+          <C.ModalOverlay>
+            <C.ModalForm onSubmit={handleDreSubmit}>
+              <C.ModalTitle>Informe o período</C.ModalTitle>
+              <C.ModalLabel>
                 Data de início:
-                <input
+                <C.ModalInput
                   type="date"
                   value={dreInicio}
-                  onChange={e => setDreInicio(e.target.value)}
+                  onChange={(e) => setDreInicio(e.target.value)}
                   required
-                  style={{ marginLeft: 8 }}
                 />
-              </label>
-              <label>
+              </C.ModalLabel>
+              <C.ModalLabel>
                 Data de fim:
-                <input
+                <C.ModalInput
                   type="date"
                   value={dreFim}
-                  onChange={e => setDreFim(e.target.value)}
+                  onChange={(e) => setDreFim(e.target.value)}
                   required
-                  style={{ marginLeft: 8 }}
                 />
-              </label>
-              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-                <button type="button" onClick={() => setShowDrePopup(false)}>Cancelar</button>
-                <button type="submit">Baixar Relatório</button>
-              </div>
-            </form>
-          </div>
+              </C.ModalLabel>
+              <C.ModalButtonContainer>
+                <C.ModalCancelButton
+                  type="button"
+                  onClick={() => setShowDrePopup(false)}
+                >
+                  Cancelar
+                </C.ModalCancelButton>
+                <C.ModalSubmitButton type="submit">
+                  Baixar Relatório
+                </C.ModalSubmitButton>
+              </C.ModalButtonContainer>
+            </C.ModalForm>
+          </C.ModalOverlay>
         )}
 
         {showConsumoPopup && (
-          <div style={{
-            position: "fixed",
-            top: 0, left: 0, right: 0, bottom: 0,
-            background: "rgba(0,0,0,0.4)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000
-          }}>
-            <form
-              onSubmit={handleConsumoSubmit}
-              style={{
-                background: "#fff",
-                padding: 32,
-                borderRadius: 8,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 16,
-                minWidth: 280
-              }}
-            >
-              <h3>Informe o período</h3>
-              <label>
+          <C.ModalOverlay>
+            <C.ModalForm onSubmit={handleConsumoSubmit}>
+              <C.ModalTitle>Informe o período</C.ModalTitle>
+              <C.ModalLabel>
                 Data de início:
-                <input
+                <C.ModalInput
                   type="date"
                   value={consumoInicio}
-                  onChange={e => setConsumoInicio(e.target.value)}
+                  onChange={(e) => setConsumoInicio(e.target.value)}
                   required
-                  style={{ marginLeft: 8 }}
                 />
-              </label>
-              <label>
+              </C.ModalLabel>
+              <C.ModalLabel>
                 Data de fim:
-                <input
+                <C.ModalInput
                   type="date"
                   value={consumoFim}
-                  onChange={e => setConsumoFim(e.target.value)}
+                  onChange={(e) => setConsumoFim(e.target.value)}
                   required
-                  style={{ marginLeft: 8 }}
                 />
-              </label>
-              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-                <button type="button" onClick={() => setShowConsumoPopup(false)}>Cancelar</button>
-                <button type="submit">Baixar Relatório</button>
-              </div>
-            </form>
-          </div>
+              </C.ModalLabel>
+              <C.ModalButtonContainer>
+                <C.ModalCancelButton
+                  type="button"
+                  onClick={() => setShowConsumoPopup(false)}
+                >
+                  Cancelar
+                </C.ModalCancelButton>
+                <C.ModalSubmitButton type="submit">
+                  Baixar Relatório
+                </C.ModalSubmitButton>
+              </C.ModalButtonContainer>
+            </C.ModalForm>
+          </C.ModalOverlay>
         )}
       </C.Content>
     </C.Container>

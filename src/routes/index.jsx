@@ -79,7 +79,6 @@ const RoutesApp = () => {
               }
             />
 
-
             {/* Clientes */}
             <Route
               path="/clientes"
