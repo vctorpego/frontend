@@ -4,7 +4,7 @@ import jwt_decode from "jwt-decode";
 import {
   BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer
+  ResponsiveContainer, LabelList
 } from "recharts";
 
 import * as C from "./styles";
@@ -84,7 +84,9 @@ const Home = () => {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="consumo" fill="#8884d8" name="Total Consumido (R$)" />
+              <Bar dataKey="consumo" fill="#8884d8" name="Total Consumido (R$)">
+                <LabelList dataKey="consumo" position="top" formatter={(value) => `R$ ${value.toFixed(2)}`} />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </C.ChartBox>
