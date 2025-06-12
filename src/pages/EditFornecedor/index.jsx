@@ -2,7 +2,15 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import jwtDecode from "jwt-decode";
-import { Container, Title, Form, Input, Button, Label } from "./styles";
+import {
+  Container,
+  Title,
+  Form,
+  Input,
+  Button,
+  Label,
+  Message, // importe o Message
+} from '../EditFornecedor/styles';
 
 const EditFornecedor = () => {
   const { idFornecedor } = useParams(); // Alterado para 'idFornecedor'
@@ -11,7 +19,9 @@ const EditFornecedor = () => {
   const [celularFornecedor, setCelularFornecedor] = useState("");
   const [emailFornecedor, setEmailFornecedor] = useState("");
   const [chavePixFornecedor, setChavePixFornecedor] = useState("");
+  const [message, setMessage] = useState("");      // mensagem a exibir
   const [hasPermission, setHasPermission] = useState(false);  // Verificação de permissão
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,8 +29,9 @@ const EditFornecedor = () => {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        alert("Você precisa estar logado!");
-        navigate("/auth/login");
+        setMessageType("error");
+        setMessage("Você precisa estar logado!");
+        setTimeout(() => navigate("/auth/login"), 2000);
         return;
       }
 
@@ -74,17 +85,19 @@ const EditFornecedor = () => {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        alert("Você precisa estar logado!");
-        navigate("/auth/login");
+        setMessageType("error");
+        setMessage("Você precisa estar logado!");
+        setTimeout(() => navigate("/auth/login"), 2000);
         return;
       }
 
       try {
         const decodedToken = jwtDecode(token);
         if (decodedToken.exp < Date.now() / 1000) {
-          alert("Token expirado. Faça login novamente.");
+          setMessageType("error");
+          setMessage("Token Expirado !");
           localStorage.removeItem("token");
-          navigate("/auth/login");
+          setTimeout(() => navigate("/auth/login"), 2000);
           return;
         }
 
@@ -100,7 +113,8 @@ const EditFornecedor = () => {
         setChavePixFornecedor(chavePixFornecedor);
       } catch (error) {
         console.error("Erro ao buscar o fornecedor:", error);
-        alert("Erro ao carregar o fornecedor.");
+        setMessageType("error");
+        setMessage("Erro ao Carregar Fornecedor!");
       }
     };
     fetchFornecedor();
@@ -110,24 +124,27 @@ const EditFornecedor = () => {
     e.preventDefault();
 
     if (!cnpjFornecedor || !nomeSocialFornecedor || !celularFornecedor || !emailFornecedor || !chavePixFornecedor) {
-      alert("Por favor, preencha todos os campos.");
+      setMessageType("error");
+      setMessage("Preencha todos os campos");
       return;
     }
 
     const token = localStorage.getItem("token");
 
     if (!token) {
-      alert("Você precisa estar logado!");
-      navigate("/auth/login");
+      setMessageType("error");
+      setMessage("Você precisa estar logado!");
+      setTimeout(() => navigate("/auth/login"), 2000);
       return;
     }
 
     try {
       const decodedToken = jwtDecode(token);
       if (decodedToken.exp < Date.now() / 1000) {
-        alert("Token expirado. Faça login novamente.");
+        setMessageType("error");
+        setMessage("Token Expirado !");
         localStorage.removeItem("token");
-        navigate("/auth/login");
+        setTimeout(() => navigate("/auth/login"), 2000);
         return;
       }
 
@@ -145,11 +162,14 @@ const EditFornecedor = () => {
         }
       );
 
-      alert("Fornecedor atualizado com sucesso!");
-      navigate("/fornecedores");
+      setMessageType("sucess");
+      setMessage("Fornecedor Atualizado com Sucesso !");
+      setTimeout(() => navigate("/fornecedores"), 2000);
     } catch (error) {
       console.error("Erro ao atualizar o fornecedor:", error);
-      alert("Erro ao atualizar o fornecedor.");
+      setMessageType("error");
+      setMessage("Erro ao Atualizar Fornecedor !");
+
     }
   };
 
@@ -161,6 +181,7 @@ const EditFornecedor = () => {
   return (
     <Container>
       <Title>Editar Fornecedor</Title>
+      {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>
         <div>
           <Label>CNPJ do Fornecedor:</Label>
