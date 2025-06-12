@@ -24,7 +24,9 @@ export const CardContainer = styled.div`
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
 `;
-
+/*
+comentario
+*/
 export const Card = styled.div`
   background-color: #fff;
   border: 1px solid #ddd;
@@ -79,6 +81,9 @@ export const ModalTitle = styled.h3`
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 `;
 
+/*
+comentario
+*/
 export const ModalLabel = styled.label`
   display: flex;
   flex-direction: row;
@@ -118,7 +123,9 @@ export const ModalCancelButton = styled.button`
     background-color: #d32f2f;
   }
 `;
-
+/*
+comentario
+*/
 export const ModalSubmitButton = styled.button`
   background-color: #007bff;
   border: none;

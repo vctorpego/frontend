@@ -6,6 +6,10 @@ export const Container = styled.div`
   min-height: 100vh;
 `;
 
+/*
+comentario
+*/
+
 export const Title = styled.h2`
   font-size: 2rem;
   color: #333;
@@ -20,6 +24,10 @@ export const ChartsWrapper = styled.div`
   flex-direction: column;
   gap: 2rem;
 `;
+
+/*
+comentario
+*/
 
 export const ChartBox = styled.div`
   width: 100%;

@@ -11,6 +11,7 @@ import * as C from "./styles";
 import useAuth from "../../hooks/useAuth";
 import { fetchConsumoClientes } from "../../services/api";
 
+//comentario
 const Home = () => {
   const { signout } = useAuth();
   const navigate = useNavigate();
@@ -69,6 +70,7 @@ const Home = () => {
 
   if (loading) return <p>Carregando dados do dashboard...</p>;
 
+  //comentario
   return (
     <C.Container>
       <C.Title>Dashboard</C.Title>
@@ -91,4 +93,5 @@ const Home = () => {
   );
 };
 
+//comentario
 export default Home;

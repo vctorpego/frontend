@@ -45,6 +45,7 @@ const Relatorios = () => {
     { nome: "Aniversariantes do Dia", endpoint: "aniversariantes-dia" },
   ];
 
+  //comentario
   const getToken = () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -222,6 +223,7 @@ const Relatorios = () => {
     getToken();
   }, []);
 
+  //comentario
   return (
     <C.Container>
       <Sidebar user={user} />
@@ -428,5 +430,5 @@ const Relatorios = () => {
     </C.Container>
   );
 };
-
+// comentario
 export default Relatorios;
