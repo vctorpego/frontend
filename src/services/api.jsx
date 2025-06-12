@@ -52,7 +52,7 @@ export const getUserData = async () => {
 
 export const fetchConsumoClientes = async () => {
   try {
-    const response = await api.post('/consumo-grafico');
+    const response = await api.get('/relatorios/consumo-grafico');
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : error.message;
