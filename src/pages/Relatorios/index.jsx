@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import Sidebar from "../../components/Sidebar";
-import * as C from "./styles"; // aponta para o styles.jsx separado
+import * as C from "./styles"; 
 import { FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 

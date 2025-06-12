@@ -10,7 +10,6 @@ const AddConta = lazy(() => import("../pages/AddConta"));
 const AddFornecedor = lazy(() => import("../pages/AddFornecedor"));
 const AddProduto = lazy(() => import("../pages/AddProduto"));
 const AddUsuario = lazy(() => import("../pages/AddUsuario"));
-const Dashboard = lazy(() => import("../pages/Dashboard"));
 const EditCliente = lazy(() => import("../pages/EditCliente"));
 const EditConta = lazy(() => import("../pages/EditConta"));
 const EditFornecedor = lazy(() => import("../pages/EditFornecedor"));
@@ -65,16 +64,6 @@ const RoutesApp = () => {
               element={
                 <ProtectedRoute>
                   <Home />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Dashboard */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
                 </ProtectedRoute>
               }
             />
