@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import jwtDecode from "jwt-decode"; // Importa a biblioteca para decodificar o token
-import { Container, Title, Form, Input, Button, Label } from '../AddFornecedor/styles';  
+import jwtDecode from "jwt-decode";
+import {
+  Container,
+  Title,
+  Form,
+  Input,
+  Button,
+  Label,
+  Message, // importe o Message
+} from '../AddFornecedor/styles';
 
 const AddFornecedor = () => {
   const [cnpjFornecedor, setCnpjFornecedor] = useState("");
@@ -10,7 +18,9 @@ const AddFornecedor = () => {
   const [celularFornecedor, setCelularFornecedor] = useState("");
   const [emailFornecedor, setEmailFornecedor] = useState("");
   const [chavePixFornecedor, setChavePixFornecedor] = useState("");
-  const [hasPermission, setHasPermission] = useState(false); // Para controlar se tem permissão
+  const [hasPermission, setHasPermission] = useState(false);
+  const [message, setMessage] = useState("");      // mensagem a exibir
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,13 +28,14 @@ const AddFornecedor = () => {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        alert("Você precisa estar logado!");
-        navigate("/auth/login");
+        setMessageType("error");
+        setMessage("Você precisa estar logado!");
+        setTimeout(() => navigate("/auth/login"), 2000);
         return;
       }
 
       const decoded = jwtDecode(token);
-      const userLogin = decoded.sub; // Extraindo ID do usuário do token
+      const userLogin = decoded.sub;
 
       const getRequestConfig = () => ({
         headers: {
@@ -33,7 +44,6 @@ const AddFornecedor = () => {
       });
 
       try {
-        // Requisição para buscar as permissões do usuário
         const response = await axios.get(
           `http://localhost:8080/usuario/id/${userLogin}`,
           getRequestConfig()
@@ -45,7 +55,6 @@ const AddFornecedor = () => {
           getRequestConfig()
         );
 
-        // Verifica se o usuário tem permissão para "PUT" na tela de "Tela de Fornecedores"
         const permissoesTela = permissionsResponse.data.find(
           (perm) => perm.tela === "Tela de Fornecedores"
         );
@@ -55,50 +64,64 @@ const AddFornecedor = () => {
 
         setHasPermission(hasPutPermission);
 
-        // Caso não tenha permissão, redireciona para página de acesso negado
         if (!hasPutPermission) {
-          navigate("/nao-autorizado");
+          setMessageType("error");
+          setMessage("Você não tem permissão para acessar esta página.");
+          setTimeout(() => navigate("/nao-autorizado"), 2000);
         }
       } catch (error) {
         console.error("Erro ao verificar permissões:", error);
-        navigate("/nao-autorizado");
+        setMessageType("error");
+        setMessage("Erro ao verificar permissões.");
+        setTimeout(() => navigate("/nao-autorizado"), 2000);
       }
     };
 
     verificarPermissao();
   }, [navigate]);
 
+  const clearMessageAfterDelay = (delay = 4000) => {
+    setTimeout(() => {
+      setMessage("");
+      setMessageType("");
+    }, delay);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Formulário enviado");
 
     if (!cnpjFornecedor || !nomeSocialFornecedor || !celularFornecedor || !emailFornecedor || !chavePixFornecedor) {
-      alert("Por favor, preencha todos os campos.");
+      setMessageType("error");
+      setMessage("Por favor, preencha todos os campos.");
+      clearMessageAfterDelay();
       return;
     }
 
     if (!hasPermission) {
-      alert("Você não tem permissão para adicionar fornecedores.");
+      setMessageType("error");
+      setMessage("Você não tem permissão para adicionar fornecedores.");
+      clearMessageAfterDelay();
       return;
     }
 
     const token = localStorage.getItem("token");
 
     if (!token) {
-      alert("Você precisa estar logado!");
-      navigate("/auth/login");
+      setMessageType("error");
+      setMessage("Você precisa estar logado!");
+      setTimeout(() => navigate("/auth/login"), 2000);
       return;
     }
 
     try {
-      // Decodifica o token para verificar a expiração
       const decodedToken = jwtDecode(token);
-      const currentTime = Date.now() / 1000; // Tempo atual em segundos
+      const currentTime = Date.now() / 1000;
 
       if (decodedToken.exp < currentTime) {
-        alert("Token expirado. Faça login novamente.");
+        setMessageType("error");
+        setMessage("Token expirado. Faça login novamente.");
         localStorage.removeItem("token");
-        navigate("/auth/login");
+        setTimeout(() => navigate("/auth/login"), 2000);
         return;
       }
 
@@ -119,8 +142,11 @@ const AddFornecedor = () => {
       );
 
       if (response.status === 200) {
-        alert("Fornecedor adicionado com sucesso!");
+        setMessageType("success");
+        setMessage("Fornecedor adicionado com sucesso!");
         setTimeout(() => {
+          setMessage("");
+          setMessageType("");
           navigate("/fornecedores");
         }, 1500);
       }
@@ -128,26 +154,37 @@ const AddFornecedor = () => {
       console.error("Erro ao adicionar o fornecedor:", error);
 
       if (error.response) {
-        if (error.response.status === 409) {
-          alert("Erro: O Fornecedor já está cadastrado no sistema.");
-        } else if (error.response.status === 401) {
-          alert("Token inválido ou expirado. Faça login novamente.");
-          localStorage.removeItem("token");
-          navigate("/auth/login");
-        } else if (error.response.status === 500) {
-          alert("Erro interno do servidor. Tente novamente mais tarde.");
-        } else {
-          alert("Erro ao adicionar o fornecedor: " + error.response.data);
+        switch (error.response.status) {
+          case 409:
+            setMessageType("error");
+            setMessage("Erro: O Fornecedor já está cadastrado no sistema.");
+            break;
+          case 401:
+            setMessageType("error");
+            setMessage("Token inválido ou expirado. Faça login novamente.");
+            localStorage.removeItem("token");
+            setTimeout(() => navigate("/auth/login"), 2000);
+            break;
+          case 500:
+            setMessageType("error");
+            setMessage("Erro interno do servidor. Tente novamente mais tarde.");
+            break;
+          default:
+            setMessageType("error");
+            setMessage("Erro ao adicionar o fornecedor: " + error.response.data);
         }
       } else {
-        alert("Erro ao se comunicar com o servidor.");
+        setMessageType("error");
+        setMessage("Erro ao se comunicar com o servidor.");
       }
+      clearMessageAfterDelay();
     }
   };
 
   return (
     <Container>
       <Title>Adicionar Fornecedor</Title>
+      {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>
         <div>
           <Label>CNPJ do Fornecedor:</Label>
