@@ -162,7 +162,7 @@ const EditFornecedor = () => {
         }
       );
 
-      setMessageType("sucess");
+      setMessageType("success");
       setMessage("Fornecedor Atualizado com Sucesso !");
       setTimeout(() => navigate("/fornecedores"), 2000);
     } catch (error) {
