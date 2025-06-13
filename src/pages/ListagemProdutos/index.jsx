@@ -8,6 +8,7 @@ import ModalPrinter from "../../components/ModalPrinter";
 import { useNavigate } from "react-router-dom";
 import * as C from "./styles";
 import SearchBar from "../../components/SearchBar";
+import { Message } from "../ListagemProdutos/styles";
 
 const ListagemProdutos = () => {
   const [produtos, setProdutos] = useState([]);
@@ -18,6 +19,8 @@ const ListagemProdutos = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [openModalPrinter, setOpenModalPrinter] = useState(false);
   const [produtoPrinter, setProdutoPrinter] = useState(null);
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
 
   const navigate = useNavigate();
 
@@ -156,7 +159,12 @@ const ListagemProdutos = () => {
         },
       );
 
-      alert("Etiqueta enviada para impressão.");
+      setMessageType("success");
+      setMessage("Etiqueta enviada para impressão!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
 
       setOpenModalPrinter(false);
       setProdutoPrinter(null);
@@ -164,7 +172,13 @@ const ListagemProdutos = () => {
       console.log("Código:", produtoPrinter?.codigoBarrasProduto);
       console.log("Quantidade:", quantidade);
     } catch (error) {
-      alert("Erro ao enviar etiqueta para impressão.");
+      setMessageType("error");
+      setMessage(" Erro ao enviar etiqueta enviada para impressão!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
+
       console.error(error);
     }
   };
@@ -204,6 +218,7 @@ const ListagemProdutos = () => {
       <Sidebar user={user} />
       <C.Content>
         <C.Title>Lista de Produtos</C.Title>
+        {message && <Message type={messageType}>{message}</Message>}
 
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
 

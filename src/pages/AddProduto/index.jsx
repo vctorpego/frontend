@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import jwt_decode from "jwt-decode"; // Biblioteca para decodificar o token
 
-import { Container, Title, Form, Input, Button, Label } from '../AddCliente/styles';  
+import { Container, Title, Form, Input, Button, Label, Message } from '../AddProduto/styles';
 
 const AddProduto = () => {
   const [nomeProduto, setNomeProduto] = useState("");
@@ -11,6 +11,8 @@ const AddProduto = () => {
   const [precoVenda, setPrecoVenda] = useState("");
   const [estoque, setEstoque] = useState("");
   const [hasPermission, setHasPermission] = useState(false); // Estado para verificar permissão
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -73,20 +75,25 @@ const AddProduto = () => {
 
     // Verifica se a permissão de POST foi concedida antes de permitir o envio do formulário
     if (!hasPermission) {
-      alert("Você não tem permissão para adicionar produtos.");
+      setMessageType("error");
+      setMessage("Voce não tem permissao de adicionar produto!");
+      //setTimeout(() => navigate("/auth/login"), 2000);
       return;
     }
 
     if (!nomeProduto || !precoCusto || !precoVenda || !estoque) {
-      alert("Por favor, preencha todos os campos.");
+      setMessageType("error");
+      setMessage("Preencha todos os campos!");
+
       return;
     }
 
     const token = localStorage.getItem("token");
 
     if (!token) {
-      alert("Você precisa estar logado!");
-      navigate("/auth/login");
+      setMessageType("error");
+      setMessage("Você precisa estar logado!");
+      setTimeout(() => navigate("/auth/login"), 2000);
       return;
     }
 
@@ -96,9 +103,11 @@ const AddProduto = () => {
       const currentTime = Date.now() / 1000; // Tempo atual em segundos
 
       if (decodedToken.exp < currentTime) {
-        alert("Token expirado. Faça login novamente.");
+        setMessageType("error");
+        setMessage("Token Expirado!");
         localStorage.removeItem("token");
-        navigate("/auth/login");
+        setTimeout(() => navigate("/auth/login"), 2000);
+
         return;
       }
 
@@ -118,28 +127,32 @@ const AddProduto = () => {
       );
 
       if (response.status === 200) {
-        alert("Produto adicionado com sucesso!");
-        setTimeout(() => {
-          navigate("/produtos");
-        }, 1500);
+        setMessageType("success");
+        setMessage("Produto adicionado com Sucesso!");
+        setTimeout(() => navigate("/home"), 2000);
       }
     } catch (error) {
       console.error("Erro ao adicionar o produto:", error);
 
       if (error.response) {
         if (error.response.status === 409) {
-          alert("Erro: O Produto já está cadastrado no sistema.");
+          setMessageType("error");
+          setMessage("Produto já cadastrado no sistema!");
         } else if (error.response.status === 401) {
-          alert("Token inválido ou expirado. Faça login novamente.");
+          setMessageType("error");
+          setMessage("Token Expirado!");
           localStorage.removeItem("token");
-          navigate("/auth/login");
+          setTimeout(() => navigate("/auth/login"), 2000);
         } else if (error.response.status === 500) {
-          alert("Erro interno do servidor. Tente novamente mais tarde.");
+          setMessageType("error");
+          setMessage("Erro interno do sistema!");
         } else {
-          alert("Erro ao adicionar o produto: " + error.response.data);
+          setMessageType("error");
+          setMessage("Erro ao adicionar produto!");
         }
       } else {
-        alert("Erro ao se comunicar com o servidor.");
+        setMessageType("error");
+        setMessage("Erro interno do sistema!");
       }
     }
   };
@@ -152,6 +165,7 @@ const AddProduto = () => {
   return (
     <Container>
       <Title>Adicionar Produto</Title>
+      {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>
         <div>
           <Label>Nome do Produto:</Label>

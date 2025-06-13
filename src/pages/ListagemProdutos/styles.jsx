@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled , {css} from 'styled-components';
 
 export const Container = styled.div`
   display: flex;
@@ -115,3 +115,31 @@ export const ModalCloseButton = styled.button`
     background-color: #bbb;
   }
 `;
+export const Message = styled.div`
+  width: 100%;
+  max-width: 500px;
+  padding: 15px 20px;
+  border-radius: 5px;
+  margin: 20px auto; /* <- centraliza horizontalmente */
+  font-size: 16px;
+  text-align: center;
+
+  ${({ type }) => type === 'error' && css`
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+  `}
+
+  ${({ type }) => type === 'success' && css`
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+  `}
+
+  ${({ type }) => type === 'info' && css`
+    background-color: #cff4fc;
+    color: #055160;
+    border: 1px solid #b6effb;
+  `}
+`;
+

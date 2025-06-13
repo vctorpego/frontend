@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import jwtDecode from "jwt-decode";
-import { Container, Title, Form, Input, Button, Label } from "../AddCliente/styles";
+import { Container, Title, Form, Input, Button, Label, Message } from "../EditProduto/styles";
 
 const EditProduto = () => {
   const { idProduto } = useParams();  // Altere para 'idProduto'
@@ -13,6 +13,9 @@ const EditProduto = () => {
   const [codigoBarrasProduto, setCodigoBarrasProduto] = useState("");  // Alterado para 'codigoBarrasProduto'
   const [hasPermission, setHasPermission] = useState(false);  // Estado para verificar permissão
   const navigate = useNavigate();
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
+
 
   useEffect(() => {
     const verificarPermissao = async () => {
@@ -75,17 +78,20 @@ const EditProduto = () => {
 
       // Verifica se o token existe
       if (!token) {
-        alert("Você precisa estar logado!");
-        navigate("/auth/login");
+        setMessageType("error");
+        setMessage("Voce precisa estar logado!");
+        setTimeout(() => navigate("/auth/login"), 2000);
         return;
       }
 
       try {
         const decodedToken = jwtDecode(token);
         if (decodedToken.exp < Date.now() / 1000) {
-          alert("Token expirado. Faça login novamente.");
+          setMessageType("error");
+          setMessage("Token Expirado!");
           localStorage.removeItem("token");
-          navigate("/auth/login");
+          setTimeout(() => navigate("/auth/login"), 2000);
+
           return;
         }
 
@@ -103,7 +109,9 @@ const EditProduto = () => {
 
       } catch (error) {
         console.error("Erro ao buscar o produto:", error);
-        alert("Erro ao carregar o produto.");
+        setMessageType("error");
+        setMessage("Erro ao carregar Produto!");
+
       }
     };
     fetchProduto();
@@ -113,29 +121,33 @@ const EditProduto = () => {
     e.preventDefault();
 
     if (!hasPermission) {
-      alert("Você não tem permissão para editar produtos.");
+      setMessageType("error");
+      setMessage("Voce não tem permissao para editar produtos!");
       return;
     }
 
     if (!nomeProduto || !precoCusto || !precoVenda || !estoque) {
-      alert("Por favor, preencha todos os campos.");
+      setMessageType("info");
+      setMessage("Preencha todos os campos!");
+
       return;
     }
 
     const token = localStorage.getItem("token");
 
     if (!token) {
-      alert("Você precisa estar logado!");
-      navigate("/auth/login");
+      setMessageType("error");
+      setMessage("Voce precisa estar logado!");
+      setTimeout(() => navigate("/auth/login"), 2000);
       return;
     }
 
     try {
       const decodedToken = jwtDecode(token);
       if (decodedToken.exp < Date.now() / 1000) {
-        alert("Token expirado. Faça login novamente.");
-        localStorage.removeItem("token");
-        navigate("/auth/login");
+        setMessageType("error");
+        setMessage("Token Expirado!");
+        setTimeout(() => navigate("/auth/login"), 2000);
         return;
       }
 
@@ -153,11 +165,14 @@ const EditProduto = () => {
         }
       );
 
-      alert("Produto atualizado com sucesso!");
-      navigate("/produtos");
+      setMessageType("success");
+      setMessage("Produto atualizado com sucesso!!");
+      setTimeout(() => navigate("/produtos"), 2000);
     } catch (error) {
       console.error("Erro ao atualizar o produto:", error);
-      alert("Erro ao atualizar o produto.");
+      setMessageType("error");
+      setMessage("Erro ao atualizar o produto!");
+
     }
   };
 
@@ -169,48 +184,49 @@ const EditProduto = () => {
   return (
     <Container>
       <Title>Editar Produto</Title>
+      {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>
         <div>
           <Label>Nome do Produto:</Label>
-          <Input 
-            type="text" 
-            value={nomeProduto} 
+          <Input
+            type="text"
+            value={nomeProduto}
             readOnly // Torna o campo não editável
           />
         </div>
         <div>
           <Label>Preço de Custo:</Label>
-          <Input 
-            type="number" 
-            value={precoCusto} 
-            onChange={(e) => setPrecoCusto(e.target.value)} 
-            required 
+          <Input
+            type="number"
+            value={precoCusto}
+            onChange={(e) => setPrecoCusto(e.target.value)}
+            required
           />
         </div>
         <div>
           <Label>Preço de Venda:</Label>
-          <Input 
-            type="number" 
-            value={precoVenda} 
-            onChange={(e) => setPrecoVenda(e.target.value)} 
-            required 
+          <Input
+            type="number"
+            value={precoVenda}
+            onChange={(e) => setPrecoVenda(e.target.value)}
+            required
           />
         </div>
         <div>
           <Label>Estoque:</Label>
-          <Input 
-            type="number" 
-            value={estoque} 
-            onChange={(e) => setEstoque(e.target.value)} 
-            required 
+          <Input
+            type="number"
+            value={estoque}
+            onChange={(e) => setEstoque(e.target.value)}
+            required
           />
         </div>
         {/* O código de barras pode ser deixado oculto ou não editável */}
         <div>
           <Label>Código de Barras:</Label>
-          <Input 
-            type="text" 
-            value={codigoBarrasProduto} 
+          <Input
+            type="text"
+            value={codigoBarrasProduto}
             readOnly // Não editável 
           />
         </div>
