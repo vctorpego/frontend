@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
-import { Container, Title, Form, Input, Button, Label } from '../AddProduto/styles';
+import { Container, Title, Form, Input, Button, Label, Message } from '../AddProduto/styles';
 import useCardScanner from "../../hooks/useCardScanner";
 
 const AddCliente = () => {
@@ -12,6 +12,8 @@ const AddCliente = () => {
   const [dtNascCliente, setDtNascCliente] = useState("");
   const [codigoCartao, setCodigoCartao] = useState("");
   const [hasPermission, setHasPermission] = useState(false);
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
 
   const navigate = useNavigate();
 
@@ -73,16 +75,19 @@ const AddCliente = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!nomeCliente || !saldoCliente || !limiteCliente || !dtNascCliente  || !codigoCartao) {
-      alert("Por favor, preencha todos os campos.");
+    if (!nomeCliente || !saldoCliente || !limiteCliente || !dtNascCliente || !codigoCartao) {
+      setMessageType("info");
+      setMessage("PReencha todos os campos!");
       return;
     }
 
     const token = localStorage.getItem("token");
 
     if (!token) {
-      alert("Você precisa estar logado!");
-      navigate("auth/login");
+      setMessageType("error");
+      setMessage("Você precisa estar logado!");
+      localStorage.removeItem("token");
+      setTimeout(() => navigate("/auth/login"), 2000);
       return;
     }
 
@@ -104,27 +109,35 @@ const AddCliente = () => {
       );
 
       if (response.status === 200) {
-        alert("Cliente adicionado com sucesso!");
+        setMessageType("success");
+        setMessage("Cliente Adicionado com Sucesso!");
         setTimeout(() => {
           navigate("/clientes");
-        }, 1500);
+        }, 2000);
       }
     } catch (error) {
       console.error("Erro ao adicionar o cliente:", error);
       if (error.response) {
         if (error.response.status === 409) {
-          alert("Erro: O Cliente já está cadastrado no sistema.");
+          setMessageType("error");
+          setMessage("Cliente já cadastrado no sistema");
+
         } else if (error.response.status === 401) {
-          alert("Token inválido ou expirado. Por favor, faça login novamente.");
+          setMessageType("error");
+          setMessage("Token inválido ou expirado. Faça login novamente.");
           localStorage.removeItem("token");
-          navigate("auth/login");
+          setTimeout(() => navigate("/auth/login"), 2000);
+
         } else if (error.response.status === 500) {
-          alert("Erro interno do servidor. Tente novamente mais tarde.");
+          setMessageType("error");
+          setMessage("Erro interno do servidor");
         } else {
-          alert("Erro ao adicionar o cliente: " + error.response.data);
+          setMessageType("error");
+          setMessage("Erro ao adicionar cliente");
         }
       } else {
-        alert("Erro ao se comunicar com o servidor.");
+        setMessageType("error");
+          setMessage("Erro ao se comunicar com o servidor");
       }
     }
   };
@@ -136,6 +149,7 @@ const AddCliente = () => {
   return (
     <Container>
       <Title>Adicionar Cliente</Title>
+      {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>
         <div>
           <Label>Nome do Cliente:</Label>
@@ -155,7 +169,7 @@ const AddCliente = () => {
             onChange={(e) => setSaldoCliente(e.target.value)}
             placeholder="Saldo do Cliente"
             required
-            
+
           />
         </div>
         <div>

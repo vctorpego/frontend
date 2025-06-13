@@ -5,7 +5,7 @@ const cors = require('cors');
 
 const app = express();
 const PORT = 3000;
-const SERIAL_PORT = 'COM8';  // Ajuste para sua porta serial
+const SERIAL_PORT = 'COM9';  // Ajuste para sua porta serial
 const BAUD_RATE = parseInt('4800');
 
 // Último peso lido
