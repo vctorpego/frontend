@@ -14,7 +14,6 @@ const Signin = () => {
   const [loginInput, setLogin] = useState("");
   const [senha, setSenha] = useState("");
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -32,63 +31,47 @@ const Signin = () => {
         localStorage.setItem("token", token);
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        // Acessar as permissões após o login
+        // Decodificar token para pegar userId
         const decodedToken = jwtDecode(token);
         const userId = decodedToken.sub;
 
-        // 1. Obter o ID do usuário
+        // Obter o ID do usuário (confirmação)
         const responseUser = await axios.get(`http://localhost:8080/usuario/id/${loginInput}`, {
           headers: {
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
-        const userIdFromResponse = responseUser.data; // Agora, a resposta é apenas o ID
+        const userIdFromResponse = responseUser.data;
 
-        // Verifique se o valor retornado é um número e é válido
-        if (typeof userIdFromResponse === "number" && userIdFromResponse > 0) {
-        } else {
+        if (typeof userIdFromResponse !== "number" || userIdFromResponse <= 0) {
           setError("Usuário não encontrado ou ID inválido.");
           return;
         }
 
-        // 2. Usar o ID do usuário para buscar as permissões
+        // Buscar permissões com base no ID do usuário
         const responsePermissoes = await axios.get(`http://localhost:8080/permissao/telas/${userIdFromResponse}`, {
           headers: {
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
         const permissoes = responsePermissoes.data;
 
-        // Verificação das permissões para cada tela
-        if (permissoes.find(p => p.tela === 'Tela de Dashboard' && p.permissoes.includes('GET'))) {
-          navigate("/home");
-        } else if (permissoes.find(p => p.tela === 'Tela de Produtos' && p.permissoes.includes('GET'))) {
-          navigate("/produtos");
-        } else if (permissoes.find(p => p.tela === 'Tela de Fornecedores' && p.permissoes.includes('GET'))) {
-          navigate("/fornecedores");
-        } else if (permissoes.find(p => p.tela === 'Tela de Clientes' && p.permissoes.includes('GET'))) {
-          navigate("/clientes");
-        } else if (permissoes.find(p => p.tela === 'Tela de Recarga' && p.permissoes.includes('GET'))) {
-          navigate("/recarga");
-        } else if (permissoes.find(p => p.tela === 'Tela de Vendas' && p.permissoes.includes('GET'))) {
-          navigate("/vendas");
-        } else if (permissoes.find(p => p.tela === 'Tela de Pagamentos' && p.permissoes.includes('GET'))) {
-          navigate("/pagamentos");
-        } else if (permissoes.find(p => p.tela === 'Tela de Relatórios' && p.permissoes.includes('GET'))) {
-          navigate("/relatorios");
-        } else if (permissoes.find(p => p.tela === 'Tela Usuarios' && p.permissoes.includes('GET'))) {
-          navigate("/usuarios");
-        } else if (permissoes.find(p => p.tela === 'Tela de Entrada' && p.permissoes.includes('GET'))) {
-          navigate("/entrada");
-        } else if (permissoes.find(p => p.tela === 'Tela de Saída' && p.permissoes.includes('GET'))) {
-          navigate("/saida");
-        } else {
-          navigate("/"); // Caso o usuário não tenha permissão específica
-        }
+        // Salvar permissões no localStorage para uso futuro
+        localStorage.setItem("permissoes", JSON.stringify(permissoes));
 
-        login(token); // Atualiza o estado de login aqui
+        // Atualiza o estado global de autenticação antes da navegação
+        login(token);
+
+        // Procurar a primeira rota com permissão GET e navegar para ela
+        const telaPermitida = permissoes.find(p => p.permissoes.includes("GET"));
+        if (telaPermitida && telaPermitida.urlTela) {
+          navigate(telaPermitida.urlTela);
+        } else {
+          // Caso não tenha nenhuma permissão, redireciona para página padrão ou acesso negado
+          navigate("/nao-autorizado");
+        }
       } else {
         setError("Erro de autenticação. Verifique suas credenciais.");
       }
@@ -106,13 +89,13 @@ const Signin = () => {
           type="text"
           placeholder="Digite seu Login"
           value={loginInput}
-          onChange={(e) => [setLogin(e.target.value), setError("")]}
+          onChange={(e) => { setLogin(e.target.value); setError(""); }}
         />
         <Input
           type="password"
           placeholder="Digite sua Senha"
           value={senha}
-          onChange={(e) => [setSenha(e.target.value), setError("")]}
+          onChange={(e) => { setSenha(e.target.value); setError(""); }}
         />
         {error && <C.labelError>{error}</C.labelError>}
         <Button Text="Entrar" onClick={handleLogin} />

@@ -4,7 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import Sidebar from "../components/Sidebar";
 
-// Páginas da aplicação com carregamento dinâmico
+// Importação das páginas (lazy)
 const AddCliente = lazy(() => import("../pages/AddCliente"));
 const AddConta = lazy(() => import("../pages/AddConta"));
 const AddFornecedor = lazy(() => import("../pages/AddFornecedor"));
@@ -34,7 +34,7 @@ const CadastroTela = lazy(() => import("../pages/CadastroTela"));
 
 import PermissaoRoute from "./PermissaoRoute";
 
-// Wrappers de segurança
+// Wrapper de rota protegida
 const ProtectedRoute = ({ children }) => {
   const { token } = useAuth();
   if (!token) {
@@ -50,6 +50,38 @@ const RoutesApp = () => {
   useEffect(() => {
     setSidebarVisible(!!token);
   }, [token]);
+
+  // Função para determinar a primeira rota permitida do usuário
+  // Aqui deve-se basear no objeto `user.permissoes` (exemplo), ajustar conforme seu formato real
+  const getFirstAllowedRoute = () => {
+    if (!user || !user.permissoes) return "/home"; // fallback simples
+
+    // Exemplo: user.permissoes = [ "Tela de Clientes", "Tela de Produtos", ...]
+    // Defina prioridade e rota para cada permissão que corresponde a telas
+    const telaParaRota = {
+      "Tela de Clientes": "/clientes",
+      "Tela de Fornecedores": "/fornecedores",
+      "Tela de Pagamentos": "/pagamentos",
+      "Tela de Produtos": "/produtos",
+      "Tela de Recarga": "/recarga",
+      "Tela de Relatórios": "/relatorios",
+      "Tela de Usuarios": "/usuarios",
+      "Tela de Entrada": "/entrada",
+      "Tela de Saída": "/saida",
+      "Tela de Vendas": "/vendas",
+      // Adicione outras telas se houver
+    };
+
+    // Encontra a primeira tela que o usuário tem permissão e que possuímos rota
+    for (const tela of Object.keys(telaParaRota)) {
+      if (user.permissoes.includes(tela)) {
+        return telaParaRota[tela];
+      }
+    }
+
+    // Se não encontrou nenhuma, redireciona para home
+    return "/home";
+  };
 
   return (
     <BrowserRouter>
@@ -267,7 +299,7 @@ const RoutesApp = () => {
               path="/swagger"
               element={
                 <ProtectedRoute>
-                  <PermissaoRoute tela="Tela Swagger">
+                  <PermissaoRoute tela="Tela de Usuarios">
                     <SwaggerPage />
                   </PermissaoRoute>
                 </ProtectedRoute>
@@ -316,7 +348,6 @@ const RoutesApp = () => {
               }
             />
 
-
             {/* Não autorizado */}
             <Route path="/nao-autorizado" element={<NaoAutorizado />} />
 
@@ -324,7 +355,16 @@ const RoutesApp = () => {
             <Route path="/auth/login" element={<Signin />} />
 
             {/* Fallback */}
-            <Route path="*" element={<Navigate to={token ? "/home" : "/auth/login"} />} />
+            <Route
+              path="*"
+              element={
+                token ? (
+                  <Navigate to={getFirstAllowedRoute()} replace />
+                ) : (
+                  <Navigate to="/auth/login" replace />
+                )
+              }
+            />
           </Routes>
         </Suspense>
       </Fragment>

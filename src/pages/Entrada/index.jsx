@@ -73,6 +73,8 @@ const EntradaCliente = () => {
           const ultimaCompra = clienteData.ultimaCompraCliente
             ? new Date(clienteData.ultimaCompraCliente)
             : null;
+          const saldo = parseFloat(clienteData.saldoCliente) || 0;
+          const limite = parseFloat(clienteData.limiteCliente) || 0;
 
           if (ultimaCompra) {
             const diasDesdeUltimaCompra = Math.floor((hoje - ultimaCompra) / (1000 * 60 * 60 * 24));
@@ -81,6 +83,12 @@ const EntradaCliente = () => {
               resetarPagina();
               return;
             }
+          }
+
+          if (saldo <= 0 && limite <= 0) {
+            setErro("Cliente sem saldo ou limite disponível.Favor procurar a gerência.");
+            resetarPagina();
+            return;
           }
 
           try {

@@ -10,6 +10,8 @@ const EditCliente = () => {
   const [saldoCliente, setSaldoCliente] = useState("");
   const [limiteCliente, setLimiteCliente] = useState("");
   const [dtNascCliente, setDtNascCliente] = useState("");
+  const [idCartaoCliente, setIdCartaoCliente] = useState("");
+  const [ultimaCompraCliente, setUltimaCompraCliente] = useState("");
   const [hasPermission, setHasPermission] = useState(false);
   const navigate = useNavigate();
 
@@ -83,22 +85,29 @@ const EditCliente = () => {
           return;
         }
 
-        const response = await axios.get(`http://localhost:8080/cliente/${idCliente}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get(
+          `http://localhost:8080/cliente/${idCliente}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         const {
           nomeCliente,
           saldoCliente,
           limiteCliente,
           dtNascCliente,
-
+          idCartaoCliente,
+          ultimaCompraCliente,
+          faturaCliente,
         } = response.data;
 
         setNomeCliente(nomeCliente);
         setSaldoCliente(saldoCliente);
         setLimiteCliente(limiteCliente);
         setDtNascCliente(dtNascCliente);
+        setIdCartaoCliente(idCartaoCliente);
+        setUltimaCompraCliente(ultimaCompraCliente);
       } catch (error) {
         console.error("Erro ao buscar o cliente:", error);
         alert("Erro ao carregar o cliente.");
@@ -110,20 +119,26 @@ const EditCliente = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!nomeCliente || !saldoCliente || !limiteCliente || !dtNascCliente) {
+  
+    if (
+      nomeCliente.trim() === "" ||
+      idCartaoCliente.trim() === "" ||
+      dtNascCliente.trim() === "" ||
+      saldoCliente === "" ||
+      limiteCliente === ""
+    ) {
       alert("Por favor, preencha todos os campos.");
       return;
     }
-
+  
     const token = localStorage.getItem("token");
-
+  
     if (!token) {
       alert("Você precisa estar logado!");
       navigate("/auth/login");
       return;
     }
-
+  
     try {
       const decodedToken = jwtDecode(token);
       if (decodedToken.exp < Date.now() / 1000) {
@@ -132,20 +147,23 @@ const EditCliente = () => {
         navigate("/auth/login");
         return;
       }
-
+  
       await axios.put(
         `http://localhost:8080/cliente/alterar/${idCliente}`,
         {
           nomeCliente,
           saldoCliente: parseFloat(saldoCliente),
           limiteCliente: parseFloat(limiteCliente),
-          dtNascCliente
+          dtNascCliente,
+          idCartaoCliente,
+          ultimaCompraCliente, // campo oculto enviado
+          faturaCliente: 0,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
+  
       alert("Cliente atualizado com sucesso!");
       navigate("/clientes");
     } catch (error) {
@@ -153,6 +171,7 @@ const EditCliente = () => {
       alert("Erro ao atualizar o cliente.");
     }
   };
+  
 
   if (!hasPermission) return null;
 
@@ -176,8 +195,7 @@ const EditCliente = () => {
             value={saldoCliente}
             onChange={(e) => setSaldoCliente(e.target.value)}
             required
-            disabled
-            readOnly
+
           />
         </div>
         <div>
@@ -198,6 +216,16 @@ const EditCliente = () => {
             required
           />
         </div>
+        <div>
+          <Label>Cartão:</Label>
+          <Input
+            type="text"
+            value={idCartaoCliente}
+            onChange={(e) => setIdCartaoCliente(e.target.value)}
+            required
+          />
+        </div>
+
         <Button type="submit">Atualizar Cliente</Button>
       </Form>
     </Container>
