@@ -4,7 +4,7 @@ import Input from "../../components/Input";
 import Button from "../../components/Button";
 import * as C from "./styles";
 import { useNavigate } from "react-router-dom";
-import useAuth from "../../hooks/useAuth"; // Já tem esse hook
+import useAuth from "../../hooks/useAuth"; 
 import jwtDecode from "jwt-decode";
 
 const Signin = () => {
@@ -45,7 +45,7 @@ const Signin = () => {
         const userIdFromResponse = responseUser.data;
 
         if (typeof userIdFromResponse !== "number" || userIdFromResponse <= 0) {
-          setError("Usuário não encontrado ou ID inválido.");
+          setError("Usuário não encontrado");
           return;
         }
 
@@ -77,7 +77,7 @@ const Signin = () => {
       }
     } catch (error) {
       console.error("Erro ao realizar login:", error);
-      setError("Erro ao tentar se conectar com o servidor.");
+      setError("Erro ao realizar o login.");
     }
   };
 

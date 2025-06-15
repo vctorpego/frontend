@@ -7,6 +7,9 @@ import ModalExcluir from "../../components/ModalExcluir";
 import { useNavigate } from "react-router-dom";
 import * as C from "./styles";
 import SearchBar from "../../components/SearchBar";
+import { Message } from "../ListagemProdutos/styles";
+
+
 
 const ListagemUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
@@ -17,6 +20,8 @@ const ListagemUsuarios = () => {
   const [userPermissions, setUserPermissions] = useState([]);
   const [permissoesTelaAtual, setPermissoesTelaAtual] = useState([]);
   const navigate = useNavigate();
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
 
   const getToken = () => {
     const token = localStorage.getItem("token");
@@ -99,8 +104,8 @@ const ListagemUsuarios = () => {
     return !searchQuery
       ? usuarios
       : usuarios.filter((usuario) =>
-          usuario.nomeUsuario.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        usuario.nomeUsuario.toLowerCase().includes(searchQuery.toLowerCase())
+      );
   };
 
   const handleDeleteUsuario = (usuarioId) => {
@@ -118,14 +123,33 @@ const ListagemUsuarios = () => {
       setUsuarios((prev) =>
         prev.filter((usuario) => usuario.idUsuario !== usuarioExcluir)
       );
-      setOpenModalExcluir(false);
-      setUsuarioExcluir(null);
+      setMessageType("success");
+      setMessage("Usuario excluido com sucesso!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
+      handleCloseModal();
+
     } catch (error) {
       if (error.response?.status === 409) {
-        alert("⚠️ Você não pode excluir o próprio usuário.");
-      } else{
+        setMessageType("error");
+        setMessage("Você não pode excluir o próprio usuário!");
+        setTimeout(() => {
+          setMessage("");
+          setMessageType("");
+        }, 3000);
+        handleCloseModal();
+
+      } else {
         console.error("Erro ao deletar usuário:", error);
-        alert("❌ Ocorreu um erro ao deletar o usuário.");
+        setMessageType("error");
+        setMessage("Ocorreu um erro ao deletar o usuário!");
+        setTimeout(() => {
+          setMessage("");
+          setMessageType("");
+        }, 3000);
+        handleCloseModal();
       }
     }
   };
@@ -154,10 +178,9 @@ const ListagemUsuarios = () => {
 
   return (
     <C.Container>
-      <Sidebar user={user} />
       <C.Content>
         <C.Title>Lista de Usuários</C.Title>
-
+        {message && <Message type={messageType}>{message}</Message>}
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
 
         {permissoesTelaAtual.includes("POST") && (

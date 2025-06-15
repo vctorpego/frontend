@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import jwtDecode from "jwt-decode";
-import { Container, Title, Form, Input, Button, Label } from "./styles";
+import { Container, Title, Form, Input, Button, Label ,Message } from "../EditCliente/styles";
 
 const EditCliente = () => {
   const { idCliente } = useParams();
@@ -13,6 +13,8 @@ const EditCliente = () => {
   const [idCartaoCliente, setIdCartaoCliente] = useState("");
   const [ultimaCompraCliente, setUltimaCompraCliente] = useState("");
   const [hasPermission, setHasPermission] = useState(false);
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -71,17 +73,19 @@ const EditCliente = () => {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        alert("Você precisa estar logado!");
-        navigate("/auth/login");
+        setMessageType("error");
+        setMessage("Voce precisa estar logado!");
+        setTimeout(() => navigate("/auth/login"), 2000);
         return;
       }
 
       try {
         const decodedToken = jwtDecode(token);
         if (decodedToken.exp < Date.now() / 1000) {
-          alert("Token expirado. Faça login novamente.");
+          setMessageType("error");
+          setMessage("Token Expirado!");
           localStorage.removeItem("token");
-          navigate("/auth/login");
+          setTimeout(() => navigate("/auth/login"), 2000);
           return;
         }
 
@@ -110,7 +114,8 @@ const EditCliente = () => {
         setUltimaCompraCliente(ultimaCompraCliente);
       } catch (error) {
         console.error("Erro ao buscar o cliente:", error);
-        alert("Erro ao carregar o cliente.");
+        setMessageType("error");
+        setMessage("Erro ao carregar Cliente!");
       }
     };
 
@@ -127,24 +132,28 @@ const EditCliente = () => {
       saldoCliente === "" ||
       limiteCliente === ""
     ) {
-      alert("Por favor, preencha todos os campos.");
+      setMessageType("info");
+      setMessage("Preencha todos os campos");
       return;
     }
   
     const token = localStorage.getItem("token");
   
     if (!token) {
-      alert("Você precisa estar logado!");
-      navigate("/auth/login");
+      setMessageType("error");
+      setMessage("Você precisa estar logado!");
+      localStorage.removeItem("token");
+      setTimeout(() => navigate("/auth/login"), 2000);
       return;
     }
   
     try {
       const decodedToken = jwtDecode(token);
       if (decodedToken.exp < Date.now() / 1000) {
-        alert("Token expirado. Faça login novamente.");
+        setMessageType("error");
+        setMessage("Token Expirado!");
         localStorage.removeItem("token");
-        navigate("/auth/login");
+        setTimeout(() => navigate("/auth/login"), 2000);
         return;
       }
   
@@ -164,11 +173,14 @@ const EditCliente = () => {
         }
       );
   
-      alert("Cliente atualizado com sucesso!");
-      navigate("/clientes");
+      setMessageType("success");
+      setMessage("Cliente atualizado com successo!");
+      setTimeout(() => navigate("/clientes"), 2000);
     } catch (error) {
       console.error("Erro ao atualizar o cliente:", error);
-      alert("Erro ao atualizar o cliente.");
+      setMessageType("error");
+      setMessage("Erro ao atualizar cliente");
+
     }
   };
   
@@ -178,6 +190,7 @@ const EditCliente = () => {
   return (
     <Container>
       <Title>Editar Cliente</Title>
+      {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>
         <div>
           <Label>Nome:</Label>

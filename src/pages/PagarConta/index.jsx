@@ -3,6 +3,8 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import jwt_decode from "jwt-decode"; // Adicionado
 import * as C from "./styles"; // Importa estilos personalizados
+import { Message } from "../AddConta/styles";
+
 
 const PagarConta = () => {
   const { id } = useParams();
@@ -11,6 +13,8 @@ const PagarConta = () => {
   const [error, setError] = useState(null);
   const [hasPermission, setHasPermission] = useState(false); // Novo estado
   const navigate = useNavigate();
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const verificarPermissao = async () => {
@@ -82,6 +86,9 @@ const PagarConta = () => {
 
     if (!token) {
       setError("Token não encontrado. Faça login novamente.");
+      localStorage.removeItem(token);
+      navigate("/auth/login")
+      
       return;
     }
 
@@ -91,8 +98,8 @@ const PagarConta = () => {
     }
 
     if (conta.statusControleContas === "Paga") {
-      alert("Conta já está paga.");
-      navigate("/pagamentos", { replace: true });
+      setMessageType("success");
+      setMessage("A conta já está paga!");
       return;
     }
 
@@ -106,8 +113,8 @@ const PagarConta = () => {
       );
 
       if (response.status === 201) {
-        alert("Pagamento realizado com sucesso!");
-        navigate("/pagamentos", { replace: true });
+        setMessageType("success");
+        setMessage("Pagamento realizado com sucesso!");
         setConta((prev) => ({ ...prev, statusControleContas: "Paga" }));
       } else {
         setError("Erro ao processar o pagamento. Tente novamente.");
@@ -133,6 +140,7 @@ const PagarConta = () => {
   return (
     <C.Container>
       <C.Title>Pagar Conta</C.Title>
+      {message && <Message type={messageType}>{message}</Message>}
       <C.Form>
         <h2>Detalhes da Conta</h2>
         <C.Label><strong>Empresa:</strong></C.Label>

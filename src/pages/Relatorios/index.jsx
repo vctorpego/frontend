@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import Sidebar from "../../components/Sidebar";
-import * as C from "./styles"; 
+import * as C from "./styles";
 import { FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Message } from "../ListagemProdutos/styles";
+
 
 const Relatorios = () => {
   const [user, setUser] = useState(null);
@@ -35,6 +37,9 @@ const Relatorios = () => {
   const [consumoInicio, setConsumoInicio] = useState("");
   const [consumoFim, setConsumoFim] = useState("");
   const [pendingConsumoDownload, setPendingConsumoDownload] = useState(null);
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
+
 
   const relatorios = [
     { nome: "Relatório de Vendas", endpoint: "vendas-por-produto" },
@@ -118,7 +123,12 @@ const Relatorios = () => {
       link.remove();
     } catch (error) {
       console.error("Erro ao gerar relatório:", error);
-      alert("Erro ao baixar relatório.");
+      setMessageType("error");
+      setMessage("Erro ao baixar o relatório!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
     }
   };
 
@@ -155,7 +165,12 @@ const Relatorios = () => {
   const handleTicketSubmit = (e) => {
     e.preventDefault();
     if (!ticketInicio || !ticketFim) {
-      alert("Preencha as duas datas.");
+      setMessageType("error");
+      setMessage("Preencha as duas datas!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
       return;
     }
     setShowTicketPopup(false);
@@ -170,7 +185,12 @@ const Relatorios = () => {
     const dia = parseInt(aniversarioDia, 10);
     const mes = parseInt(aniversarioMes, 10);
     if (!dia || !mes || dia < 1 || dia > 31 || mes < 1 || mes > 12) {
-      alert("Informe um dia (1-31) e mês (1-12) válidos.");
+      setMessageType("error");
+      setMessage("Informe um dia (1-31) e mês (1-12) válidos.");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
       return;
     }
     setShowAniversarioPopup(false);
@@ -183,7 +203,12 @@ const Relatorios = () => {
   const handleVendasSubmit = (e) => {
     e.preventDefault();
     if (!vendasInicio || !vendasFim) {
-      alert("Preencha as duas datas.");
+      setMessageType("error");
+      setMessage("Preencha as duas datas!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
       return;
     }
     setShowVendasPopup(false);
@@ -196,7 +221,12 @@ const Relatorios = () => {
   const handleDreSubmit = (e) => {
     e.preventDefault();
     if (!dreInicio || !dreFim) {
-      alert("Preencha as duas datas.");
+      setMessageType("error");
+      setMessage("Preencha as duas datas!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
       return;
     }
     setShowDrePopup(false);
@@ -209,7 +239,12 @@ const Relatorios = () => {
   const handleConsumoSubmit = (e) => {
     e.preventDefault();
     if (!consumoInicio || !consumoFim) {
-      alert("Preencha as duas datas.");
+      setMessageType("error");
+      setMessage("Preencha as duas datas!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
       return;
     }
     setShowConsumoPopup(false);
@@ -226,9 +261,9 @@ const Relatorios = () => {
   //comentario
   return (
     <C.Container>
-      <Sidebar user={user} />
       <C.Content>
         <C.Title>Relatórios</C.Title>
+        {message && <Message type={messageType}>{message}</Message>}
         <C.CardContainer>
           {relatorios.map((rel, idx) => (
             <C.Card key={idx} onClick={() => handleCardClick(rel)}>

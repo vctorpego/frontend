@@ -3,12 +3,15 @@ import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import { Container, Form, Input, Button } from './styles'; // ajuste se necessário
+import { Message } from "../EditUsuario/styles";
 
 const CadastroTela = () => {
   const [nomeTela, setNomeTela] = useState("");
   const [urlTela, setUrlTela] = useState("");
   const [hasPermission, setHasPermission] = useState(false);
   const navigate = useNavigate();
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
 
   const getToken = () => {
     const token = localStorage.getItem("token");
@@ -72,7 +75,12 @@ const CadastroTela = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!nomeTela || !urlTela) {
-      alert("Preencha todos os campos.");
+      setMessageType("error");
+      setMessage("Preencha todos os campos!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
       return;
     }
 
@@ -110,13 +118,24 @@ const CadastroTela = () => {
           })
         ));
 
-        alert("Tela cadastrada e permissões atribuídas com sucesso!");
+        setMessageType("success");
+        setMessage("Tela cadastrada com sucesso!");
+        setTimeout(() => {
+          setMessage("");
+          setMessageType("");
+        }, 3000);
         setNomeTela("");
         setUrlTela("");
       }
     } catch (error) {
       console.error("Erro ao cadastrar tela ou associar permissões:", error);
       alert("Erro ao cadastrar tela ou associar permissões.");
+      setMessageType("error");
+      setMessage("Erro ao cadastrar tela!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
     }
   };
 
@@ -127,6 +146,7 @@ const CadastroTela = () => {
   return (
     <Container>
       <h2>Cadastro de Tela</h2>
+      {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>
         <Input
           type="text"

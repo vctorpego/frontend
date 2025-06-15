@@ -61,26 +61,39 @@ export const Card = styled.div`
   }
 `;
 
+// Atualização do SaldoCard para layout flex com cores dinâmicas baseadas em saldo numérico
 export const SaldoCard = styled.div`
   margin-top: 15px;
   padding: 15px;
   border-radius: 6px;
-  background-color: ${({ status }) =>
-    status === 'positivo' ? '#d4edda' :
-    status === 'negativo' ? '#f8d7da' :
-    '#fefefe'};
-  color: ${({ status }) =>
-    status === 'positivo' ? '#155724' :
-    status === 'negativo' ? '#721c24' :
-    '#333'};
+  background-color: ${({ saldo }) =>
+    saldo < 0 ? '#f8d7da' : '#d4edda'};
+  color: ${({ saldo }) =>
+    saldo < 0 ? '#721c24' : '#155724'};
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 
   @media (max-width: 768px) {
     padding: 10px;
   }
 `;
 
-export const SaldoText = styled.p`
+// Label do saldo, estilo para texto mais destacado
+export const SaldoText = styled.span`
   font-size: 18px;
+  font-weight: bold;
+  color: #333;
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
+`;
+
+// Valor do saldo com cor condicional e negrito
+export const SaldoValue = styled.span`
+  font-size: 18px;
+  color: ${({ saldo }) => (saldo < 0 ? '#721c24' : '#155724')};
   font-weight: bold;
 
   @media (max-width: 768px) {
@@ -106,7 +119,7 @@ export const ComandaInfo = styled(Card)`
   }
 `;
 
-// Novo estilo para o Card de erro com responsividade
+// Card para mensagem de erro com estilo e responsividade
 export const ErrorCard = styled.div`
   background-color: #f8d7da;
   border-radius: 8px;
@@ -133,7 +146,7 @@ export const ErrorText = styled.p`
   }
 `;
 
-// Novo Card para o Cartão e código do Cartão com os textos na mesma linha
+// Card para Cartão e código do Cartão com textos na mesma linha
 export const CartaoCard = styled(Card)`
   display: flex;
   justify-content: space-between;

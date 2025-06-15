@@ -9,7 +9,7 @@ import {
   Input,
   Button,
   Label,
-  Select,
+  Select, Message
 } from "../AddConta/styles";
 
 const AddConta = () => {
@@ -20,6 +20,9 @@ const AddConta = () => {
   const [fornecedorId, setFornecedorId] = useState("");
   const [fornecedores, setFornecedores] = useState([]);
   const [hasPermission, setHasPermission] = useState(false);
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
+
 
   const navigate = useNavigate();
 
@@ -83,7 +86,8 @@ const AddConta = () => {
     e.preventDefault();
 
     if (!dtVencimento || !descricao || !valor || !fornecedorId) {
-      alert("Por favor, preencha todos os campos.");
+      setMessageType("info");
+      setMessage("Preencha todos os campos!");
       return;
     }
 
@@ -109,23 +113,31 @@ const AddConta = () => {
       );
 
       if (response.status === 201) {
-        alert("Conta adicionada com sucesso!");
-        navigate("/pagamentos");
+        setMessageType("success");
+        setMessage("Conta adicionada com sucesso!!");
+        setTimeout(() => navigate("/pagamentos"), 2000);
       }
     } catch (error) {
       console.error("Erro ao adicionar conta:", error);
       if (error.response) {
         if (error.response.status === 409) {
-          alert("Erro: A conta já foi cadastrada.");
+          setMessageType("error");
+          setMessage("A conta já foi cadastrada!");
         } else if (error.response.status === 401) {
-          alert("Token expirado. Faça login novamente.");
+          setMessageType("error");
+          setMessage("Token Expirado!");
           localStorage.removeItem("token");
-          navigate("/auth/login");
+          setTimeout(() => navigate("/auth/login"), 2000);
         } else {
-          alert("Erro ao adicionar a conta.");
+          setMessageType("error");
+          setMessage("Erro ao adicionar conta!");
+          setTimeout(() => navigate("/pagamentos"), 2000);
+
         }
       } else {
-        alert("Erro de comunicação com o servidor.");
+        setMessageType("error");
+        setMessage("Erro de comunicação com o servidor!");
+        setTimeout(() => navigate("/pagamentos"), 2000)
       }
     }
   };
@@ -135,6 +147,7 @@ const AddConta = () => {
   return (
     <Container>
       <Title>Adicionar Nova Conta</Title>
+      {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>
         <div>
           <Label>Data de Vencimento:</Label>

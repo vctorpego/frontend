@@ -94,7 +94,8 @@ const Sidebar = () => {
               onClick={() => navigate(p.urlTela)}
               isActive={isActive(p.urlTela)}
             >
-              {p.tela.replace("Tela de ", "").trim()}
+              {p.tela.replace(/^tela de /i, "").trim()
+              }
             </C.MenuItem>
           ))}
 

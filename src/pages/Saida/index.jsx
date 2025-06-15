@@ -5,19 +5,18 @@ import jwtDecode from "jwt-decode";
 import {
   Container,
   Title,
-  Label,
-  ErrorMessage,
   Card,
   SaldoCard,
   SaldoText,
+  SaldoValue,
   ComandaInfo,
-  ErrorCard, // Novo card de erro
-  ErrorText, // Novo texto de erro
-  CartaoCard, // Novo card para o cartão
-  CartaoTexto, // Novo texto para o cartão
-  CartaoTextoLabel, // Novo label para o cartão
-  CartaoCodigo, // Novo código do cartão
-  CartaoCodigoText, // Novo texto do código do cartão
+  ErrorCard,
+  ErrorText,
+  CartaoCard,
+  CartaoTexto,
+  CartaoTextoLabel,
+  CartaoCodigo,
+  CartaoCodigoText,
 } from "./styles";
 
 const SaidaCliente = () => {
@@ -36,27 +35,31 @@ const SaidaCliente = () => {
       setComanda(null);
       setProdutosDetalhados([]);
       setErro("");
-    }, 3000);
+    }, 4000);
   };
 
+  // 🔥 Captura do cartão igual à tela de entrada
   useEffect(() => {
-    let buffer = "";
-
-    const handleKeyPress = (e) => {
-      const key = e.key;
-      if (/^[0-9a-zA-Z]$/.test(key)) buffer += key;
+    const handleCardInput = (event) => {
+      const key = event.key;
+      if (/^[0-9a-zA-Z]$/.test(key)) {
+        setCartaoCliente((prev) => {
+          if (prev.length < 12) return prev + key;
+          return prev;
+        });
+      }
       if (key === "Enter") {
-        if (buffer.length >= 8) setCartaoCliente(buffer);
-        buffer = "";
+        event.preventDefault();
       }
     };
 
-    document.addEventListener("keydown", handleKeyPress);
-    return () => document.removeEventListener("keydown", handleKeyPress);
+    document.addEventListener("keydown", handleCardInput);
+    return () => {
+      document.removeEventListener("keydown", handleCardInput);
+    };
   }, []);
 
   const enviarParaImpressao = async (cliente, comanda, produtos) => {
-    console.log ("impressao enviada")
     try {
       await axios.post("http://localhost:3001/imprimir", {
         cliente,
@@ -191,9 +194,13 @@ const SaidaCliente = () => {
       {cliente && (
         <Card>
           <h2>Até logo, {cliente.nomeCliente}</h2>
-          <SaldoCard status={statusSaldo}>
-            <SaldoText>Saldo final: R$ {cliente.saldoCliente?.toFixed(2)}</SaldoText>
+          <SaldoCard saldo={cliente.saldoCliente}>
+            <SaldoText>Saldo :</SaldoText>
+            <SaldoValue saldo={cliente.saldoCliente}>R$ {cliente.saldoCliente?.toFixed(2)}</SaldoValue>
+            <SaldoText>Limite :</SaldoText>
+            <SaldoValue limite={cliente.limiteCliente}>R$ {cliente.limiteCliente?.toFixed(2)}</SaldoValue>
           </SaldoCard>
+
         </Card>
       )}
 

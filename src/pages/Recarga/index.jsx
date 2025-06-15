@@ -4,6 +4,8 @@ import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import * as C from "./styles";
+import { Message } from "../ListagemProdutos/styles";
+
 
 const Recarga = () => {
   const [user, setUser] = useState(null);
@@ -11,6 +13,9 @@ const Recarga = () => {
   const [cliente, setCliente] = useState(null);
   const [valor, setValor] = useState("");
   const [mensagemSucesso, setMensagemSucesso] = useState("");
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
+
 
   const navigate = useNavigate();
 
@@ -59,21 +64,34 @@ const Recarga = () => {
       setCliente(res.data);
     } catch (err) {
       console.error("Erro ao buscar cliente:", err);
-      alert("Cliente não encontrado.");
-      setCliente(null);
-      setMensagemSucesso("");
+      setMessageType("error");
+      setMessage("Cliente não encontrado!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
     }
   };
 
   const realizarRecarga = async () => {
     if (!cliente) {
-      alert("Nenhum cliente selecionado.");
+      setMessageType("error");
+      setMessage("Nenhum cliente selecioado!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
       return;
     }
 
     const valorRecarga = parseFloat(valor);
     if (!valor || isNaN(valorRecarga) || valorRecarga <= 0) {
-      alert("Digite um valor válido para recarga.");
+      setMessageType("error");
+      setMessage("Digite um valor válido para recarga!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
       return;
     }
 
@@ -115,8 +133,12 @@ const Recarga = () => {
       // Recarregar cliente atualizado
       await buscarClientePorCartao();
     } catch (error) {
-      console.error("Erro ao realizar recarga:", error);
-      alert("Erro ao atualizar dados do cliente.");
+      setMessageType("error");
+      setMessage("Erro ao realizar recarga!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);;
     }
   };
 

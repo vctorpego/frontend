@@ -168,14 +168,17 @@ const EntradaCliente = () => {
       {erro && <ErrorMessage>{erro}</ErrorMessage>}
 
       {cliente && (
-        <WelcomeCard>
-          <h2>Seja bem-vindo, {cliente.nomeCliente}!</h2>
-          <SaldoCard saldo={cliente.saldoCliente}>
-            <SaldoText>Saldo:</SaldoText>
-            <SaldoValue>{cliente.saldoCliente?.toFixed(2) || "0.00"}</SaldoValue>
+          <WelcomeCard>
+            <h2>Seja bem-vindo, {cliente.nomeCliente}!</h2>
+            <SaldoCard saldo={cliente.saldoCliente}>
+            <SaldoText>Saldo :</SaldoText>
+            <SaldoValue saldo={cliente.saldoCliente}>R$ {cliente.saldoCliente?.toFixed(2)|| "0.00"}</SaldoValue>
+            <SaldoText>Limite :</SaldoText>
+            <SaldoValue limite={cliente.limiteCliente}>R$ {cliente.limiteCliente?.toFixed(2)|| "0.00"}</SaldoValue>
           </SaldoCard>
-        </WelcomeCard>
-      )}
+          </WelcomeCard>
+        )}
+
     </Container>
   );
 };

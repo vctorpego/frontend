@@ -4,6 +4,24 @@ import SwaggerUI from 'swagger-ui-react';
 import jwt_decode from 'jwt-decode';
 import 'swagger-ui-react/swagger-ui.css';
 
+import styled from 'styled-components';
+
+const Container = styled.div`
+  display: flex;
+  height: 100vh; /* ocupa a tela toda */
+`;
+
+const Content = styled.div`
+  flex: 1; /* ocupa todo o espaço restante */
+  padding: 20px;
+  overflow: auto;
+
+  /* Para garantir que o Swagger ocupe a altura total */
+  & > div {
+    height: 100%;
+  }
+`;
+
 const SwaggerPage = () => {
   const navigate = useNavigate();
   const [isTokenValid, setIsTokenValid] = useState(true);
@@ -36,18 +54,21 @@ const SwaggerPage = () => {
   }
 
   return (
-    <div style={{ height: '100vh' }}>
-      <SwaggerUI
-        url="http://localhost:8080/v3/api-docs"
-        requestInterceptor={(request) => {
-          const token = localStorage.getItem('token');
-          if (token) {
-            request.headers['Authorization'] = `Bearer ${token}`;
-          }
-          return request;
-        }}
-      />
-    </div>
+    <Container>
+
+      <Content>
+        <SwaggerUI
+          url="http://localhost:8080/v3/api-docs"
+          requestInterceptor={(request) => {
+            const token = localStorage.getItem('token');
+            if (token) {
+              request.headers['Authorization'] = `Bearer ${token}`;
+            }
+            return request;
+          }}
+        />
+      </Content>
+    </Container>
   );
 };
 

@@ -7,6 +7,8 @@ import SearchBar from "../../components/SearchBar";
 import ModalExcluir from "../../components/ModalExcluir";
 import { useNavigate } from "react-router-dom";
 import * as C from "./styles";
+import { Message } from "../ListagemProdutos/styles";
+
 
 const ListagemClientes = () => {
   const [clientes, setClientes] = useState([]);
@@ -16,6 +18,9 @@ const ListagemClientes = () => {
   const [clienteExcluir, setClienteExcluir] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
+
 
   const getToken = () => {
     const token = localStorage.getItem("token");
@@ -132,8 +137,24 @@ const ListagemClientes = () => {
       setClienteExcluir(null);
     } catch (error) {
       console.error("Erro ao excluir cliente:", error);
+      setOpenModalExcluir(false);
+      setClienteExcluir(null);
+
+
+      if (error.response && error.response.status === 409) {
+        setMessageType("error");
+        setMessage("Cliente está no salão, espere fechar a comanda antes de excluir!");
+        setTimeout(() => {
+          setMessage("");
+          setMessageType("");
+        }, 3000);
+      } else {
+        setMessageType("error");
+        setMessage("Erro ao excluir cliente");
+      }
     }
   };
+
 
   const handleCloseModal = () => {
     setOpenModalExcluir(false);
@@ -178,6 +199,7 @@ const ListagemClientes = () => {
       <Sidebar user={user} />
       <C.Content>
         <C.Title>Lista de Clientes</C.Title>
+        {message && <Message type={messageType}>{message}</Message>}
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
 
         {actions.includes("add") && ( // Verifica se o usuário tem permissão de edição

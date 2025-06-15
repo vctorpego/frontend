@@ -3,6 +3,7 @@ import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate, useParams } from "react-router-dom";
 import * as C from "./styles";
+import { Message } from "../EditUsuario/styles";
 
 const acoes = {
   adicionar: 1,
@@ -23,6 +24,8 @@ const EditUsuario = () => {
   const [isSuperAdm, setIsSuperAdm] = useState(false);
   const [adminChecked, setAdminChecked] = useState(false);
   const navigate = useNavigate();
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
 
   const getToken = () => {
     const token = localStorage.getItem("token");
@@ -138,7 +141,9 @@ const EditUsuario = () => {
         setPermissoes(permissoesObj);
       } catch (error) {
         console.error("Erro ao carregar dados do usuário:", error);
-        alert("Erro ao carregar dados do usuário.");
+        setMessageType("error");
+        setMessage("Erro ao carregar dados do usuário!");
+
       }
     };
 
@@ -185,31 +190,33 @@ const EditUsuario = () => {
     setPermissoes((prevPermissoes) => {
       const telaPermissoes = prevPermissoes[telaNome] || {};
       const novaPermissaoAcao = !telaPermissoes[acao];
-  
+
       const novasPermissoesTela = {
         ...telaPermissoes,
         [acao]: novaPermissaoAcao,
       };
-  
+
       // Se marcou adicionar, editar ou excluir, força visualizar como true
       if (["adicionar", "editar", "excluir"].includes(acao) && novaPermissaoAcao) {
         novasPermissoesTela.visualizar = true;
       }
-  
+
       return {
         ...prevPermissoes,
         [telaNome]: novasPermissoesTela,
       };
     });
   };
-  
-  
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!nome || !email || !telefone || !login) {
-      alert("Preencha todos os campos.");
+      setMessageType("error");
+      setMessage("Preencha todos os campos!");
+
       return;
     }
 
@@ -230,10 +237,12 @@ const EditUsuario = () => {
       );
 
       if (updateResponse.status === 200) {
+
         await axios.delete(`http://localhost:8080/usuario/tela/${id}`, getRequestConfig());
 
         const usuarioId = updateResponse.data.idUsuario;
         const permissaoRequests = [];
+
 
         for (const [nomeTela, permissoesTela] of Object.entries(permissoes)) {
           const telaId = telas.find((t) => t.nomeTela === nomeTela)?.idTela;
@@ -261,11 +270,16 @@ const EditUsuario = () => {
         }
 
         await Promise.all(permissaoRequests);
-        navigate("/usuarios");
+        setMessageType("success");
+        setMessage("Usuário atualizado com sucesso!");
+        setTimeout(() => navigate("/usuarios"), 2000);
       }
     } catch (error) {
       console.error("Erro ao atualizar usuário:", error);
-      alert("Erro ao atualizar usuário.");
+      setMessageType("error");
+      setMessage("Erro ao atualizar uruário!");
+      setTimeout(() => navigate("/usuarios"), 2000);
+
     }
   };
 
@@ -276,6 +290,7 @@ const EditUsuario = () => {
   return (
     <C.Container>
       <C.Title>Editar Usuário</C.Title>
+      {message && <Message type={messageType}>{message}</Message>}
       <C.Form onSubmit={handleSubmit}>
         <C.Input type="text" placeholder="Nome" value={nome} onChange={(e) => setNome(e.target.value)} />
         <C.Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />

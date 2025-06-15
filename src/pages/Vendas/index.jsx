@@ -291,7 +291,21 @@ function Vendas() {
   return (
     <C.Container>
       <C.Content>
-        <C.Title>Nova Comanda - TechMeal</C.Title>
+        <C.Title>Nova Comanda - TechMeal</C.Title>{/*
+        <C.SubTitle>Identificação do Cliente</C.SubTitle>
+        <C.FieldGroup>
+          <C.Input
+            type="text"
+            placeholder="Digite o código do cartão"
+            value={clienteCartao}
+            onChange={(e) => setClienteCartao(e.target.value)}
+          />
+          <C.Button onClick={() => buscarClientePorCartao(clienteCartao)}>
+            Buscar Cliente
+          </C.Button>
+        </C.FieldGroup>*/}
+
+
 
         {mensagem && <C.Mensagem>{mensagem}</C.Mensagem>}
 
@@ -313,7 +327,7 @@ function Vendas() {
               <C.Button onClick={() => { obterPesoDaBalanca(); }}>
                 Obter Peso
               </C.Button>
-              <C.Button onClick={() => {adicionarRefeicao(); }}>
+              <C.Button onClick={() => { adicionarRefeicao(); }}>
                 Adicionar Refeição
               </C.Button>
             </C.FieldGroup>

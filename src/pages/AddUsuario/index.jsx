@@ -3,6 +3,7 @@ import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import * as C from "./styles";
+import { Message } from "../AddProduto/styles";
 
 const acoes = {
   adicionar: 1,
@@ -23,6 +24,8 @@ const AddUsuario = () => {
   const [isSuperAdm, setIsSuperAdm] = useState(false);
   const [adminChecked, setAdminChecked] = useState(false);
   const navigate = useNavigate();
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
 
   const getToken = () => {
     const token = localStorage.getItem("token");
@@ -169,7 +172,8 @@ const AddUsuario = () => {
     e.preventDefault();
 
     if (!nome || !email || !senha || !telefone || !login) {
-      alert("Preencha todos os campos.");
+      setMessageType("error");
+      setMessage("Preencha todos os campos!");
       return;
     }
 
@@ -197,7 +201,9 @@ const AddUsuario = () => {
       );
 
       if (response.status === 200 || response.status === 201) {
-        alert("Usuário adicionado com sucesso!");
+        setMessageType("success");
+        setMessage("Usuário adicionado com sucesso!");
+        setTimeout(() => navigate("/usuarios"), 2000);
         const usuarioId = response.data.idUsuario;
 
         if (!usuarioId) {
@@ -237,10 +243,15 @@ const AddUsuario = () => {
       }
     } catch (error) {
       console.error("Erro ao adicionar usuário:", error);
-      if (error.response?.status === 409) {
-        alert("Usuário já cadastrado.");
+      if (error.response?.status === 401) {
+        setMessageType("error");
+        setMessage("Usuário já cadastrado!");
+        setTimeout(() => navigate("/usuarios"), 2000);
+
       } else {
-        alert("Erro ao adicionar usuário.");
+        setMessageType("error");
+        setMessage("Erro ao adicionar asuário!");
+        setTimeout(() => navigate("/usuarios"), 2000);
       }
     }
   };
@@ -252,6 +263,7 @@ const AddUsuario = () => {
   return (
     <C.Container>
       <C.Title>Adicionar Usuário</C.Title>
+      {message && <Message type={messageType}>{message}</Message>}
       <C.Form onSubmit={handleSubmit}>
         <C.Input
           type="text"
