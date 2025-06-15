@@ -143,14 +143,27 @@ const AddUsuario = () => {
   };
 
   const handleCheckboxChange = (telaNome, acao) => {
-    setPermissoes((prevPermissoes) => ({
-      ...prevPermissoes,
-      [telaNome]: {
-        ...prevPermissoes[telaNome],
-        [acao]: !prevPermissoes[telaNome]?.[acao],
-      },
-    }));
+    setPermissoes((prevPermissoes) => {
+      const telaPermissoes = prevPermissoes[telaNome] || {};
+      const novaPermissaoAcao = !telaPermissoes[acao];
+  
+      const novasPermissoesTela = {
+        ...telaPermissoes,
+        [acao]: novaPermissaoAcao,
+      };
+  
+      // Se marcou adicionar, editar ou excluir, ativa visualizar
+      if (["adicionar", "editar", "excluir"].includes(acao) && novaPermissaoAcao) {
+        novasPermissoesTela.visualizar = true;
+      }
+  
+      return {
+        ...prevPermissoes,
+        [telaNome]: novasPermissoesTela,
+      };
+    });
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
