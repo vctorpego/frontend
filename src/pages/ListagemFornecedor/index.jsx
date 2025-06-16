@@ -7,6 +7,7 @@ import ModalExcluir from "../../components/ModalExcluir";
 import { useNavigate } from "react-router-dom";
 import * as C from "./styles";
 import SearchBar from "../../components/SearchBar";
+import { Message } from "../ListagemProdutos/styles";
 
 const Fornecedores = () => {
   const [fornecedores, setFornecedores] = useState([]);
@@ -16,6 +17,8 @@ const Fornecedores = () => {
   const [idFornecedorExcluir, setIdFornecedorExcluir] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
 
   // Função para obter o token e validar a expiração
   const getToken = () => {
@@ -128,7 +131,25 @@ const Fornecedores = () => {
       setFornecedores((prev) => prev.filter((f) => f.idFornecedor !== idFornecedorExcluir));
       setOpenModalExcluir(false);
       setIdFornecedorExcluir(null);
+      setMessageType("success");
+      setMessage("Fornecedor excluido com sucesso");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
+      handleCloseModal();
+
     } catch (error) {
+      if (error.response.status == 401) {
+        setMessageType("error");
+        setMessage("Apague as contas do fornecedor antes de Deleta-lo!");
+        setTimeout(() => {
+          setMessage("");
+          setMessageType("");
+        }, 3000);
+        handleCloseModal();
+
+      }
       console.error("Erro ao excluir o fornecedor:", error);
     }
   };
@@ -166,6 +187,7 @@ const Fornecedores = () => {
       <Sidebar user={user} />
       <C.Content>
         <C.Title>Lista de Fornecedores</C.Title>
+        {message && <Message type={messageType}>{message}</Message>}
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
 
         {permissoes.includes("POST") && (

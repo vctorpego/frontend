@@ -118,9 +118,9 @@ const NaoAutorizado = () => {
 
           if (screenUrl) {
             // Redireciona para a URL da tela com permissão
-            setTimeout(() => {
+
               navigate(screenUrl);
-            }, 4000); // Aguarda 4 segundos para navegar
+
           } else {
             console.error("URL da tela não encontrada no mapeamento.");
             navigate("/nao-autorizado"); // Página de erro caso não encontre o mapeamento

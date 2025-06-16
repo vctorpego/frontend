@@ -1,10 +1,10 @@
-// src/routes/index.jsx
-import React, { Fragment, useEffect, useState, Suspense, lazy } from "react";
+import React, { Fragment, useEffect, useState, Suspense, lazy, useMemo } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import Sidebar from "../components/Sidebar";
+import PermissaoRoute from "./PermissaoRoute";
 
-// Importação das páginas (lazy)
+// Importação das páginas com lazy loading
 const AddCliente = lazy(() => import("../pages/AddCliente"));
 const AddConta = lazy(() => import("../pages/AddConta"));
 const AddFornecedor = lazy(() => import("../pages/AddFornecedor"));
@@ -32,9 +32,7 @@ const ListagemUsuarios = lazy(() => import("../pages/ListagemUsuarios"));
 const NaoAutorizado = lazy(() => import("../pages/NaoAutorizado"));
 const CadastroTela = lazy(() => import("../pages/CadastroTela"));
 
-import PermissaoRoute from "./PermissaoRoute";
-
-// Wrapper de rota protegida
+// Rota protegida: só permite se tiver token
 const ProtectedRoute = ({ children }) => {
   const { token } = useAuth();
   if (!token) {
@@ -43,21 +41,12 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-const RoutesApp = () => {
-  const { token, user, signout } = useAuth();
-  const [isSidebarVisible, setSidebarVisible] = useState(!!token);
+// Rota pública (login): se já logado, redireciona para a primeira rota permitida
+const PublicRoute = ({ children }) => {
+  const { token, permissoes } = useAuth();
+  const firstAllowedRoute = useMemo(() => {
+    if (!permissoes) return "/home";
 
-  useEffect(() => {
-    setSidebarVisible(!!token);
-  }, [token]);
-
-  // Função para determinar a primeira rota permitida do usuário
-  // Aqui deve-se basear no objeto `user.permissoes` (exemplo), ajustar conforme seu formato real
-  const getFirstAllowedRoute = () => {
-    if (!user || !user.permissoes) return "/home"; // fallback simples
-
-    // Exemplo: user.permissoes = [ "Tela de Clientes", "Tela de Produtos", ...]
-    // Defina prioridade e rota para cada permissão que corresponde a telas
     const telaParaRota = {
       "Tela de Clientes": "/clientes",
       "Tela de Fornecedores": "/fornecedores",
@@ -69,33 +58,46 @@ const RoutesApp = () => {
       "Tela de Entrada": "/entrada",
       "Tela de Saída": "/saida",
       "Tela de Vendas": "/vendas",
-      // Adicione outras telas se houver
     };
 
-    // Encontra a primeira tela que o usuário tem permissão e que possuímos rota
     for (const tela of Object.keys(telaParaRota)) {
-      if (user.permissoes.includes(tela)) {
+      if (permissoes.includes(tela)) {
         return telaParaRota[tela];
       }
     }
-
-    // Se não encontrou nenhuma, redireciona para home
     return "/home";
-  };
+  }, [permissoes]);
+
+  if (token) {
+    return <Navigate to={firstAllowedRoute} replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const RoutesApp = () => {
+  const { token, signout } = useAuth();
+  const [isSidebarVisible, setSidebarVisible] = useState(!!token);
+
+  useEffect(() => {
+    setSidebarVisible(!!token);
+  }, [token]);
 
   return (
     <BrowserRouter>
       <Fragment>
-        {isSidebarVisible && <Sidebar user={user} handleLogout={signout} />}
+        {isSidebarVisible && <Sidebar handleLogout={signout} />}
 
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div>Carregando...</div>}>
           <Routes>
             {/* Home */}
             <Route
               path="/home"
               element={
                 <ProtectedRoute>
-                  <Home />
+                  <PermissaoRoute tela="Tela de Dashboard">
+                    <Home />
+                  </PermissaoRoute>
                 </ProtectedRoute>
               }
             />
@@ -306,7 +308,7 @@ const RoutesApp = () => {
               }
             />
 
-            {/* Entradas e Saídas */}
+            {/* Entrada e Saída */}
             <Route
               path="/entrada"
               element={
@@ -339,6 +341,8 @@ const RoutesApp = () => {
                 </ProtectedRoute>
               }
             />
+
+            {/* Cadastro de Telas (sem permissão específica) */}
             <Route
               path="/telas"
               element={
@@ -348,23 +352,20 @@ const RoutesApp = () => {
               }
             />
 
-            {/* Não autorizado */}
+            {/* Página de não autorizado */}
             <Route path="/nao-autorizado" element={<NaoAutorizado />} />
 
-            {/* Autenticação */}
-            <Route path="/auth/login" element={<Signin />} />
-
-            {/* Fallback */}
+            {/* Login */}
             <Route
-              path="*"
+              path="/auth/login"
               element={
-                token ? (
-                  <Navigate to={getFirstAllowedRoute()} replace />
-                ) : (
-                  <Navigate to="/auth/login" replace />
-                )
+                <PublicRoute>
+                  <Signin />
+                </PublicRoute>
               }
             />
+
+
           </Routes>
         </Suspense>
       </Fragment>

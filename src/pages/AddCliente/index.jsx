@@ -118,15 +118,10 @@ const AddCliente = () => {
     } catch (error) {
       console.error("Erro ao adicionar o cliente:", error);
       if (error.response) {
-        if (error.response.status === 409) {
-          setMessageType("error");
-          setMessage("Cliente já cadastrado no sistema");
 
-        } else if (error.response.status === 401) {
+        if (error.response.status === 401) {
           setMessageType("error");
-          setMessage("Token inválido ou expirado. Faça login novamente.");
-          localStorage.removeItem("token");
-          setTimeout(() => navigate("/auth/login"), 2000);
+          setMessage("Cliente já cadastrado");
 
         } else if (error.response.status === 500) {
           setMessageType("error");
@@ -137,7 +132,7 @@ const AddCliente = () => {
         }
       } else {
         setMessageType("error");
-          setMessage("Erro ao se comunicar com o servidor");
+        setMessage("Erro ao se comunicar com o servidor");
       }
     }
   };

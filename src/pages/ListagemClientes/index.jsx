@@ -133,8 +133,13 @@ const ListagemClientes = () => {
       });
 
       fetchClientes();
-      setOpenModalExcluir(false);
-      setClienteExcluir(null);
+      setMessageType("success");
+      setMessage("Cliente deletado com sucesso!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
+      handleCloseModal();
     } catch (error) {
       console.error("Erro ao excluir cliente:", error);
       setOpenModalExcluir(false);

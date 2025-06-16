@@ -122,8 +122,13 @@ const ListagemProdutos = () => {
       setProdutos((prev) =>
         prev.filter((produto) => produto.idProduto !== produtoExcluir)
       );
-      setOpenModalExcluir(false);
-      setProdutoExcluir(null);
+      setMessageType("success");
+      setMessage("Produto excluido com sucesso!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
+      handleCloseModal();
     } catch (error) {
       console.error("Erro ao excluir produto", error);
     }

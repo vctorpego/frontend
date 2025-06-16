@@ -7,6 +7,7 @@ import ModalExcluir from "../../components/ModalExcluir";
 import { useNavigate } from "react-router-dom";
 import * as C from "./styles";
 import SearchBar from "../../components/SearchBar";
+import { Message } from "../ListagemProdutos/styles";
 
 const Pagamentos = () => {
   const [contas, setContas] = useState([]);
@@ -16,6 +17,8 @@ const Pagamentos = () => {
   const [contaExcluir, setContaExcluir] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
 
   const getToken = () => {
     const token = localStorage.getItem("token");
@@ -97,8 +100,14 @@ const Pagamentos = () => {
         getRequestConfig()
       );
       setContas(contasResponse.data);
-      setOpenModalExcluir(false);
-      setContaExcluir(null);
+        setMessageType("success");
+        setMessage("Conta apagada com sucesso!");
+        setTimeout(() => {
+          setMessage("");
+          setMessageType("");
+        }, 3000);
+        handleCloseModal();
+
     } catch (error) {
       console.error("Erro ao excluir a conta:", error);
     }
@@ -138,7 +147,7 @@ const Pagamentos = () => {
       <Sidebar user={user} />
       <C.Content>
         <C.Title>Lista de Contas</C.Title>
-
+        {message && <Message type={messageType}>{message}</Message>}
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
 
         {/* ✅ Corrigido: verificação com POST (não Incluir) */}

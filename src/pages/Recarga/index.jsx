@@ -12,7 +12,6 @@ const Recarga = () => {
   const [cartaoCliente, setCartaoCliente] = useState(""); // Usando o cartão do cliente
   const [cliente, setCliente] = useState(null);
   const [valor, setValor] = useState("");
-  const [mensagemSucesso, setMensagemSucesso] = useState("");
   const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
   const [message, setMessage] = useState("");
 
@@ -76,7 +75,7 @@ const Recarga = () => {
   const realizarRecarga = async () => {
     if (!cliente) {
       setMessageType("error");
-      setMessage("Nenhum cliente selecioado!");
+      setMessage("Nenhum cliente selecionado!");
       setTimeout(() => {
         setMessage("");
         setMessageType("");
@@ -124,11 +123,12 @@ const Recarga = () => {
         );
       }
 
-      setMensagemSucesso("Recarga realizada com sucesso!");
-      setValor("");
-
-      // Mensagem some após 3 segundos
-      setTimeout(() => setMensagemSucesso(""), 3000);
+      setMessageType("success");
+      setMessage("Recarga realizada com sucesso!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);;
 
       // Recarregar cliente atualizado
       await buscarClientePorCartao();
@@ -177,8 +177,7 @@ const Recarga = () => {
       <Sidebar user={user} />
       <C.Content>
         <C.Title>Recarga</C.Title>
-
-        {mensagemSucesso && <C.Sucesso>{mensagemSucesso}</C.Sucesso>}
+        {message && <Message type={messageType}>{message}</Message>}
 
         <C.Form>
           <label>Cartão do Cliente:</label>
