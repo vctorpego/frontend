@@ -48,7 +48,7 @@ function Vendas() {
   };
 
   const buscarClientePorCartao = async (cartao) => {
-    setMensagem(""); // Limpa a mensagem ao iniciar nova busca
+    setMensagem("");
 
     if (!cartao) return exibirMensagem("Cartão não detectado!");
 
@@ -66,9 +66,9 @@ function Vendas() {
         setProdutos([]);
         setValorTotal(0);
 
-        const clienteRealId = response.data.idCliente; // Usando idCliente agora
+        const clienteRealId = response.data.idCliente;
         const comandaResponse = await axios.get(
-          `http://localhost:8080/comanda/ultima/${clienteRealId}`, // Passando idCliente aqui
+          `http://localhost:8080/comanda/ultima/${clienteRealId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -78,19 +78,27 @@ function Vendas() {
           setComandaAtiva(comandaResponse.data);
         } else {
           setComandaAtiva(null);
-          exibirMensagem("Cliente não possui comanda ativa. Não é possível adicionar produtos.");
+          exibirMensagem("Cliente não possui comanda ativa.");
+        }
+
+      }
+    } catch (error) {
+      if (error.response) {
+        if (error.response.status === 404) {
+          setCliente(null);
+          setComandaAtiva(null);
+          exibirMensagem("Cliente não possui comanda ativa!");
+        } else {
+          console.error("Erro na API:", error.response.status);
+          exibirMensagem("Erro ao buscar cliente!");
         }
       } else {
-        setCliente(null);
-        setComandaAtiva(null);
-        exibirMensagem("Cliente não encontrado!");
+        console.error("Erro desconhecido:", error);
+        exibirMensagem("Erro de conexão com o servidor!");
       }
-    } catch {
-      setCliente(null);
-      setComandaAtiva(null);
-      exibirMensagem("Erro ao buscar cliente!");
     }
   };
+
 
   const atualizarVenda = async () => {
     const clienteAtualId = clienteBuscado?.idCliente || clienteCartao; // Usando idCliente agora
@@ -167,8 +175,19 @@ function Vendas() {
       setClienteCartao("");
       exibirMensagem("Venda finalizada com sucesso!");
       exibirMensagem("Venda finalizada com sucesso!");
-    } catch {
-      exibirMensagem("Erro ao finalizar venda!");
+    } catch (error) {
+      if (error.response) {
+        if (error.response.status === 409) {
+          setCliente(null);
+          setComandaAtiva(null);
+          exibirMensagem("Comanda já com produtos, finalize a comanda!");
+        }
+
+
+      } else {
+        exibirMensagem("Erro ao finalizar venda!");
+      }
+
     }
   };
 

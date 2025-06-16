@@ -1,59 +1,40 @@
 import React, { createContext, useState, useEffect } from "react";
 import axios from "axios";
-import jwt_decode from "jwt-decode";
 
+// Criando o contexto de autenticação
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("token") || null);
   const [user, setUser] = useState(null);
 
+  // Sempre que o token mudar, configura no Axios
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      fetchUserData();
-
-      // Verifica expiração do token
-      try {
-        const decoded = jwt_decode(token);
-        const now = Date.now() / 1000; // em segundos
-
-        if (decoded.exp < now) {
-          signout();
-        } else {
-          // Opcional: programa um logout automático quando expirar
-          const timeout = (decoded.exp - now) * 1000; // ms
-          const timer = setTimeout(() => {
-            signout();
-          }, timeout);
-
-          return () => clearTimeout(timer); // limpa se o token mudar antes do timeout
-        }
-      } catch (err) {
-        signout(); // token inválido
-      }
+      fetchUserData(); // Chama a função para buscar os dados do usuário sempre que o token mudar
     } else {
       delete axios.defaults.headers.common["Authorization"];
-      setUser(null);
     }
   }, [token]);
 
+  // Função para buscar os dados do usuário
   const fetchUserData = async () => {
     try {
       const response = await axios.get("/api/usuario");
       setUser(response.data);
     } catch (error) {
       console.error("Erro ao buscar dados do usuário:", error);
-      // Opcional: se falhar, force logout
-      signout();
     }
   };
 
+  // Função de login
   const login = (newToken) => {
     setToken(newToken);
     localStorage.setItem("token", newToken);
   };
 
+  // Função de logout
   const signout = () => {
     setToken(null);
     setUser(null);

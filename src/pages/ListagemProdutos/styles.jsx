@@ -120,7 +120,7 @@ export const Message = styled.div`
   max-width: 500px;
   padding: 15px 20px;
   border-radius: 5px;
-  margin: 20px auto; /* <- centraliza horizontalmente */
+  margin: 25px auto; /* <- centraliza horizontalmente */
   font-size: 16px;
   text-align: center;
 
