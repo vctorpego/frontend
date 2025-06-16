@@ -73,7 +73,7 @@ const Sidebar = () => {
 
   const logout = () => {
     signout();
-    navigate("/", { replace: true });
+    navigate("/auth/login", { replace: true });
   };
 
   if (carregando || !isLoggedIn) return null;
