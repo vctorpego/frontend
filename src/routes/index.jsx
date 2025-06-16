@@ -351,6 +351,13 @@ const RoutesApp = () => {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/"
+              element={
+                token ? <Navigate to="/home" replace /> : <Navigate to="/auth/login" replace />
+              }
+            />
+
 
             {/* Página de não autorizado */}
             <Route path="/nao-autorizado" element={<NaoAutorizado />} />
