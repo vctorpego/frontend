@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import axios from 'axios';
-import Input from "../../components/Input";
-import Button from "../../components/Button";
 import * as C from "./styles";
+import Button from "../../components/Button";
 import { useNavigate } from "react-router-dom";
-import useAuth from "../../hooks/useAuth"; 
+import useAuth from "../../hooks/useAuth";
 import jwtDecode from "jwt-decode";
+import imgLogin from "../../pages/Signin/login-image.png"; // ajuste o caminho conforme sua estrutura
 
 const Signin = () => {
-  const { login } = useAuth(); // Obtendo o login do contexto
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const [loginInput, setLogin] = useState("");
@@ -18,89 +18,78 @@ const Signin = () => {
   const handleLogin = async (event) => {
     event.preventDefault();
 
-    const loginData = {
-      login: loginInput,
-      senhaUsuario: senha,
-    };
-
     try {
-      const response = await axios.post("http://localhost:8080/auth/login", loginData);
+      const response = await axios.post("http://localhost:8080/auth/login", {
+        login: loginInput,
+        senhaUsuario: senha,
+      });
 
-      if (response.data && response.data.token) {
-        const token = response.data.token;
-        localStorage.setItem("token", token);
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      const token = response.data.token;
+      localStorage.setItem("token", token);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        // Decodificar token para pegar userId
-        const decodedToken = jwtDecode(token);
-        const userId = decodedToken.sub;
+      const decodedToken = jwtDecode(token);
+      const userId = decodedToken.sub;
 
-        // Obter o ID do usuário (confirmação)
-        const responseUser = await axios.get(`http://localhost:8080/usuario/id/${loginInput}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+      const userResponse = await axios.get(`http://localhost:8080/usuario/id/${loginInput}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        const userIdFromResponse = responseUser.data;
+      const userIdFromResponse = userResponse.data;
 
-        if (typeof userIdFromResponse !== "number" || userIdFromResponse <= 0) {
-          setError("Usuário não encontrado");
-          return;
-        }
-
-        // Buscar permissões com base no ID do usuário
-        const responsePermissoes = await axios.get(`http://localhost:8080/permissao/telas/${userIdFromResponse}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const permissoes = responsePermissoes.data;
-
-        // Salvar permissões no localStorage para uso futuro
-        localStorage.setItem("permissoes", JSON.stringify(permissoes));
-
-        // Atualiza o estado global de autenticação antes da navegação
-        login(token);
-
-        // Procurar a primeira rota com permissão GET e navegar para ela
-        const telaPermitida = permissoes.find(p => p.permissoes.includes("GET"));
-        if (telaPermitida && telaPermitida.urlTela) {
-          navigate(telaPermitida.urlTela);
-        } else {
-          // Caso não tenha nenhuma permissão, redireciona para página padrão ou acesso negado
-          navigate("/nao-autorizado");
-        }
-      } else {
-        setError("Erro de autenticação. Verifique suas credenciais.");
+      if (!userIdFromResponse || typeof userIdFromResponse !== "number") {
+        setError("Usuário não encontrado");
+        return;
       }
-    } catch (error) {
-      console.error("Erro ao realizar login:", error);
+
+      const permResponse = await axios.get(`http://localhost:8080/permissao/telas/${userIdFromResponse}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const permissoes = permResponse.data;
+      localStorage.setItem("permissoes", JSON.stringify(permissoes));
+      login(token);
+
+      const tela = permissoes.find(p => p.permissoes.includes("GET"));
+      navigate(tela?.urlTela || "/nao-autorizado");
+
+    } catch (err) {
       setError("Erro ao realizar o login.");
     }
   };
 
   return (
-    <C.Container>
-      <C.Label>LOGIN</C.Label>
-      <C.Content>
-        <Input
-          type="text"
-          placeholder="Digite seu Login"
-          value={loginInput}
-          onChange={(e) => { setLogin(e.target.value); setError(""); }}
-        />
-        <Input
-          type="password"
-          placeholder="Digite sua Senha"
-          value={senha}
-          onChange={(e) => { setSenha(e.target.value); setError(""); }}
-        />
-        {error && <C.labelError>{error}</C.labelError>}
-        <Button Text="Entrar" onClick={handleLogin} />
-      </C.Content>
-    </C.Container>
+    <C.Wrapper>
+      <C.Left>
+        <img src={imgLogin} alt="Login Ilustração" />
+      </C.Left>
+      <C.Right>
+        <C.FormBox>
+          <h2>LOGIN</h2>
+          <div className="inputs">
+            <label htmlFor="usuario">Usuário</label>
+            <C.LoginInput
+              id="usuario"
+              type="text"
+              placeholder="Digite seu usuário"
+              value={loginInput}
+              onChange={(e) => setLogin(e.target.value)}
+            />
+
+            <label htmlFor="senha">Senha</label>
+            <C.LoginInput
+              id="senha"
+              type="password"
+              placeholder="Digite sua senha"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+            />
+          </div>
+          {error && <C.labelError>{error}</C.labelError>}
+          <Button Text="Entrar" onClick={handleLogin} />
+        </C.FormBox>
+      </C.Right>
+    </C.Wrapper>
   );
 };
 
