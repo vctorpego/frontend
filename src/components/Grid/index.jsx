@@ -1,7 +1,7 @@
 import React from "react";
-import { Edit, Trash2, Printer } from "lucide-react"; // Importando ícones adicionais
+import { Edit, Trash2, Printer } from "lucide-react"; 
 import * as C from "./styles";
-import Button from "../../components/Button"; // Certifique-se de importar o componente Button
+import Button from "../../components/Button";
 
 const Grid = ({ 
   data, 
@@ -52,40 +52,40 @@ const Grid = ({
   };
 
   return (
-    <C.StyledTable>
-      <thead>
-        <tr>
-          {columns.map((column, index) => (
-            <C.TableHeader key={index}>{column}</C.TableHeader>
-          ))}
-          {showActionsColumn && <C.TableHeader>Ações</C.TableHeader>} {/* Mostrar a coluna de ações apenas se showActionsColumn for true */}
-        </tr>
-      </thead>
-      <tbody>
-        {data.length > 0 ? (
-          data.map((item, rowIndex) => (
-            <tr key={rowIndex}>
-              {columns.map((column, colIndex) => (
-                <C.TableCell key={colIndex} align="center">
-                  {getNestedValue(item, columnMap[column])}
-                </C.TableCell>
-              ))}
-              {showActionsColumn && (
-                <C.TableCell align="center">
-                  {renderActions(item)} {/* Renderiza as ações baseadas nas escolhas */}
-                </C.TableCell>
-              )}
-            </tr>
-          ))
-        ) : (
+      <C.StyledTable>
+        <thead>
           <tr>
-            <C.TableCell colSpan={columns.length + 1} align="center">
-              Nenhum dado encontrado.
-            </C.TableCell>
+            {columns.map((column, index) => (
+              <C.TableHeader key={index}>{column}</C.TableHeader>
+            ))}
+            {showActionsColumn && <C.TableHeader>Ações</C.TableHeader>}
           </tr>
-        )}
-      </tbody>
-    </C.StyledTable>
+        </thead>
+        <tbody>
+          {data.length > 0 ? (
+            data.map((item, rowIndex) => (
+              <tr key={rowIndex}>
+                {columns.map((column, colIndex) => (
+                  <C.TableCell key={colIndex} align="center">
+                    {getNestedValue(item, columnMap[column])}
+                  </C.TableCell>
+                ))}
+                {showActionsColumn && (
+                  <C.TableCell align="center">
+                    {renderActions(item)}
+                  </C.TableCell>
+                )}
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <C.TableCell colSpan={columns.length + 1} align="center">
+                Nenhum dado encontrado.
+              </C.TableCell>
+            </tr>
+          )}
+        </tbody>
+      </C.StyledTable>
   );
 };
 

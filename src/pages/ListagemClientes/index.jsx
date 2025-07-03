@@ -2,13 +2,12 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import Grid from "../../components/Grid";
-import Sidebar from "../../components/Sidebar";
 import SearchBar from "../../components/SearchBar";
 import ModalExcluir from "../../components/ModalExcluir";
 import { useNavigate } from "react-router-dom";
-import * as C from "./styles";
 import { Message } from "../ListagemProdutos/styles";
-
+import Button from "../../components/Button";
+import * as C from "./styles";
 
 const ListagemClientes = () => {
   const [clientes, setClientes] = useState([]);
@@ -17,10 +16,10 @@ const ListagemClientes = () => {
   const [openModalExcluir, setOpenModalExcluir] = useState(false);
   const [clienteExcluir, setClienteExcluir] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const navigate = useNavigate();
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [messageType, setMessageType] = useState("");
   const [message, setMessage] = useState("");
 
+  const navigate = useNavigate();
 
   const getToken = () => {
     const token = localStorage.getItem("token");
@@ -145,7 +144,6 @@ const ListagemClientes = () => {
       setOpenModalExcluir(false);
       setClienteExcluir(null);
 
-
       if (error.response && error.response.status === 409) {
         setMessageType("error");
         setMessage("Cliente está no salão, espere fechar a comanda antes de excluir!");
@@ -159,7 +157,6 @@ const ListagemClientes = () => {
       }
     }
   };
-
 
   const handleCloseModal = () => {
     setOpenModalExcluir(false);
@@ -190,7 +187,6 @@ const ListagemClientes = () => {
         : "N/A",
   }));
 
-  // Lógica de permissões de ações (editar e excluir)
   const permissoesTelaAtual = permissoes || [];
   const actions = [];
   if (permissoesTelaAtual.includes("PUT")) actions.push("edit");
@@ -198,76 +194,60 @@ const ListagemClientes = () => {
   if (permissoesTelaAtual.includes("POST")) actions.push("add");
   const showActionsColumn = permissoes.includes("PUT") || permissoes.includes("DELETE");
 
-
   return (
     <C.Container>
-      <Sidebar user={user} />
-      <C.Content>
+      <C.Header>
         <C.Title>Lista de Clientes</C.Title>
-        {message && <Message type={messageType}>{message}</Message>}
-        <SearchBar input={searchQuery} setInput={setSearchQuery} />
-
-        {actions.includes("add") && ( // Verifica se o usuário tem permissão de edição
-          <button
-            onClick={handleAddCliente}
-            style={{
-              position: "absolute",
-              top: "20px",
-              right: "20px",
-              padding: "10px 20px",
-              backgroundColor: "#007bff",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-            }}
-          >
-            Adicionar Cliente
-          </button>
+        {actions.includes("add") && (
+          <C.AddButtonWrapper>
+            <Button Text="Adicionar" onClick={handleAddCliente} />
+          </C.AddButtonWrapper>
         )}
+      </C.Header>
 
-        {clientes.length === 0 ? (
-          <p>Nenhum cliente encontrado.</p>
-        ) : (
-          <Grid
-            data={clientesComLimiteUsado}
-            columns={[
-              "Cliente",
-              "ID",
-              "Saldo",
-              "Limite",
-              "Limite Disponível",
-              "Limite Usado",
-              "Ultima Compra",
-            ]}
-            columnMap={{
-              Cliente: "nomeCliente",
-              ID: "idCliente",
-              Saldo: "saldoCliente",
-              Limite: "limiteCliente",
-              "Limite Disponível": "faturaCliente",
-              "Limite Usado": "limiteUsado",
-              "Ultima Compra": "ultimaCompraCliente",
-            }}
-            idKey="idCliente"
-            handleDelete={(clienteId) => handleDeleteCliente(clienteId)} // Passando a função corretamente
-            handleEdit={(clienteId) => handleEditCliente(clienteId)} // Passando a função corretamente
-            actions={actions}
-            showActionsColumn={showActionsColumn}
-          />
+      {message && <Message type={messageType}>{message}</Message>}
 
+      <SearchBar input={searchQuery} setInput={setSearchQuery} />
 
-        )}
-
-        <ModalExcluir
-          open={openModalExcluir}
-          onClose={handleCloseModal}
-          onConfirm={handleConfirmDelete}
+      {clientes.length === 0 ? (
+        <p>Nenhum cliente encontrado.</p>
+      ) : (
+        <Grid
+          data={clientesComLimiteUsado}
+          columns={[
+            "ID",
+            "Cliente",
+            "Saldo",
+            "Limite",
+            "Limite Disponível",
+            "Limite Usado",
+            "Ultima Compra",
+          ]}
+          columnMap={{
+            ID: "idCliente",
+            Cliente: "nomeCliente",
+            Saldo: "saldoCliente",
+            Limite: "limiteCliente",
+            "Limite Disponível": "faturaCliente",
+            "Limite Usado": "limiteUsado",
+            "Ultima Compra": "ultimaCompraCliente",
+          }}
+          idKey="idCliente"
+          handleDelete={(clienteId) => handleDeleteCliente(clienteId)}
+          handleEdit={(clienteId) => handleEditCliente(clienteId)}
+          actions={actions}
+          showActionsColumn={showActionsColumn}
         />
-      </C.Content>
+      )}
+
+      <ModalExcluir
+        open={openModalExcluir}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmDelete}
+      />
     </C.Container>
   );
 };
 
 export default ListagemClientes;
-
+  

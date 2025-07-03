@@ -6,17 +6,17 @@ export const Container = styled.div`
 `;
 
 export const Content = styled.div`
-  margin-left: 250px;
+  margin-left: 200px;
   padding: 20px;
   width: 100%;
   overflow: auto;
 `;
 
 export const Title = styled.h2`
-  font-size: 24px;
+  font-size: 2rem;
   font-weight: bold;
   color: #333;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 `;
 
 export const CardContainer = styled.div`
@@ -24,9 +24,7 @@ export const CardContainer = styled.div`
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
 `;
-/*
-comentario
-*/
+
 export const Card = styled.div`
   background-color: #fff;
   border: 1px solid #ddd;
@@ -51,7 +49,6 @@ export const Card = styled.div`
   }
 `;
 
-/* ====== ESTILOS DOS MODAIS ====== */
 export const ModalOverlay = styled.div`
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -81,9 +78,6 @@ export const ModalTitle = styled.h3`
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 `;
 
-/*
-comentario
-*/
 export const ModalLabel = styled.label`
   display: flex;
   flex-direction: row;
@@ -123,9 +117,7 @@ export const ModalCancelButton = styled.button`
     background-color: #d32f2f;
   }
 `;
-/*
-comentario
-*/
+
 export const ModalSubmitButton = styled.button`
   background-color: #007bff;
   border: none;

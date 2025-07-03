@@ -1,11 +1,11 @@
 import { useRef, useState } from "react";
-import useCodeScanner from "../../hooks/useCodeScanner"; // Aqui, vamos usar o hook para ler o cartão
-
+import useCodeScanner from "../../hooks/useCodeScanner";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
+import Button from "../../components/Button";
+import { Trash } from "lucide-react";
 import * as C from "./styles";
-
 
 function Vendas() {
   const [user, setUser] = useState(null);
@@ -16,7 +16,7 @@ function Vendas() {
   const [pesoGramas, setPesoGramas] = useState("");
   const [clienteBuscado, setClienteBuscado] = useState(null);
   const [mensagem, setMensagem] = useState("");
-  const [clienteCartao, setClienteCartao] = useState(""); // Novo estado para armazenar o cartão
+  const [clienteCartao, setClienteCartao] = useState("");
 
   const navigate = useNavigate();
   const pesoInputRef = useRef(null);
@@ -80,7 +80,6 @@ function Vendas() {
           setComandaAtiva(null);
           exibirMensagem("Cliente não possui comanda ativa.");
         }
-
       }
     } catch (error) {
       if (error.response) {
@@ -98,7 +97,6 @@ function Vendas() {
       }
     }
   };
-
 
   const atualizarVenda = async () => {
     const clienteAtualId = clienteBuscado?.idCliente || clienteCartao; // Usando idCliente agora
@@ -191,7 +189,11 @@ function Vendas() {
     }
   };
 
-  // (só a parte do handleScan e hooks scanner aqui, para foco)
+  const handleExcluirProduto = (produto) => {
+    setProdutos((prev) => prev.filter((p) => p !== produto));
+    setValorTotal((prevTotal) => prevTotal - produto.precoProduto);
+  };
+
 
   const handleScan = async (code) => {
     document.activeElement.blur();
@@ -226,14 +228,12 @@ function Vendas() {
 
         setProdutos((prev) => [...prev, produto]);
         setValorTotal(novoTotal);
-        // NÃO ALTERE cliente ou clienteBuscado aqui!
       }
     } catch {
       exibirMensagem("Erro ao buscar produto!");
     }
   };
 
-  // RFID - cartão do cliente
   useCodeScanner((data, tipo) => {
     console.log("Scanner callback:", data, tipo);
     if (tipo === "card") {
@@ -244,9 +244,9 @@ function Vendas() {
     }
   });
 
-
+  /*
   const obterPesoDaBalanca = async () => {
-    console.log("entrou na funcao")
+    console.log("Entrou na função")
     try {
       const response = await axios.get("http://localhost:3000/getPeso");
 
@@ -293,7 +293,7 @@ function Vendas() {
 
         setProdutos((prev) => [...prev, produtoComPeso]);
         setValorTotal((prevTotal) => prevTotal + valorProporcional);
-        setValorUltimaRefeicao(valorProporcional); // exibe abaixo o valor da refeição
+        setValorUltimaRefeicao(valorProporcional);
         setPesoGramas("");
         pesoInputRef.current?.blur();
 
@@ -304,32 +304,82 @@ function Vendas() {
     } catch {
     }
   };
+*/
 
+  const adicionarRefeicao = async () => {
+    if (!comandaAtiva) return exibirMensagem("Cliente não possui comanda ativa.");
 
+    let peso = parseFloat(pesoGramas);
+
+    // Se o peso não estiver preenchido, consulta a balança
+    if (isNaN(peso) || peso <= 0) {
+      try {
+        const response = await axios.get("http://localhost:3000/getPeso");
+        if (response.status === 200 && response.data && response.data.peso) {
+          peso = parseFloat(response.data.peso);
+        } else {
+          return exibirMensagem("Não foi possível obter o peso da balança.");
+        }
+      } catch {
+        return exibirMensagem("Erro ao se comunicar com a balança.");
+      }
+    }
+
+    if (isNaN(peso) || peso <= 0) return exibirMensagem("Peso inválido!");
+
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const response = await axios.get("http://localhost:8080/produto/1", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.status === 200 && response.data) {
+        const produtoRefeicao = response.data;
+        const precoPorKg = produtoRefeicao.precoProduto;
+        const valorProporcional = peso * precoPorKg;
+
+        const limitePermitido = cliente.saldoCliente + cliente.faturaCliente;
+        if (valorTotal + valorProporcional > limitePermitido) {
+          return exibirMensagem("Total excede saldo + limite.");
+        }
+
+        const produtoComPeso = {
+          ...produtoRefeicao,
+          nomeProduto: `${produtoRefeicao.nomeProduto} (${peso}g)`,
+          precoProduto: valorProporcional,
+        };
+
+        setProdutos((prev) => [...prev, produtoComPeso]);
+        setValorTotal((prevTotal) => prevTotal + valorProporcional);
+        setPesoGramas("");
+        pesoInputRef.current?.blur();
+      } else {
+        exibirMensagem("Produto de refeição não encontrado!");
+      }
+    } catch {
+      exibirMensagem("Erro ao buscar produto de refeição.");
+    }
+  };
 
   return (
     <C.Container>
-      <C.Content>
-        <C.Title>Nova Comanda - TechMeal</C.Title>{/*
-        <C.SubTitle>Identificação do Cliente</C.SubTitle>
-        <C.FieldGroup>
-          <C.Input
-            type="text"
-            placeholder="Digite o código do cartão"
-            value={clienteCartao}
-            onChange={(e) => setClienteCartao(e.target.value)}
-          />
-          <C.Button onClick={() => buscarClientePorCartao(clienteCartao)}>
-            Buscar Cliente
-          </C.Button>
-        </C.FieldGroup>*/}
-
-
+      <C.Card>
+        <C.Title>Nova Comanda - TechMeal</C.Title>
 
         {mensagem && <C.Mensagem>{mensagem}</C.Mensagem>}
 
-        {cliente && <C.ClienteNome>Cliente: {cliente.nomeCliente}</C.ClienteNome>}
-        {cliente && <C.ValorTotal>Valor Total: R$ {valorTotal.toFixed(2)}</C.ValorTotal>}
+        {cliente && (
+          <C.InfoGroup>
+            <C.InfoItem>
+              <span>Cliente:</span> <strong>{cliente.nomeCliente}</strong>
+            </C.InfoItem>
+            <C.InfoItem>
+              <span>Total:</span> <strong>R$ {valorTotal.toFixed(2)}</strong>
+            </C.InfoItem>
+          </C.InfoGroup>
+        )}
 
         {cliente && comandaAtiva && (
           <>
@@ -338,41 +388,45 @@ function Vendas() {
               <C.Input
                 ref={pesoInputRef}
                 type="number"
-                placeholder="Peso em gramas"
+                placeholder="Peso em gramas (ou deixe em branco)"
                 value={pesoGramas}
                 onChange={(e) => setPesoGramas(e.target.value)}
               />
-
-              <C.Button onClick={() => { obterPesoDaBalanca(); }}>
-                Obter Peso
-              </C.Button>
-              <C.Button onClick={() => { adicionarRefeicao(); }}>
-                Adicionar Refeição
-              </C.Button>
+              <Button Text="Adicionar Refeição" onClick={() => adicionarRefeicao()} />
             </C.FieldGroup>
           </>
         )}
 
-        {produtos.length === 0 ? (
+        {produtos.length > 0 && (
+          <>
+            <C.ProductList>
+              {produtos.map((produto, index) => (
+                <C.ProductItem key={index}>
+                  <span>{produto.nomeProduto}</span>
+                  <C.ProductPrice>R$ {produto.precoProduto.toFixed(2)}</C.ProductPrice>
+                  <Trash
+                    size={20}
+                    style={{ cursor: "pointer", color: "#dc3545", marginLeft: "10px" }}
+                    onClick={() => handleExcluirProduto(produto)}
+                  />
+                </C.ProductItem>
+              ))}
+            </C.ProductList>
+
+
+            <C.AddRefeicaoWrapper>
+              <Button Text="Finalizar Venda" onClick={atualizarVenda} />
+            </C.AddRefeicaoWrapper>
+          </>
+        )}
+
+        {produtos.length === 0 && (
           <C.Description>Nenhum produto escaneado ainda.</C.Description>
-        ) : (
-          <C.ProductList>
-            {produtos.map((produto, index) => (
-              <C.ProductItem key={index}>
-                <span>{produto.nomeProduto}</span>
-                <span>R$ {produto.precoProduto.toFixed(2)}</span>
-              </C.ProductItem>
-            ))}
-          </C.ProductList>
         )}
 
-        {/* O botão só será exibido depois que o cliente for identificado */}
-        {cliente && comandaAtiva && produtos.length > 0 && (
-          <C.Button onClick={atualizarVenda}>Finalizar Venda</C.Button>
-        )}
-
-      </C.Content>
+      </C.Card>
     </C.Container>
+
   );
 }
 

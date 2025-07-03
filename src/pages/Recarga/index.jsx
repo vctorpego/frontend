@@ -2,19 +2,16 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../../components/Sidebar";
 import * as C from "./styles";
 import { Message } from "../ListagemProdutos/styles";
 
-
 const Recarga = () => {
   const [user, setUser] = useState(null);
-  const [cartaoCliente, setCartaoCliente] = useState(""); // Usando o cartão do cliente
+  const [cartaoCliente, setCartaoCliente] = useState(""); 
   const [cliente, setCliente] = useState(null);
   const [valor, setValor] = useState("");
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [messageType, setMessageType] = useState("");
   const [message, setMessage] = useState("");
-
 
   const navigate = useNavigate();
 
@@ -53,7 +50,7 @@ const Recarga = () => {
   };
 
   const buscarClientePorCartao = async () => {
-    if (!cartaoCliente || cartaoCliente.length !== 10) return; // Verificar se o número do cartão está completo
+    if (!cartaoCliente || cartaoCliente.length !== 10) return;
 
     try {
       const res = await axios.get(
@@ -130,7 +127,6 @@ const Recarga = () => {
         setMessageType("");
       }, 3000);;
 
-      // Recarregar cliente atualizado
       await buscarClientePorCartao();
     } catch (error) {
       setMessageType("error");
@@ -142,7 +138,6 @@ const Recarga = () => {
     }
   };
 
-  // Função para capturar o número do cartão
   useEffect(() => {
     const handleCardInput = (event) => {
       const input = event.key;
@@ -164,7 +159,6 @@ const Recarga = () => {
     };
   }, []);
 
-  // Chama a busca do cliente automaticamente quando o cartão for lido
   useEffect(() => {
     if (cartaoCliente.length === 10) {
       console.log("Cartão completo, buscando cliente...");
@@ -174,8 +168,6 @@ const Recarga = () => {
 
   return (
     <C.Container>
-      <Sidebar user={user} />
-      <C.Content>
         <C.Title>Recarga</C.Title>
         {message && <Message type={messageType}>{message}</Message>}
 
@@ -186,7 +178,7 @@ const Recarga = () => {
           {cliente && (
             <>
               <div>
-                <p><strong>Cliente:</strong> {cliente.nomeCliente}</p>
+                <p><strong>Cliente: {cliente.nomeCliente}</strong></p>
                 <p>Saldo Atual: R$ {cliente.saldoCliente.toFixed(2)}</p>
                 <p>Limite Total: R$ {cliente.limiteCliente.toFixed(2)}</p>
                 <p>Limite Disponível: R$ {cliente.faturaCliente.toFixed(2)}</p>
@@ -208,7 +200,6 @@ const Recarga = () => {
             </>
           )}
         </C.Form>
-      </C.Content>
     </C.Container>
   );
 };

@@ -2,14 +2,12 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import Grid from "../../components/Grid";
-import Sidebar from "../../components/Sidebar";
 import ModalExcluir from "../../components/ModalExcluir";
 import { useNavigate } from "react-router-dom";
-import * as C from "./styles";
 import SearchBar from "../../components/SearchBar";
 import { Message } from "../ListagemProdutos/styles";
-
-
+import Button from "../../components/Button";
+import * as C from "./styles";
 
 const ListagemUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
@@ -19,9 +17,10 @@ const ListagemUsuarios = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [userPermissions, setUserPermissions] = useState([]);
   const [permissoesTelaAtual, setPermissoesTelaAtual] = useState([]);
-  const navigate = useNavigate();
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [messageType, setMessageType] = useState("");
   const [message, setMessage] = useState("");
+
+  const navigate = useNavigate();
 
   const getToken = () => {
     const token = localStorage.getItem("token");
@@ -59,7 +58,6 @@ const ListagemUsuarios = () => {
     const decoded = jwt_decode(token);
     const userLogin = decoded.sub;
 
-    // Buscar usuários
     axios
       .get("http://localhost:8080/usuario", getRequestConfig())
       .then(({ data }) => {
@@ -69,7 +67,6 @@ const ListagemUsuarios = () => {
         console.error("Erro ao buscar usuários:", err);
       });
 
-    // Buscar permissões do usuário logado
     const fetchUserPermissions = async () => {
       try {
         const response = await axios.get(
@@ -178,57 +175,45 @@ const ListagemUsuarios = () => {
 
   return (
     <C.Container>
-      <C.Content>
+      <C.Header>
         <C.Title>Lista de Usuários</C.Title>
-        {message && <Message type={messageType}>{message}</Message>}
-        <SearchBar input={searchQuery} setInput={setSearchQuery} />
-
         {permissoesTelaAtual.includes("POST") && (
-          <button
-            onClick={handleAddUsuario}
-            style={{
-              position: "absolute",
-              top: "20px",
-              right: "20px",
-              padding: "10px 20px",
-              backgroundColor: "#007bff",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-            }}
-          >
-            Adicionar Usuário
-          </button>
+          <C.AddButtonWrapper>
+            <Button Text="Adicionar" onClick={handleAddUsuario} />
+          </C.AddButtonWrapper>
         )}
+      </C.Header>
 
-        {usuarios.length === 0 ? (
-          <p>Nenhum usuário encontrado.</p>
-        ) : (
-          <Grid
-            data={filterUsuarios()}
-            columns={columns}
-            columnMap={{
-              ID: "idUsuario",
-              Nome: "nomeUsuario",
-              Email: "emailUsuario",
-              Telefone: "telefoneUsuario",
-              Login: "login",
-            }}
-            idKey="idUsuario"
-            handleDelete={handleDeleteUsuario}
-            handleEdit={handleEditUsuario}
-            actions={actions}
-            showActionsColumn={showActionsColumn}
-          />
-        )}
+      {message && <Message type={messageType}>{message}</Message>}
 
-        <ModalExcluir
-          open={openModalExcluir}
-          onClose={handleCloseModal}
-          onConfirm={handleConfirmDelete}
+      <SearchBar input={searchQuery} setInput={setSearchQuery} />
+
+      {usuarios.length === 0 ? (
+        <p>Nenhum usuário encontrado.</p>
+      ) : (
+        <Grid
+          data={filterUsuarios()}
+          columns={columns}
+          columnMap={{
+            ID: "idUsuario",
+            Nome: "nomeUsuario",
+            Email: "emailUsuario",
+            Telefone: "telefoneUsuario",
+            Login: "login",
+          }}
+          idKey="idUsuario"
+          handleDelete={handleDeleteUsuario}
+          handleEdit={handleEditUsuario}
+          actions={actions}
+          showActionsColumn={showActionsColumn}
         />
-      </C.Content>
+      )}
+
+      <ModalExcluir
+        open={openModalExcluir}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmDelete}
+      />
     </C.Container>
   );
 };

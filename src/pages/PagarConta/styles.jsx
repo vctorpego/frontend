@@ -6,7 +6,7 @@ export const Container = styled.div`
   justify-content: center;
   flex-direction: column;
   height: 100vh;
-  background-color: #f5f5f5; /* Cor de fundo suave */
+  background-color: #f5f5f5;
   gap: 30px;
   padding: 20px;
 `;
@@ -39,13 +39,13 @@ export const Input = styled.input`
   transition: border-color 0.3s ease;
 
   &:focus {
-    border-color: #007BFF; /* Cor do contorno ao focar no campo */
+    border-color: #007BFF; 
     outline: none;
   }
 `;
 
 export const Button = styled.button`
-  background-color: #007BFF; /* Cor de fundo do botão */
+  background-color: #007BFF;
   color: white;
   padding: 12px;
   font-size: 18px;
@@ -55,7 +55,7 @@ export const Button = styled.button`
   transition: background-color 0.3s ease;
 
   &:hover {
-    background-color: #0056b3; /* Cor do botão ao passar o mouse */
+    background-color: #0056b3;
   }
 `;
 

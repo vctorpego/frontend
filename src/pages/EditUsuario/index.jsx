@@ -24,7 +24,7 @@ const EditUsuario = () => {
   const [isSuperAdm, setIsSuperAdm] = useState(false);
   const [adminChecked, setAdminChecked] = useState(false);
   const navigate = useNavigate();
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [messageType, setMessageType] = useState("");
   const [message, setMessage] = useState("");
 
   const getToken = () => {
@@ -94,7 +94,6 @@ const EditUsuario = () => {
           return;
         }
 
-        // Dados do usuário sendo editado
         const userToEditResponse = await axios.get(
           `http://localhost:8080/usuario/${id}`,
           getRequestConfig()
@@ -105,9 +104,8 @@ const EditUsuario = () => {
         setEmail(emailUsuario);
         setTelefone(telefoneUsuario);
         setLogin(login);
-        setAdminChecked(isAdm); // define se o checkbox de administrador deve estar marcado
+        setAdminChecked(isAdm);
 
-        // Permissões atuais do usuário
         const permissoesUsuario = await axios.get(
           `http://localhost:8080/permissao/telas/${id}`,
           getRequestConfig()
@@ -153,7 +151,7 @@ const EditUsuario = () => {
   const toggleAllCheckboxes = (checked) => {
     const novasPermissoes = {};
     telas.forEach((tela) => {
-      if (tela.nomeTela === "Tela de Tela") return; // Ignora a tela de controle
+      if (tela.nomeTela === "Tela de Tela") return;
       novasPermissoes[tela.nomeTela] = {
         adicionar: checked,
         editar: checked,
@@ -168,11 +166,10 @@ const EditUsuario = () => {
     const novoValor = !adminChecked;
     setAdminChecked(novoValor);
 
-    // Se marcar "Administrador", marque todos os checkboxes
     if (novoValor) {
       const novasPermissoes = {};
       telas.forEach((tela) => {
-        if (tela.nomeTela === "Tela de Tela") return; // Ignora a tela de controle
+        if (tela.nomeTela === "Tela de Tela") return;
         novasPermissoes[tela.nomeTela] = {
           adicionar: true,
           editar: true,
@@ -182,7 +179,6 @@ const EditUsuario = () => {
       });
       setPermissoes(novasPermissoes);
     } else {
-      // Caso contrário, desmarque todos os checkboxes
       toggleAllCheckboxes(false);
     }
   };
@@ -196,7 +192,6 @@ const EditUsuario = () => {
         [acao]: novaPermissaoAcao,
       };
 
-      // Se marcou adicionar, editar ou excluir, força visualizar como true
       if (["adicionar", "editar", "excluir"].includes(acao) && novaPermissaoAcao) {
         novasPermissoesTela.visualizar = true;
       }
@@ -207,8 +202,6 @@ const EditUsuario = () => {
       };
     });
   };
-
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -10,8 +10,7 @@ import {
   SaldoText,
   SaldoValue,
   ComandaInfo,
-  ErrorCard,
-  ErrorText,
+  Message,
   CartaoCard,
   CartaoTexto,
   CartaoTextoLabel,
@@ -38,7 +37,6 @@ const SaidaCliente = () => {
     }, 4000);
   };
 
-  // 🔥 Captura do cartão igual à tela de entrada
   useEffect(() => {
     const handleCardInput = (event) => {
       const key = event.key;
@@ -175,50 +173,55 @@ const SaidaCliente = () => {
   return (
     <Container>
       <Title>Saída do Cliente</Title>
+
       <CartaoCard>
         <CartaoTexto>
-          <CartaoTextoLabel>Cartão:</CartaoTextoLabel>
+          <CartaoTextoLabel>Cartão detectado:</CartaoTextoLabel>
           <CartaoCodigo>
-            <CartaoCodigoText>{cartaoCliente}</CartaoCodigoText>
+            <CartaoCodigoText>{cartaoCliente || "Aguardando leitura..."}</CartaoCodigoText>
           </CartaoCodigo>
         </CartaoTexto>
       </CartaoCard>
 
-      {loading && <p>Processando saída...</p>}
-      {erro && (
-        <ErrorCard>
-          <ErrorText>{erro}</ErrorText>
-        </ErrorCard>
-      )}
+      {erro && <Message erro>{erro}</Message>}
+
+      {loading && <p>Registrando saída do cliente, por favor aguarde...</p>}
 
       {cliente && (
         <Card>
-          <h2>Até logo, {cliente.nomeCliente}</h2>
+          <h2>Saída concluída para {cliente.nomeCliente}</h2>
           <SaldoCard saldo={cliente.saldoCliente}>
-            <SaldoText>Saldo :</SaldoText>
-            <SaldoValue saldo={cliente.saldoCliente}>R$ {cliente.saldoCliente?.toFixed(2)}</SaldoValue>
-            <SaldoText>Limite :</SaldoText>
-            <SaldoValue limite={cliente.limiteCliente}>R$ {cliente.limiteCliente?.toFixed(2)}</SaldoValue>
+            <div>
+              <SaldoText>Saldo:</SaldoText>{" "}
+              <SaldoValue saldo={cliente.saldoCliente}>
+                R$ {cliente.saldoCliente?.toFixed(2)}
+              </SaldoValue>
+            </div>
+            <div>
+              <SaldoText>Limite:</SaldoText>{" "}
+              <SaldoValue limite={cliente.limiteCliente}>
+                R$ {cliente.limiteCliente?.toFixed(2)}
+              </SaldoValue>
+            </div>
           </SaldoCard>
-
         </Card>
       )}
 
       {comanda && (
         <ComandaInfo>
-          <h3>Comanda Finalizada</h3>
+          <h3>Resumo da Comanda</h3>
           <p><strong>ID:</strong> {comanda.idCompraComanda}</p>
           <p><strong>Entrada:</strong> {comanda.horaEntradaComanda}</p>
           <p><strong>Saída:</strong> {comanda.horaSaidaComanda}</p>
-          <p><strong>Total:</strong> R$ {comanda.valorTotalComanda?.toFixed(2)}</p>
+          <p><strong>Total:</strong> <span style={{ fontWeight: 'bold'}}>R$ {comanda.valorTotalComanda?.toFixed(2)}</span></p>
 
           {produtosDetalhados.length > 0 && (
             <>
-              <h4>Produtos:</h4>
+              <h4>Itens consumidos:</h4>
               <ul>
                 {produtosDetalhados.map((produto, index) => (
                   <li key={index}>
-                    {produto.nomeProduto} x{produto.quantidade} – R$ {(produto.precoProduto * produto.quantidade).toFixed(2)}
+                    {produto.nomeProduto} x{produto.quantidade} — R$ {(produto.precoProduto * produto.quantidade).toFixed(2)}
                   </li>
                 ))}
               </ul>

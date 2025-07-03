@@ -11,7 +11,6 @@ import * as C from "./styles";
 import useAuth from "../../hooks/useAuth";
 import { fetchConsumoClientes } from "../../services/api";
 
-//comentario
 const Home = () => {
   const { signout } = useAuth();
   const navigate = useNavigate();
@@ -70,30 +69,28 @@ const Home = () => {
 
   if (loading) return <p>Carregando dados do dashboard...</p>;
 
-  //comentario
   return (
     <C.Container>
-      <C.Title>Dashboard</C.Title>
-      <C.ChartsWrapper>
-        <C.ChartBox>
-          <h4>Consumo Total por Cliente</h4>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={consumoClientes}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="consumo" fill="#8884d8" name="Total Consumido (R$)">
-                <LabelList dataKey="consumo" position="top" formatter={(value) => `R$ ${value.toFixed(2)}`} />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </C.ChartBox>
-      </C.ChartsWrapper>
+        <C.Title>Dashboard</C.Title>
+        <C.ChartsWrapper>
+          <C.ChartBox>
+            <h4>Consumo Total por Cliente</h4>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={consumoClientes}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="consumo" fill="#8884d8" name="Total Consumido (R$)">
+                  <LabelList dataKey="consumo" position="top" formatter={(value) => `R$ ${value.toFixed(2)}`} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </C.ChartBox>
+        </C.ChartsWrapper>
     </C.Container>
   );
 };
 
-//comentario
 export default Home;

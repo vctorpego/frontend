@@ -1,6 +1,5 @@
 import styled from "styled-components";
 
-// Sidebar fixa, sem scroll geral
 export const SidebarContainer = styled.div`
   width: 200px;
   height: 100vh;
@@ -13,7 +12,6 @@ export const SidebarContainer = styled.div`
   position: fixed;
 `;
 
-// Container principal da página
 export const Container = styled.div`
   margin-left: 250px;
   padding: 20px;
@@ -27,20 +25,19 @@ export const Container = styled.div`
   }
 `;
 
-// Logo fixa no topo
 export const Logo = styled.div`
   display: flex;
   align-items: center;
   width: 100%;
   padding-left: 15px;
-  margin-bottom: 40px; /* Espaçamento padrão grande */
+  margin-bottom: 40px;
 
   svg {
     color: white;
   }
 
   @media (max-height: 600px) {
-    margin-bottom: 15px; /* Reduz o espaço em telas menores */
+    margin-bottom: 15px;
   }
 `;
 
@@ -52,25 +49,23 @@ export const LogoText = styled.h1`
   white-space: nowrap;
 `;
 
-// Menu com scroll independente
 export const Menu = styled.div`
   flex-grow: 1;
   overflow-y: auto;
   width: 100%;
-  padding-right: 5px; /* opcional: para não colar o scroll no texto */
+  padding-right: 5px;
   display: flex;
   flex-direction: column;
   gap: 4px;
 
   /* Scroll invisível */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE 10+ */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   &::-webkit-scrollbar {
-    display: none; /* Chrome/Safari */
+    display: none;
   }
 `;
 
-// Itens do menu com tamanho reduzido
 export const MenuItem = styled.div.attrs((props) => ({
   'data-active': props.isActive ? 'true' : 'false',
 }))`
@@ -92,7 +87,6 @@ export const MenuItem = styled.div.attrs((props) => ({
   }
 `;
 
-// Informações do usuário fixas embaixo
 export const UserInfo = styled.div`
   padding: 16px;
   text-align: left;

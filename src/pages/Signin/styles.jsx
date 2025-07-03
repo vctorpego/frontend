@@ -7,7 +7,7 @@ export const Wrapper = styled.div`
 
 export const Left = styled.div`
   flex: 1;
-  background-color: #00aaff;
+  background-color: #f5f5f5;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -61,7 +61,7 @@ export const FormBox = styled.div`
 export const LoginInput = styled.input`
   width: 100%;
   padding: 16px 16px;
-  font-size: 18px;
+  font-size: 16px;
   border: 1.5px solid #ccc;
   border-radius: 8px;
   background-color: #f5f5f5;
@@ -79,49 +79,7 @@ export const LoginInput = styled.input`
   }
 `;
 
-export const CheckboxRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  font-size: 16px;
-  width: 100%;
-  margin: 14px 0;
-
-  label {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-  }
-`;
-
-export const LinkText = styled.a`
-  color: #007bff;
-  text-decoration: none;
-  cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
 export const labelError = styled.label`
   font-size: 16px;
   color: red;
-`;
-
-export const Divider = styled.div`
-  margin: 24px 0 14px;
-  font-size: 16px;
-  color: #676767;
-`;
-
-export const SocialIcons = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-
-  img {
-    width: 34px;
-    height: 34px;
-    cursor: pointer;
-  }
 `;

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
-import { Container, Form, Input, Button } from './styles'; // ajuste se necessário
+import { Container, Title, Form, Input, Button } from './styles';
 import { Message } from "../EditUsuario/styles";
 
 const CadastroTela = () => {
@@ -10,7 +10,7 @@ const CadastroTela = () => {
   const [urlTela, setUrlTela] = useState("");
   const [hasPermission, setHasPermission] = useState(false);
   const navigate = useNavigate();
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [messageType, setMessageType] = useState("");
   const [message, setMessage] = useState("");
 
   const getToken = () => {
@@ -145,7 +145,7 @@ const CadastroTela = () => {
 
   return (
     <Container>
-      <h2>Cadastro de Tela</h2>
+      <Title>Cadastro de Tela</Title>
       {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>
         <Input

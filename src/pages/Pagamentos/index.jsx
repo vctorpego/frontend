@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import Grid from "../../components/GridPagamento";
-import Sidebar from "../../components/Sidebar";
 import ModalExcluir from "../../components/ModalExcluir";
 import { useNavigate } from "react-router-dom";
 import * as C from "./styles";
@@ -17,7 +16,7 @@ const Pagamentos = () => {
   const [contaExcluir, setContaExcluir] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [messageType, setMessageType] = useState("");
   const [message, setMessage] = useState("");
 
   const getToken = () => {
@@ -135,7 +134,6 @@ const Pagamentos = () => {
     "Status",
   ];
 
-  // ✅ Corrigido: permissões com base em POST/PUT/DELETE
   const actions = [
     permissoes.includes("PUT") && "edit",
     permissoes.includes("DELETE") && "delete",
@@ -144,13 +142,11 @@ const Pagamentos = () => {
 
   return (
     <C.Container>
-      <Sidebar user={user} />
       <C.Content>
         <C.Title>Lista de Contas</C.Title>
         {message && <Message type={messageType}>{message}</Message>}
         <SearchBar input={searchQuery} setInput={setSearchQuery} />
 
-        {/* ✅ Corrigido: verificação com POST (não Incluir) */}
         {permissoes.includes("POST") && (
           <button
             onClick={() => navigate("/pagamentos/adicionar")}
@@ -188,7 +184,7 @@ const Pagamentos = () => {
             handleEdit={handlePagarConta}
             handleDelete={handleDeleteConta}
             handlePay={handlePayConta}
-            actions={actions} // ✅ Passando as ações filtradas com base nas permissões
+            actions={actions}
           />
         )}
 

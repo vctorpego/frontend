@@ -9,7 +9,7 @@ import {
   Input,
   Button,
   Label,
-  Message, // importe o Message
+  Message,
 } from '../AddFornecedor/styles';
 
 const AddFornecedor = () => {
@@ -19,8 +19,8 @@ const AddFornecedor = () => {
   const [emailFornecedor, setEmailFornecedor] = useState("");
   const [chavePixFornecedor, setChavePixFornecedor] = useState("");
   const [hasPermission, setHasPermission] = useState(false);
-  const [message, setMessage] = useState("");      // mensagem a exibir
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {

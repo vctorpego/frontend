@@ -2,13 +2,13 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import Grid from "../../components/Grid";
-import Sidebar from "../../components/Sidebar";
 import ModalExcluir from "../../components/ModalExcluir";
 import ModalPrinter from "../../components/ModalPrinter";
 import { useNavigate } from "react-router-dom";
-import * as C from "./styles";
 import SearchBar from "../../components/SearchBar";
 import { Message } from "../ListagemProdutos/styles";
+import Button from "../../components/Button";
+import * as C from "./styles";
 
 const ListagemProdutos = () => {
   const [produtos, setProdutos] = useState([]);
@@ -19,7 +19,7 @@ const ListagemProdutos = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [openModalPrinter, setOpenModalPrinter] = useState(false);
   const [produtoPrinter, setProdutoPrinter] = useState(null);
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [messageType, setMessageType] = useState("");
   const [message, setMessage] = useState("");
 
   const navigate = useNavigate();
@@ -188,14 +188,9 @@ const ListagemProdutos = () => {
     }
   };
 
-
-
-
-
   const handleClosePrinter = () => {
     setOpenModalPrinter(false);
     setProdutoPrinter(null);
-
   };
 
   const columns = [
@@ -220,68 +215,54 @@ const ListagemProdutos = () => {
 
   return (
     <C.Container>
-      <Sidebar user={user} />
-      <C.Content>
+      <C.Header>
         <C.Title>Lista de Produtos</C.Title>
-        {message && <Message type={messageType}>{message}</Message>}
-
-        <SearchBar input={searchQuery} setInput={setSearchQuery} />
-
         {permissoes.includes("POST") && (
-          <button
-            onClick={handleAddProduto}
-            style={{
-              position: "absolute",
-              top: "20px",
-              right: "20px",
-              padding: "10px 20px",
-              backgroundColor: "#007bff",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-            }}
-          >
-            Adicionar Produto
-          </button>
+          <C.AddButtonWrapper>
+            <Button Text="Adicionar" onClick={handleAddProduto} />
+          </C.AddButtonWrapper>
         )}
+      </C.Header>
 
-        {produtos.length === 0 ? (
-          <p>Nenhum produto encontrado.</p>
-        ) : (
-          <Grid
-            data={filterProdutos()}
-            columns={columns}
-            columnMap={{
-              ID: "idProduto",
-              Nome: "nomeProduto",
-              "Código de Barras": "codigoBarrasProduto",
-              Estoque: "quantProduto",
-              Preço: "precoProduto",
-              "Preço de Custo": "valorDeCustoProduto",
-            }}
-            idKey="idProduto"
-            handleDelete={handleDeleteProduto}
-            handleEdit={handleEditProduto}
-            handlePrint={handlePrintProduto}
-            actions={actions}
-            showActionsColumn={showActionsColumn}
-          />
-        )}
+      {message && <C.Message type={messageType}>{message}</C.Message>}
 
-        <ModalExcluir
-          open={openModalExcluir}
-          onClose={handleCloseModal}
-          onConfirm={handleConfirmDelete}
+      <SearchBar input={searchQuery} setInput={setSearchQuery} />
+
+      {produtos.length === 0 ? (
+        <p>Nenhum produto encontrado.</p>
+      ) : (
+        <Grid
+          data={filterProdutos()}
+          columns={columns}
+          columnMap={{
+            ID: "idProduto",
+            Nome: "nomeProduto",
+            "Código de Barras": "codigoBarrasProduto",
+            Estoque: "quantProduto",
+            Preço: "precoProduto",
+            "Preço de Custo": "valorDeCustoProduto",
+          }}
+          idKey="idProduto"
+          handleDelete={handleDeleteProduto}
+          handleEdit={handleEditProduto}
+          handlePrint={handlePrintProduto}
+          actions={actions}
+          showActionsColumn={showActionsColumn}
         />
+      )}
 
-        <ModalPrinter
-          open={openModalPrinter}
-          onClose={handleClosePrinter}
-          onConfirm={handleConfirmImpressao}
-          produto={produtoPrinter}
-        />
-      </C.Content>
+      <ModalExcluir
+        open={openModalExcluir}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmDelete}
+      />
+
+      <ModalPrinter
+        open={openModalPrinter}
+        onClose={handleClosePrinter}
+        onConfirm={handleConfirmImpressao}
+        produto={produtoPrinter}
+      />
     </C.Container>
   );
 };

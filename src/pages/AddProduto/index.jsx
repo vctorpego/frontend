@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import jwt_decode from "jwt-decode"; // Biblioteca para decodificar o token
-
+import jwt_decode from "jwt-decode";
 import { Container, Title, Form, Input, Button, Label, Message } from '../AddProduto/styles';
 
 const AddProduto = () => {
@@ -10,8 +9,8 @@ const AddProduto = () => {
   const [precoCusto, setPrecoCusto] = useState("");
   const [precoVenda, setPrecoVenda] = useState("");
   const [estoque, setEstoque] = useState("");
-  const [hasPermission, setHasPermission] = useState(false); // Estado para verificar permissão
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [hasPermission, setHasPermission] = useState(false);
+  const [messageType, setMessageType] = useState("");
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
@@ -25,7 +24,7 @@ const AddProduto = () => {
       }
 
       const decoded = jwt_decode(token);
-      const userLogin = decoded.sub; // Extrai o ID do usuário do token
+      const userLogin = decoded.sub;
 
       const getRequestConfig = () => ({
         headers: {
@@ -34,22 +33,19 @@ const AddProduto = () => {
       });
 
       try {
-        // Faz a requisição para pegar os dados do usuário
         const response = await axios.get(
           `http://localhost:8080/usuario/id/${userLogin}`,
           getRequestConfig()
         );
         const userId = response.data;
 
-        // Requisição para pegar as permissões do usuário
         const permissionsResponse = await axios.get(
           `http://localhost:8080/permissao/telas/${userId}`,
           getRequestConfig()
         );
 
-        // Verifica se o usuário tem permissão para "POST" na tela de "Tela de Clientes"
         const permissoesTela = permissionsResponse.data.find(
-          (perm) => perm.tela === "Tela de Produtos" // Alterado para "Tela de Produtos"
+          (perm) => perm.tela === "Tela de Produtos" 
         );
 
         const permissoes = permissoesTela?.permissoes || [];
@@ -57,7 +53,6 @@ const AddProduto = () => {
 
         setHasPermission(hasPostPermission);
 
-        // Caso não tenha permissão de POST, redireciona para uma página de acesso negado
         if (!hasPostPermission) {
           navigate("/nao-autorizado");
         }
@@ -73,7 +68,6 @@ const AddProduto = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Verifica se a permissão de POST foi concedida antes de permitir o envio do formulário
     if (!hasPermission) {
       setMessageType("error");
       setMessage("Voce não tem permissao de adicionar produto!");
@@ -98,9 +92,8 @@ const AddProduto = () => {
     }
 
     try {
-      // Decodifica o token para verificar a expiração
       const decodedToken = jwt_decode(token);
-      const currentTime = Date.now() / 1000; // Tempo atual em segundos
+      const currentTime = Date.now() / 1000;
 
       if (decodedToken.exp < currentTime) {
         setMessageType("error");
@@ -129,7 +122,7 @@ const AddProduto = () => {
       if (response.status === 200) {
         setMessageType("success");
         setMessage("Produto adicionado com Sucesso!");
-        setTimeout(() => navigate("/home"), 2000);
+        setTimeout(() => navigate("/produtos"), 2000);
       }
     } catch (error) {
       console.error("Erro ao adicionar o produto:", error);
@@ -157,7 +150,6 @@ const AddProduto = () => {
     }
   };
 
-  // Se o usuário não tem permissão para adicionar, exibe mensagem de acesso negado
   if (!hasPermission) {
     return <p>Você não tem permissão para adicionar produtos.</p>;
   }

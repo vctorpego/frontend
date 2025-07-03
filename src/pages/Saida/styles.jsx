@@ -1,12 +1,14 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 export const Container = styled.div`
+  width: calc(100% - 200px);
+  margin-left: 200px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   flex-direction: column;
   height: 100vh;
-  background-color: #f9f9f9;
+  background-color: #f4f4f4;
   padding: 40px;
 
   @media (max-width: 768px) {
@@ -15,94 +17,84 @@ export const Container = styled.div`
 `;
 
 export const Title = styled.h2`
-  font-size: 32px;
+  font-size: 2rem;
   color: #333;
   margin-bottom: 20px;
+`;
 
-  @media (max-width: 768px) {
-    font-size: 24px;
-    margin-bottom: 15px;
+const CardBase = styled.div`
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
   }
 `;
 
-export const Label = styled.label`
-  font-size: 16px;
-  color: #555;
-  margin-right: 10px;
-
-  @media (max-width: 768px) {
-    font-size: 14px;
-  }
-`;
-
-export const ErrorMessage = styled.p`
-  color: #c0392b;
-  font-size: 14px;
-  margin-top: 10px;
-
-  @media (max-width: 768px) {
-    font-size: 12px;
-  }
-`;
-
-export const Card = styled.div`
-  background-color: #fff;
-  padding: 24px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
+export const CartaoCard = styled(CardBase)`
+  padding: 20px 30px;
+  margin-bottom: 20px;
+  max-width: 500px;
   width: 100%;
-  max-width: 600px;
+`;
+
+export const Card = styled(CardBase)`
+  padding: 24px;
+  width: 100%;
+  max-width: 500px;
   margin-top: 20px;
   text-align: center;
 
-  @media (max-width: 768px) {
-    max-width: 100%;
-    padding: 15px;
+  h2, h3, h4 {
+    color: #333;
+    margin-bottom: 12px;
   }
 `;
 
-// Atualização do SaldoCard para layout flex com cores dinâmicas baseadas em saldo numérico
-export const SaldoCard = styled.div`
+export const SaldoCard = styled(CardBase)`
   margin-top: 15px;
   padding: 15px;
-  border-radius: 6px;
-  background-color: ${({ saldo }) =>
-    saldo < 0 ? '#f8d7da' : '#d4edda'};
-  color: ${({ saldo }) =>
-    saldo < 0 ? '#721c24' : '#155724'};
+  background-color: ${({ saldo }) => (saldo < 0 ? '#fdecea' : '#e8f5e9')};
+  color: ${({ saldo }) => (saldo < 0 ? '#c62828' : '#2e7d32')};
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  @media (max-width: 768px) {
-    padding: 10px;
+  span {
+    font-weight: bold;
   }
 `;
 
-// Label do saldo, estilo para texto mais destacado
-export const SaldoText = styled.span`
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
-
-  @media (max-width: 768px) {
-    font-size: 16px;
-  }
+export const Message = styled.p`
+  text-align: center;
+  background: ${({ erro }) => (erro ? "#fdecea" : "#e8f5e9")};
+  color: ${({ erro }) => (erro ? "#b91c1c" : "#047857")};
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 600;
+  font-size: 1rem;
 `;
 
-// Valor do saldo com cor condicional e negrito
-export const SaldoValue = styled.span`
-  font-size: 18px;
-  color: ${({ saldo }) => (saldo < 0 ? '#721c24' : '#155724')};
-  font-weight: bold;
-
-  @media (max-width: 768px) {
-    font-size: 16px;
-  }
-`;
-
-export const ComandaInfo = styled(Card)`
+export const ComandaInfo = styled(CardBase)`
+  padding: 24px;
+  width: 100%;
+  max-width: 500px;
+  margin-top: 20px;
   text-align: left;
+
+  h3 {
+    color: #333;
+    margin-bottom: 15px;
+  }
+
+  p {
+    margin-bottom: 8px;
+    color: #555;
+  }
 
   ul {
     margin-top: 10px;
@@ -110,81 +102,48 @@ export const ComandaInfo = styled(Card)`
   }
 
   li {
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+    color: #555;
   }
 
   @media (max-width: 768px) {
     text-align: center;
-    padding-left: 15px;
-  }
-`;
-
-// Card para mensagem de erro com estilo e responsividade
-export const ErrorCard = styled.div`
-  background-color: #f8d7da;
-  border-radius: 8px;
-  padding: 20px;
-  width: 80%;
-  max-width: 400px;
-  margin-top: 20px;
-  text-align: center;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
-
-  @media (max-width: 768px) {
-    width: 100%;
     padding: 15px;
-  }
-`;
-
-export const ErrorText = styled.p`
-  color: #721c24;
-  font-size: 18px;
-  font-weight: bold;
-
-  @media (max-width: 768px) {
-    font-size: 16px;
-  }
-`;
-
-// Card para Cartão e código do Cartão com textos na mesma linha
-export const CartaoCard = styled(Card)`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  width: 100%;
-  max-width: 600px;
-  margin-top: 20px;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    padding: 10px;
   }
 `;
 
 export const CartaoTexto = styled.div`
   display: flex;
+  justify-content: space-between;
   align-items: center;
-`;
-
-export const CartaoTextoLabel = styled(Label)`
-  margin-right: 10px;
-`;
-
-export const CartaoCodigo = styled.div`
-  display: flex;
-  align-items: center;
-  font-weight: bold;
-  font-size: 16px;
-  color: #333;
 
   @media (max-width: 768px) {
-    font-size: 14px;
+    flex-direction: column;
+    align-items: flex-start;
   }
 `;
 
-export const CartaoCodigoText = styled.p`
-  font-weight: normal;
-  margin-left: 5px;
-  color: #555;
+export const CartaoTextoLabel = styled.label`
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+`;
+
+export const CartaoCodigo = styled.div``;
+
+export const CartaoCodigoText = styled.span`
+  font-size: 16px;
+  color: #34495e;
+`;
+
+export const SaldoText = styled.span`
+  font-size: 16px;
+  font-weight: bold;
+  color: #2c3e50;
+`;
+
+export const SaldoValue = styled.span`
+  font-size: 16px;
+  font-weight: bold;
+  color: ${({ saldo }) => (saldo < 0 ? "#b91c1c" : "#047857")};
 `;

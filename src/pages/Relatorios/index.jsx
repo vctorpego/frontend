@@ -1,18 +1,15 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
-import Sidebar from "../../components/Sidebar";
 import * as C from "./styles";
 import { FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Message } from "../ListagemProdutos/styles";
 
-
 const Relatorios = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  // Estados de exibição dos popups e seus campos
   const [showTicketPopup, setShowTicketPopup] = useState(false);
   const [ticketInicio, setTicketInicio] = useState("");
   const [ticketFim, setTicketFim] = useState("");
@@ -37,7 +34,7 @@ const Relatorios = () => {
   const [consumoInicio, setConsumoInicio] = useState("");
   const [consumoFim, setConsumoFim] = useState("");
   const [pendingConsumoDownload, setPendingConsumoDownload] = useState(null);
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [messageType, setMessageType] = useState("");
   const [message, setMessage] = useState("");
 
 
@@ -50,7 +47,6 @@ const Relatorios = () => {
     { nome: "Aniversariantes do Dia", endpoint: "aniversariantes-dia" },
   ];
 
-  //comentario
   const getToken = () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -258,7 +254,6 @@ const Relatorios = () => {
     getToken();
   }, []);
 
-  //comentario
   return (
     <C.Container>
       <C.Content>

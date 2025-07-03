@@ -1,215 +1,191 @@
 import styled from "styled-components";
 
 export const Container = styled.div`
-  display: flex;
+  width: calc(100% - 200px);
+  margin-left: 200px;
   min-height: 100vh;
-  flex-direction: row;
-  background: linear-gradient(135deg, #e9f0ff 0%, #f4f8ff 100%);
+  background-color: #f4f4f4;
   padding: 40px 20px;
   box-sizing: border-box;
-  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  @media (max-width: 768px) {
+    padding: 20px 15px;
+  }
 `;
 
-export const Content = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  width: 100%;
+export const Card = styled.section`
+  background: #fff;
   max-width: 600px;
   margin: 0 auto;
-  padding: 20px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 32px 34px;
+  border-radius: 10px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.1);
+  }
 `;
 
 export const Title = styled.h2`
-  font-size: 2.5rem;
-  color: #222f3e;
+  font-size: 1.8rem;
+  color: #333;
   text-align: center;
-  margin-bottom: 0.3em;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  letter-spacing: 0.015em;
 `;
 
-export const Description = styled.p`
-  font-size: 1.1rem;
-  color: #555b6e;
+export const SubTitle = styled.h3`
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #57606a;
   text-align: center;
-  margin-bottom: 1.5em;
-  line-height: 1.5;
-  font-weight: 400;
-  font-family: 'Open Sans', Arial, sans-serif;
+  margin: 12px 0 6px 0;
 `;
 
 export const Mensagem = styled.div`
-  color: #856404;
   background-color: #fff9db;
+  color: #856404;
   border: 1.5px solid #ffecb5;
-  padding: 16px 24px;
+  padding: 14px 20px;
   border-radius: 10px;
-  max-width: 500px;
-  width: 100%;
   text-align: center;
+  font-size: 1rem;
   font-weight: 500;
   box-shadow: 0 2px 8px rgba(245, 195, 66, 0.3);
-  animation: fadeIn 0.35s ease-in-out;
-  font-family: 'Open Sans', Arial, sans-serif;
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
 `;
 
-export const Form = styled.form`
-  background-color: #fafafa;
-  padding: 35px 30px;
-  border-radius: 12px;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
-  width: 100%;
-  max-width: 550px;
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  font-family: 'Open Sans', Arial, sans-serif;
-`;
-
-export const Input = styled.input`
-  padding: 14px 16px;
-  font-size: 17px;
-  border: 2px solid #d1d8e0;
-  border-radius: 8px;
-  width: 100%;
-  transition: all 0.3s ease;
-  font-family: 'Open Sans', Arial, sans-serif;
-
-  &:focus {
-    border-color: #1e90ff;
-    outline: none;
-    background-color: #f0f7ff;
-    box-shadow: 0 0 8px rgba(30, 144, 255, 0.3);
-    transform: scale(1.04);
-  }
-`;
-
-export const ProductList = styled.ul`
-  list-style-type: none;
-  padding: 0;
-  width: 100%;
-  max-width: 550px;
-  margin-top: 1rem;
-  font-family: 'Open Sans', Arial, sans-serif;
-`;
-
-export const ProductItem = styled.li`
-  background-color: #fff;
-  padding: 18px 22px;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
+export const InfoGroup = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
-  cursor: default;
-  transition: background-color 0.25s ease;
-  font-family: 'Open Sans', Arial, sans-serif;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ecf0f1;
+  gap: 12px;
 
-  &:hover {
-    background-color: #f9fbff;
+  @media (max-width: 450px) {
+    flex-direction: column;
+    align-items: flex-start;
   }
 `;
 
-export const ProductPrice = styled.span`
-  font-weight: 600;
-  color: #2ecc71;
-  font-size: 1.15rem;
-  min-width: 70px;
-  text-align: right;
-  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-`;
+export const InfoItem = styled.div`
+  font-size: 1.2rem;
+  margin-top: 12px;
+  color: #34495e;
 
-export const Label = styled.label`
-  font-size: 1rem;
-  color: #606f7b;
-  font-weight: 500;
-  font-family: 'Open Sans', Arial, sans-serif;
-`;
-
-export const Button = styled.button`
-  background-color: #1e90ff;
-  color: white;
-  padding: 14px 26px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.35s ease;
-  width: 100%;
-  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-
-  &:hover {
-    background-color: #0b70d0;
-    transform: scale(1.07);
-    box-shadow: 0 6px 14px rgba(11, 112, 208, 0.45);
+  span {
+    font-weight: 500;
+    margin-right: 3px;
   }
 
-  &:not(:only-child) {
-    width: auto;
-    max-width: 280px;
-    margin-top: 24px;
+  strong {
+    font-weight: 600;
+    color: #2c3e50;
   }
 `;
 
 export const FieldGroup = styled.div`
   display: flex;
-  gap: 14px;
+  gap: 12px;
   flex-direction: column;
   width: 100%;
   max-width: 550px;
-  font-family: 'Open Sans', Arial, sans-serif;
 
   @media (min-width: 500px) {
     flex-direction: row;
     align-items: center;
+
+    input {
+      flex: 1;
+    }
+
+    button {
+      flex: 0;
+      width: auto;
+      padding: 12px 18px;
+      white-space: nowrap;
+    }
   }
 `;
 
-export const ClienteNome = styled.p`
-  font-size: 1.6rem;
-  font-weight: 600;
-  color: #34495e;
-  margin-top: 14px;
-  margin-bottom: 0;
-  letter-spacing: 0.015em;
-  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+export const Input = styled.input`
+  padding: 12px 14px;
+  font-size: 1rem;
+  border: 2px solid #d1d8e0;
+  border-radius: 8px;
+  width: 100%;
+  transition: all 0.3s ease;
+
+  &:focus {
+    border-color: #1e90ff;
+    background-color: #f0f7ff;
+    box-shadow: 0 0 8px rgba(30, 144, 255, 0.3);
+    outline: none;
+    transform: scale(1.02);
+  }
 `;
 
-export const ValorTotal = styled.p`
-  font-size: 1.6rem;
-  font-weight: 600;
-  color: #34495e;
+export const ProductList = styled.ul`
+  list-style: none;
+  padding: 0;
   margin-top: 6px;
-  margin-bottom: 0;
-  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 `;
 
-export const SubTitle = styled.h3`
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #57606a;
-  margin-top: 28px;
+export const ProductItem = styled.li`
+  background: #fafafa;
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1px solid #e0e6ed;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 10px;
-  letter-spacing: 0.01em;
-  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+`;
+
+export const ProductPrice = styled.span`
+  font-weight: 600;
+  color: #c82333;
+  font-size: 1.05rem;
+`;
+
+export const AddRefeicaoWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+
+  button {
+    width: 100%;
+    max-width: 220px;
+  }
+`;
+
+export const Button = styled.button`
+  background-color: #1e90ff;
+  color: white;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+
+  &:hover {
+    background-color: #0b70d0;
+    transform: scale(1.04);
+    box-shadow: 0 6px 14px rgba(11, 112, 208, 0.3);
+  }
+`;
+
+export const Description = styled.p`
+  font-size: 1rem;
+  color: #555b6e;
+  text-align: center;
+  margin-top: 8px;
 `;

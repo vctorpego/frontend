@@ -1,23 +1,23 @@
 import styled from 'styled-components';
 
 export const Container = styled.div`
-    display: flex;
-    min-height: 100vh;
-    flex-direction: row;
-    background-color: #f4f4f4;
-`;
+  width: calc(100% - 200px);
+  margin-left: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f4f4f4;
+  padding: 40px;
 
-export const Content = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    width: 100%;
+  @media (max-width: 768px) {
     padding: 20px;
+  }
 `;
 
 export const Title = styled.h1`
-    font-size: 24px;
+    font-size: 2rem;
     margin-bottom: 20px;
     text-align: center;
 `;
@@ -25,21 +25,29 @@ export const Title = styled.h1`
 export const Form = styled.form`
     background-color: #fff;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 10px;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 400px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.15);
+    }
 
     label {
         font-size: 16px;
+        font-weight: bold;
         margin-bottom: 5px;
     }
 
     input {
         padding: 10px;
+        margin-top: 5px;
         font-size: 16px;
         border: 1px solid #ccc;
         border-radius: 4px;
@@ -52,6 +60,7 @@ export const Form = styled.form`
         color: #fff;
         border: none;
         border-radius: 4px;
+        margin-top: 5px;
         font-size: 16px;
         cursor: pointer;
         transition: background-color 0.3s ease;
@@ -62,11 +71,16 @@ export const Form = styled.form`
     }
 
     div {
-        margin-top: 10px;
+        margin-top: 8px;
         padding: 10px;
         background-color: #f9f9f9;
         border-radius: 4px;
     }
+
+    div p {
+        margin-bottom: 5px;
+    }
+
 `;
 
 export const Sucesso = styled.div`

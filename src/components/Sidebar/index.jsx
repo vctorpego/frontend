@@ -69,7 +69,7 @@ const Sidebar = () => {
     };
 
     fetchDados();
-  }, [isLoggedIn]);  // Adiciona 'isLoggedIn' como dependência
+  }, [isLoggedIn]);
 
   const logout = () => {
     signout();

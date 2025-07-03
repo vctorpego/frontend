@@ -1,14 +1,16 @@
 import styled from "styled-components";
 
 export const Container = styled.div`
-  padding: 2rem;
+  width: calc(100% - 200px);
+  margin-left: 200px;
   background-color: #f5f5f5;
   min-height: 100vh;
-`;
+  padding: 2rem;
 
-/*
-comentario
-*/
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
+`;
 
 export const Title = styled.h2`
   font-size: 2rem;
@@ -25,17 +27,13 @@ export const ChartsWrapper = styled.div`
   gap: 2rem;
 `;
 
-/*
-comentario
-*/
-
 export const ChartBox = styled.div`
   width: 100%;
-  max-width: 700px;
-  height: 350px;
+  max-width: 800px;
+  height: 400px;
   background-color: #fff;
   border-radius: 12px;
-  padding: 1rem;
+  padding: 1rem 1rem 3rem 1rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 
   h4 {
@@ -45,3 +43,4 @@ export const ChartBox = styled.div`
     text-align: center;
   }
 `;
+

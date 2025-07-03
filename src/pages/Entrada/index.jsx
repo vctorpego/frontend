@@ -2,7 +2,20 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import jwtDecode from "jwt-decode";
-import { Container, Title, Label, ErrorMessage, CartaoCard, CartaoTexto, CartaoTextoLabel, CartaoCodigo, CartaoCodigoText, SaldoCard, SaldoText, SaldoValue, WelcomeCard } from "./styles";
+import {
+  Container,
+  Title,
+  Message,
+  CartaoCard,
+  CartaoTexto,
+  CartaoTextoLabel,
+  CartaoCodigo,
+  CartaoCodigoText,
+  SaldoCard,
+  SaldoText,
+  SaldoValue,
+  Card,
+} from "./styles";
 
 const EntradaCliente = () => {
   const [cartaoCliente, setCartaoCliente] = useState("");
@@ -157,28 +170,32 @@ const EntradaCliente = () => {
 
       <CartaoCard>
         <CartaoTexto>
-          <CartaoTextoLabel>Cartão:</CartaoTextoLabel>
+          <CartaoTextoLabel>Cartão detectado:</CartaoTextoLabel>
           <CartaoCodigo>
-            <CartaoCodigoText>{cartaoCliente}</CartaoCodigoText>
+            <CartaoCodigoText>{cartaoCliente || "Aguardando leitura..."}</CartaoCodigoText>
           </CartaoCodigo>
         </CartaoTexto>
       </CartaoCard>
 
-      {loading && <p>Processando...</p>}
-      {erro && <ErrorMessage>{erro}</ErrorMessage>}
+      {loading && <p style={{ color: "#555", fontStyle: "italic" }}>Processando...</p>}
+
+      {erro && <Message erro>{erro}</Message>}
 
       {cliente && (
-          <WelcomeCard>
-            <h2>Seja bem-vindo, {cliente.nomeCliente}!</h2>
-            <SaldoCard saldo={cliente.saldoCliente}>
-            <SaldoText>Saldo :</SaldoText>
-            <SaldoValue saldo={cliente.saldoCliente}>R$ {cliente.saldoCliente?.toFixed(2)|| "0.00"}</SaldoValue>
-            <SaldoText>Limite :</SaldoText>
-            <SaldoValue limite={cliente.limiteCliente}>R$ {cliente.limiteCliente?.toFixed(2)|| "0.00"}</SaldoValue>
+        <Card>
+          <h2>Seja bem-vindo, {cliente.nomeCliente}!</h2>
+          <SaldoCard saldo={cliente.saldoCliente}>
+            <SaldoText>Saldo:</SaldoText>{" "}
+            <SaldoValue saldo={cliente.saldoCliente}>
+              R$ {cliente.saldoCliente?.toFixed(2) || "0.00"}
+            </SaldoValue>
+            <SaldoText>Limite:</SaldoText>{" "}
+            <SaldoValue saldo={cliente.limiteCliente}>
+              R$ {cliente.limiteCliente?.toFixed(2) || "0.00"}
+            </SaldoValue>
           </SaldoCard>
-          </WelcomeCard>
-        )}
-
+        </Card>
+      )}
     </Container>
   );
 };

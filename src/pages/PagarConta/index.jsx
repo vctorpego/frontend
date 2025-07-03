@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import jwt_decode from "jwt-decode"; // Adicionado
-import * as C from "./styles"; // Importa estilos personalizados
+import jwt_decode from "jwt-decode";
+import * as C from "./styles";
 import { Message } from "../AddConta/styles";
-
 
 const PagarConta = () => {
   const { id } = useParams();
   const [conta, setConta] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [hasPermission, setHasPermission] = useState(false); // Novo estado
+  const [hasPermission, setHasPermission] = useState(false);
   const navigate = useNavigate();
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [messageType, setMessageType] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -58,7 +57,6 @@ const PagarConta = () => {
         if (!hasPostPermission) {
           navigate("/nao-autorizado");
         } else {
-          // Se tiver permissão, então carrega os dados da conta
           if (id) {
             const response = await axios.get(
               `http://localhost:8080/controlecontas/${id}`,
@@ -88,7 +86,7 @@ const PagarConta = () => {
       setError("Token não encontrado. Faça login novamente.");
       localStorage.removeItem(token);
       navigate("/auth/login")
-      
+
       return;
     }
 
@@ -135,7 +133,7 @@ const PagarConta = () => {
   };
 
   if (loading) return <p>Carregando...</p>;
-  if (!hasPermission) return null; // Evita renderização antes da verificação
+  if (!hasPermission) return null;
 
   return (
     <C.Container>
