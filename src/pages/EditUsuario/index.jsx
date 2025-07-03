@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft } from 'lucide-react';
 import * as C from "./styles";
-import { Message } from "../EditUsuario/styles";
+import Button from "../../components/Button";
 
 const acoes = {
   adicionar: 1,
@@ -282,45 +283,105 @@ const EditUsuario = () => {
 
   return (
     <C.Container>
+      <C.BackButton onClick={() => navigate("/usuarios")}>
+        <ArrowLeft size={20} /> Voltar
+      </C.BackButton>
       <C.Title>Editar Usuário</C.Title>
-      {message && <Message type={messageType}>{message}</Message>}
+
+      {message && <C.Message type={messageType}>{message}</C.Message>}
+
       <C.Form onSubmit={handleSubmit}>
-        <C.Input type="text" placeholder="Nome" value={nome} onChange={(e) => setNome(e.target.value)} />
-        <C.Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <C.Input type="text" placeholder="Telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
-        <C.Input type="text" placeholder="Login" value={login} onChange={(e) => setLogin(e.target.value)} />
+        <C.InputsRow columns={2}>
+          <C.InputGroup>
+            <C.Label htmlFor="nome">Nome</C.Label>
+            <C.Input
+              id="nome"
+              type="text"
+              placeholder="Nome completo"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+            />
+          </C.InputGroup>
+          <C.InputGroup>
+            <C.Label htmlFor="email">Email</C.Label>
+            <C.Input
+              id="email"
+              type="email"
+              placeholder="email@exemplo.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </C.InputGroup>
+        </C.InputsRow>
+
+        <C.InputsRow columns={3}>
+          <C.InputGroup>
+            <C.Label htmlFor="telefone">Telefone</C.Label>
+            <C.Input
+              id="telefone"
+              type="tel"
+              placeholder="(XX) XXXX-XXXX"
+              value={telefone}
+              onChange={(e) => setTelefone(e.target.value)}
+            />
+          </C.InputGroup>
+          <C.InputGroup>
+            <C.Label htmlFor="login">Login</C.Label>
+            <C.Input
+              id="login"
+              type="text"
+              placeholder="Nome de usuário"
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
+            />
+          </C.InputGroup>
+        </C.InputsRow>
+
         {isSuperAdm && (
-          <C.CheckboxContainer>
+          <C.AdminCheckbox>
             <label>
               <input
                 type="checkbox"
                 checked={adminChecked}
                 onChange={handleAdminCheckboxChange}
               />
-              Administrador
+              Administrador (Super Usuário)
             </label>
-          </C.CheckboxContainer>
+          </C.AdminCheckbox>
         )}
 
-        {telas
-          .filter((tela) => tela.nomeTela !== "Tela de Tela")
-          .map((tela) => (
-            <C.CheckboxContainer key={tela.idTela}>
-              <strong>{tela.nomeTela}</strong>
-              {Object.keys(acoes).map((acao) => (
-                <label key={acao}>
-                  <input
-                    type="checkbox"
-                    checked={permissoes[tela.nomeTela]?.[acao] || false}
-                    onChange={() => handleCheckboxChange(tela.nomeTela, acao)}
-                  />
-                  {acao}
-                </label>
+        <C.PermissionsSection>
+          <h3>Permissões</h3>
+          <C.CardsContainer>
+            {telas
+              .filter((tela) => tela.nomeTela !== "Tela de Tela")
+              .map((tela) => (
+                <C.Card key={tela.idTela}>
+                  <C.CardTitle>{tela.nomeTela}</C.CardTitle>
+                  <C.PermissionsList>
+                    {Object.keys(acoes).map((acao) => (
+                      <C.PermissionItem key={acao}>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={permissoes[tela.nomeTela]?.[acao] || false}
+                            onChange={() => handleCheckboxChange(tela.nomeTela, acao)}
+                          />
+                          {acao.charAt(0).toUpperCase() + acao.slice(1)}
+                        </label>
+                      </C.PermissionItem>
+                    ))}
+                  </C.PermissionsList>
+                </C.Card>
               ))}
-            </C.CheckboxContainer>
-          ))}
+          </C.CardsContainer>
+        </C.PermissionsSection>
 
-        <C.Button type="submit">Salvar Alterações</C.Button>
+        {message && <C.Message type={messageType}>{message}</C.Message>}
+        
+        <C.AddButtonWrapper>
+          <Button Text="Salvar Alterações" onClick={handleSubmit} />
+        </C.AddButtonWrapper>
       </C.Form>
     </C.Container>
   );

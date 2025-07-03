@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import jwt_decode from "jwt-decode";
+import { ArrowLeft } from 'lucide-react';
 import {
   Container,
   Title,
   Form,
   Input,
   Button,
+  BackButton,
   Label,
   Select, Message
 } from "../AddConta/styles";
@@ -20,7 +22,7 @@ const AddConta = () => {
   const [fornecedorId, setFornecedorId] = useState("");
   const [fornecedores, setFornecedores] = useState([]);
   const [hasPermission, setHasPermission] = useState(false);
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [messageType, setMessageType] = useState("");
   const [message, setMessage] = useState("");
 
 
@@ -146,9 +148,39 @@ const AddConta = () => {
 
   return (
     <Container>
+      <BackButton onClick={() => navigate("/pagamentos")}>
+        <ArrowLeft size={20} /> Voltar
+      </BackButton>
       <Title>Adicionar Nova Conta</Title>
       {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>
+        <div>
+          <Label>Fornecedor:</Label>
+          <Select
+            value={fornecedorId}
+            onChange={(e) => setFornecedorId(e.target.value)}
+            required
+          >
+            <option value="">Selecione um Fornecedor</option>
+            {fornecedores.map((f) => (
+              <option key={f.idFornecedor} value={f.idFornecedor}>
+                {f.nomeSocialFornecedor}
+              </option>
+            ))}
+          </Select>
+        </div>
+
+        <div>
+          <Label>Valor:</Label>
+          <Input
+            type="number"
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+            placeholder="Valor da Conta"
+            required
+          />
+        </div>
+
         <div>
           <Label>Data de Vencimento:</Label>
           <Input
@@ -168,33 +200,6 @@ const AddConta = () => {
             placeholder="Descrição da Conta"
             required
           />
-        </div>
-
-        <div>
-          <Label>Valor:</Label>
-          <Input
-            type="number"
-            value={valor}
-            onChange={(e) => setValor(e.target.value)}
-            placeholder="Valor da Conta"
-            required
-          />
-        </div>
-
-        <div>
-          <Label>Fornecedor:</Label>
-          <Select
-            value={fornecedorId}
-            onChange={(e) => setFornecedorId(e.target.value)}
-            required
-          >
-            <option value="">Selecione um Fornecedor</option>
-            {fornecedores.map((f) => (
-              <option key={f.idFornecedor} value={f.idFornecedor}>
-                {f.nomeSocialFornecedor}
-              </option>
-            ))}
-          </Select>
         </div>
 
         <div>

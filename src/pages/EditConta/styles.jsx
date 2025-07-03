@@ -1,14 +1,19 @@
 import styled from 'styled-components';
 
 export const Container = styled.div`
+  width: calc(100% - 200px);
+  margin-left: 200px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   flex-direction: column;
   height: 100vh;
-  background-color: #f5f5f5;
-  gap: 30px;
-  padding: 20px;
+  background-color: #f4f4f4;
+  padding: 40px;
+
+  @media (max-width: 768px) {
+    padding: 20px;
+  }
 `;
 
 export const Title = styled.h2`
@@ -21,7 +26,7 @@ export const Title = styled.h2`
 export const Form = styled.form`
   background-color: white;
   padding: 30px;
-  border-radius: 8px;
+  border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 500px;
@@ -39,13 +44,13 @@ export const Input = styled.input`
   transition: border-color 0.3s ease;
 
   &:focus {
-    border-color: #28a745;
+    border-color: #007BFF;
     outline: none;
   }
 `;
 
 export const Button = styled.button`
-  background-color: #28a745;
+  background-color: #007BFF;
   color: white;
   padding: 12px;
   font-size: 18px;
@@ -55,7 +60,32 @@ export const Button = styled.button`
   transition: background-color 0.3s ease;
 
   &:hover {
-    background-color: #218838;
+    background-color: #0056b3;
+  }
+`;
+
+export const BackButton = styled.button`
+  position: absolute;
+  top: 40px;
+  left: 220px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: #333;
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.3s;
+
+  &:hover {
+    color: #000;
+  }
+
+  @media (max-width: 768px) {
+    position: static; 
+    margin-bottom: 20px;
+    align-self: flex-start;
   }
 `;
 

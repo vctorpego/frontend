@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import jwt_decode from "jwt-decode";
+import { ArrowLeft } from 'lucide-react';
 import * as C from "./styles";
 import { Message } from "../AddConta/styles";
 
@@ -128,17 +129,19 @@ const PagarConta = () => {
     }
   };
 
-  const handleRedirectToPagamentos = () => {
-    navigate("/pagamentos", { replace: true });
-  };
-
   if (loading) return <p>Carregando...</p>;
   if (!hasPermission) return null;
 
   return (
     <C.Container>
+      <C.BackButton onClick={() => navigate("/pagamentos")}>
+        <ArrowLeft size={20} /> Voltar
+      </C.BackButton>
+
       <C.Title>Pagar Conta</C.Title>
+
       {message && <Message type={messageType}>{message}</Message>}
+
       <C.Form>
         <h2>Detalhes da Conta</h2>
         <C.Label><strong>Empresa:</strong></C.Label>
@@ -150,8 +153,8 @@ const PagarConta = () => {
         <C.Label><strong>Status:</strong></C.Label>
         <p>{conta.statusControleContas}</p>
         <C.Button onClick={handlePagamento}>Efetuar Pagamento</C.Button>
-        <C.Button onClick={handleRedirectToPagamentos}>Voltar</C.Button>
       </C.Form>
+
       {error && <p style={{ color: "red" }}>{error}</p>}
     </C.Container>
   );

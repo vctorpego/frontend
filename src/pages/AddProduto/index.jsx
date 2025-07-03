@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import jwt_decode from "jwt-decode";
-import { Container, Title, Form, Input, Button, Label, Message } from '../AddProduto/styles';
+import { ArrowLeft } from 'lucide-react';
+import { Container, Title, Form, Input, Button, BackButton, Label, Message } from '../AddProduto/styles';
 
 const AddProduto = () => {
   const [nomeProduto, setNomeProduto] = useState("");
@@ -45,7 +46,7 @@ const AddProduto = () => {
         );
 
         const permissoesTela = permissionsResponse.data.find(
-          (perm) => perm.tela === "Tela de Produtos" 
+          (perm) => perm.tela === "Tela de Produtos"
         );
 
         const permissoes = permissoesTela?.permissoes || [];
@@ -156,6 +157,9 @@ const AddProduto = () => {
 
   return (
     <Container>
+      <BackButton onClick={() => navigate("/produtos")}>
+        <ArrowLeft size={20} /> Voltar
+      </BackButton>
       <Title>Adicionar Produto</Title>
       {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>

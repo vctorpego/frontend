@@ -2,18 +2,19 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import jwtDecode from "jwt-decode";
-import { Container, Title, Form, Input, Button, Label, Message } from "../EditProduto/styles";
+import { ArrowLeft } from 'lucide-react';
+import { Container, Title, Form, Input, Button, BackButton, Label, Message } from "../EditProduto/styles";
 
 const EditProduto = () => {
-  const { idProduto } = useParams();  // Altere para 'idProduto'
+  const { idProduto } = useParams();
   const [nomeProduto, setNomeProduto] = useState("");
   const [precoCusto, setPrecoCusto] = useState("");
   const [precoVenda, setPrecoVenda] = useState("");
   const [estoque, setEstoque] = useState("");
-  const [codigoBarrasProduto, setCodigoBarrasProduto] = useState("");  // Alterado para 'codigoBarrasProduto'
-  const [hasPermission, setHasPermission] = useState(false);  // Estado para verificar permissão
+  const [codigoBarrasProduto, setCodigoBarrasProduto] = useState("");
+  const [hasPermission, setHasPermission] = useState(false);
   const navigate = useNavigate();
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [messageType, setMessageType] = useState("");
   const [message, setMessage] = useState("");
 
 
@@ -27,7 +28,7 @@ const EditProduto = () => {
       }
 
       const decoded = jwtDecode(token);
-      const userLogin = decoded.sub; // Extrai o ID do usuário do token
+      const userLogin = decoded.sub;
 
       const getRequestConfig = () => ({
         headers: {
@@ -36,22 +37,19 @@ const EditProduto = () => {
       });
 
       try {
-        // Faz a requisição para pegar os dados do usuário
         const response = await axios.get(
           `http://localhost:8080/usuario/id/${userLogin}`,
           getRequestConfig()
         );
         const userId = response.data;
 
-        // Requisição para pegar as permissões do usuário
         const permissionsResponse = await axios.get(
           `http://localhost:8080/permissao/telas/${userId}`,
           getRequestConfig()
         );
 
-        // Verifica se o usuário tem permissão para "PUT" na tela de "Tela de Produtos"
         const permissoesTela = permissionsResponse.data.find(
-          (perm) => perm.tela === "Tela de Produtos" // Alterado para "Tela de Produtos"
+          (perm) => perm.tela === "Tela de Produtos"
         );
 
         const permissoes = permissoesTela?.permissoes || [];
@@ -59,7 +57,6 @@ const EditProduto = () => {
 
         setHasPermission(hasPutPermission);
 
-        // Caso não tenha permissão de PUT, redireciona para uma página de acesso negado
         if (!hasPutPermission) {
           navigate("/nao-autorizado");
         }
@@ -76,7 +73,6 @@ const EditProduto = () => {
     const fetchProduto = async () => {
       const token = localStorage.getItem("token");
 
-      // Verifica se o token existe
       if (!token) {
         setMessageType("error");
         setMessage("Voce precisa estar logado!");
@@ -95,7 +91,6 @@ const EditProduto = () => {
           return;
         }
 
-        // Envia o token no cabeçalho da requisição
         const response = await axios.get(`http://localhost:8080/produto/${idProduto}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -105,7 +100,7 @@ const EditProduto = () => {
         setPrecoCusto(valorDeCustoProduto);
         setPrecoVenda(precoProduto);
         setEstoque(quantProduto);
-        setCodigoBarrasProduto(codigoBarrasProduto);  // Carrega o código de barras
+        setCodigoBarrasProduto(codigoBarrasProduto);
 
       } catch (error) {
         console.error("Erro ao buscar o produto:", error);
@@ -154,11 +149,11 @@ const EditProduto = () => {
       await axios.put(
         `http://localhost:8080/produto/alterar/${idProduto}`,
         {
-          nomeProduto,  // Não envia nomeProduto para ser alterado
+          nomeProduto,
           precoProduto: precoVenda,
           valorDeCustoProduto: precoCusto,
           quantProduto: estoque,
-          codigoBarrasProduto: codigoBarrasProduto,  // Inclui o código de barras no corpo da requisição
+          codigoBarrasProduto: codigoBarrasProduto,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -176,13 +171,15 @@ const EditProduto = () => {
     }
   };
 
-  // Se o usuário não tem permissão para editar, exibe mensagem de acesso negado
   if (!hasPermission) {
     return <p>Você não tem permissão para editar produtos.</p>;
   }
 
   return (
     <Container>
+      <BackButton onClick={() => navigate("/produtos")}>
+        <ArrowLeft size={20} /> Voltar
+      </BackButton>
       <Title>Editar Produto</Title>
       {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>
@@ -191,7 +188,7 @@ const EditProduto = () => {
           <Input
             type="text"
             value={nomeProduto}
-            readOnly // Torna o campo não editável
+            readOnly
           />
         </div>
         <div>
@@ -221,13 +218,12 @@ const EditProduto = () => {
             required
           />
         </div>
-        {/* O código de barras pode ser deixado oculto ou não editável */}
         <div>
           <Label>Código de Barras:</Label>
           <Input
             type="text"
             value={codigoBarrasProduto}
-            readOnly // Não editável 
+            readOnly
           />
         </div>
         <Button type="submit">Atualizar Produto</Button>

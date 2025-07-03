@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import jwtDecode from "jwt-decode";
+import { ArrowLeft } from 'lucide-react';
 import {
   Container,
   Title,
   Form,
   Input,
   Button,
+  BackButton,
   Label,
   Message,
 } from '../AddFornecedor/styles';
@@ -183,6 +185,9 @@ const AddFornecedor = () => {
 
   return (
     <Container>
+      <BackButton onClick={() => navigate("/fornecedores")}>
+              <ArrowLeft size={20} /> Voltar
+            </BackButton>
       <Title>Adicionar Fornecedor</Title>
       {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>

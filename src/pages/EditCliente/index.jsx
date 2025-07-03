@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import jwtDecode from "jwt-decode";
-import { Container, Title, Form, Input, Button, Label ,Message } from "../EditCliente/styles";
+import { ArrowLeft } from 'lucide-react';
+import { Container, Title, Form, Input, Button, BackButton, Label ,Message } from "../EditCliente/styles";
 
 const EditCliente = () => {
   const { idCliente } = useParams();
@@ -13,7 +14,7 @@ const EditCliente = () => {
   const [idCartaoCliente, setIdCartaoCliente] = useState("");
   const [ultimaCompraCliente, setUltimaCompraCliente] = useState("");
   const [hasPermission, setHasPermission] = useState(false);
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [messageType, setMessageType] = useState("");
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
@@ -165,7 +166,7 @@ const EditCliente = () => {
           limiteCliente: parseFloat(limiteCliente),
           dtNascCliente,
           idCartaoCliente,
-          ultimaCompraCliente, // campo oculto enviado
+          ultimaCompraCliente,
           faturaCliente: 0,
         },
         {
@@ -184,11 +185,13 @@ const EditCliente = () => {
     }
   };
   
-
   if (!hasPermission) return null;
 
   return (
     <Container>
+      <BackButton onClick={() => navigate("/clientes")}>
+        <ArrowLeft size={20} /> Voltar
+      </BackButton>
       <Title>Editar Cliente</Title>
       {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>

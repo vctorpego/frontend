@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
-import { Container, Title, Form, Input, Button, Label, Message } from '../AddProduto/styles';
+import { ArrowLeft } from 'lucide-react';
+import { Container, Title, Form, Input, Button, BackButton, Label, Message } from '../AddProduto/styles';
 import useCardScanner from "../../hooks/useCardScanner";
 
 const AddCliente = () => {
@@ -12,7 +13,7 @@ const AddCliente = () => {
   const [dtNascCliente, setDtNascCliente] = useState("");
   const [codigoCartao, setCodigoCartao] = useState("");
   const [hasPermission, setHasPermission] = useState(false);
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [messageType, setMessageType] = useState("");
   const [message, setMessage] = useState("");
 
   const navigate = useNavigate();
@@ -138,11 +139,14 @@ const AddCliente = () => {
   };
 
   if (!hasPermission) {
-    return null; // ou um loader, se preferir
+    return null;
   }
 
   return (
     <Container>
+      <BackButton onClick={() => navigate("/clientes")}>
+        <ArrowLeft size={20} /> Voltar
+      </BackButton>
       <Title>Adicionar Cliente</Title>
       {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>

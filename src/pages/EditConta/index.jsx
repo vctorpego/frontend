@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import jwtDecode from "jwt-decode";
-import { Container, Title, Form, Input, Button, Label, Message } from "../AddConta/styles";
+import { ArrowLeft } from 'lucide-react';
+import { Container, Title, Form, Input, Button, BackButton, Label, Message } from "../AddConta/styles";
 
 const EditConta = () => {
   const { idConta } = useParams();
@@ -14,7 +15,7 @@ const EditConta = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hasPermission, setHasPermission] = useState(false);
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [messageType, setMessageType] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -155,6 +156,9 @@ const EditConta = () => {
 
   return (
     <Container>
+      <BackButton onClick={() => navigate("/pagamentos")}>
+        <ArrowLeft size={20} /> Voltar
+      </BackButton>
       <Title>Editar Conta</Title>
       {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>

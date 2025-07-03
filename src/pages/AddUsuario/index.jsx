@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from 'lucide-react';
+import Button from "../../components/Button";
 import * as C from "./styles";
 import { Message } from "../AddProduto/styles";
 
@@ -24,7 +26,7 @@ const AddUsuario = () => {
   const [isSuperAdm, setIsSuperAdm] = useState(false);
   const [adminChecked, setAdminChecked] = useState(false);
   const navigate = useNavigate();
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [messageType, setMessageType] = useState("");
   const [message, setMessage] = useState("");
 
   const getToken = () => {
@@ -64,12 +66,11 @@ const AddUsuario = () => {
 
     const fetchData = async () => {
       try {
-        // Buscar telas dinâmicas
+
         const telaResponse = await axios.get("http://localhost:8080/tela", getRequestConfig());
         const telasBackend = telaResponse.data;
         setTelas(telasBackend);
 
-        // Inicializar permissões para todas as telas
         const permissoesIniciais = {};
         telasBackend.forEach((tela) => {
           permissoesIniciais[tela.nomeTela] = {
@@ -81,7 +82,6 @@ const AddUsuario = () => {
         });
         setPermissoes(permissoesIniciais);
 
-        // Buscar permissões do usuário atual
         const usuarioResponse = await axios.get(
           `http://localhost:8080/usuario/id/${userLogin}`,
           getRequestConfig()
@@ -100,7 +100,6 @@ const AddUsuario = () => {
         console.log("Esse é o usuario logado", logadoResponse.data);
         setIsSuperAdm(logadoResponse.data.isSuperAdm);
 
-        // Definir o valor do checkbox "Administrador"
         setAdminChecked(false);
 
         const permissoesTela = permissionsResponse.data.find(
@@ -142,31 +141,30 @@ const AddUsuario = () => {
   const handleAdminCheckboxChange = () => {
     const novoValor = !adminChecked;
     setAdminChecked(novoValor);
-    toggleAllCheckboxes(novoValor); // Marca ou desmarca todos os checkboxes
+    toggleAllCheckboxes(novoValor);
   };
 
   const handleCheckboxChange = (telaNome, acao) => {
     setPermissoes((prevPermissoes) => {
       const telaPermissoes = prevPermissoes[telaNome] || {};
       const novaPermissaoAcao = !telaPermissoes[acao];
-  
+
       const novasPermissoesTela = {
         ...telaPermissoes,
         [acao]: novaPermissaoAcao,
       };
-  
-      // Se marcou adicionar, editar ou excluir, ativa visualizar
+
       if (["adicionar", "editar", "excluir"].includes(acao) && novaPermissaoAcao) {
         novasPermissoesTela.visualizar = true;
       }
-  
+
       return {
         ...prevPermissoes,
         [telaNome]: novasPermissoesTela,
       };
     });
   };
-  
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -262,74 +260,116 @@ const AddUsuario = () => {
 
   return (
     <C.Container>
+      <C.BackButton onClick={() => navigate("/usuarios")}>
+        <ArrowLeft size={20} /> Voltar
+      </C.BackButton>
       <C.Title>Adicionar Usuário</C.Title>
+
       {message && <Message type={messageType}>{message}</Message>}
+
       <C.Form onSubmit={handleSubmit}>
-        <C.Input
-          type="text"
-          placeholder="Nome"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-        />
-        <C.Input
-          type="text"
-          placeholder="Telefone"
-          value={telefone}
-          onChange={(e) => setTelefone(e.target.value)}
-        />
-        <C.Input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <C.Input
-          type="password"
-          placeholder="Senha"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-        />
-        <C.Input
-          type="text"
-          placeholder="Login"
-          value={login}
-          onChange={(e) => setLogin(e.target.value)}
-        />
+
+        <C.InputsRow columns={2}>
+          <C.InputGroup>
+            <C.Label htmlFor="nome">Nome</C.Label>
+            <C.Input
+              id="nome"
+              type="text"
+              placeholder="Nome completo"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+            />
+          </C.InputGroup>
+          <C.InputGroup>
+            <C.Label htmlFor="email">Email</C.Label>
+            <C.Input
+              id="email"
+              type="email"
+              placeholder="email@exemplo.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </C.InputGroup>
+        </C.InputsRow>
+
+        <C.InputsRow columns={3}>
+          <C.InputGroup>
+            <C.Label htmlFor="telefone">Telefone</C.Label>
+            <C.Input
+              id="telefone"
+              type="tel"
+              placeholder="(XX) XXXX-XXXX"
+              value={telefone}
+              onChange={(e) => setTelefone(e.target.value)}
+            />
+          </C.InputGroup>
+          <C.InputGroup>
+            <C.Label htmlFor="senha">Senha</C.Label>
+            <C.Input
+              id="senha"
+              type="password"
+              placeholder="Senha segura"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+            />
+          </C.InputGroup>
+          <C.InputGroup>
+            <C.Label htmlFor="login">Login</C.Label>
+            <C.Input
+              id="login"
+              type="text"
+              placeholder="Nome de usuário"
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
+            />
+          </C.InputGroup>
+        </C.InputsRow>
 
         {isSuperAdm && (
-          <C.CheckboxContainer>
+          <C.AdminCheckbox>
             <label>
               <input
                 type="checkbox"
                 checked={adminChecked}
                 onChange={handleAdminCheckboxChange}
               />
-              Administrador
+              Administrador (Super Usuário)
             </label>
-          </C.CheckboxContainer>
+          </C.AdminCheckbox>
         )}
 
-
-        {telas
-          .filter((tela) => tela.nomeTela !== "Tela de Tela") // Oculta a "Tela de Tela"
-          .map((tela) => (
-            <C.CheckboxContainer key={tela.idTela}>
-              <strong>{tela.nomeTela}</strong>
-              {Object.keys(acoes).map((acao) => (
-                <label key={acao}>
-                  <input
-                    type="checkbox"
-                    checked={permissoes[tela.nomeTela]?.[acao] || false}
-                    onChange={() => handleCheckboxChange(tela.nomeTela, acao)}
-                  />
-                  {acao}
-                </label>
+        <C.PermissionsSection>
+          <h3>Permissões</h3>
+          <C.CardsContainer>
+            {telas
+              .filter((tela) => tela.nomeTela !== "Tela de Tela")
+              .map((tela) => (
+                <C.Card key={tela.idTela}>
+                  <C.CardTitle>{tela.nomeTela}</C.CardTitle>
+                  <C.PermissionsList>
+                    {Object.keys(acoes).map((acao) => (
+                      <C.PermissionItem key={acao}>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={permissoes[tela.nomeTela]?.[acao] || false}
+                            onChange={() => handleCheckboxChange(tela.nomeTela, acao)}
+                          />
+                          {acao.charAt(0).toUpperCase() + acao.slice(1)}
+                        </label>
+                      </C.PermissionItem>
+                    ))}
+                  </C.PermissionsList>
+                </C.Card>
               ))}
-            </C.CheckboxContainer>
-          ))}
+          </C.CardsContainer>
+        </C.PermissionsSection>
 
-        <C.Button type="submit">Adicionar Usuário</C.Button>
+        <C.AddButtonWrapper>
+          <Button Text="Adicionar" onClick={handleSubmit} />
+        </C.AddButtonWrapper>
       </C.Form>
+
     </C.Container>
   );
 };

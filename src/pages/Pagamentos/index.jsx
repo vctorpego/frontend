@@ -5,6 +5,7 @@ import Grid from "../../components/GridPagamento";
 import ModalExcluir from "../../components/ModalExcluir";
 import { useNavigate } from "react-router-dom";
 import * as C from "./styles";
+import Button from "../../components/Button";
 import SearchBar from "../../components/SearchBar";
 import { Message } from "../ListagemProdutos/styles";
 
@@ -99,13 +100,13 @@ const Pagamentos = () => {
         getRequestConfig()
       );
       setContas(contasResponse.data);
-        setMessageType("success");
-        setMessage("Conta apagada com sucesso!");
-        setTimeout(() => {
-          setMessage("");
-          setMessageType("");
-        }, 3000);
-        handleCloseModal();
+      setMessageType("success");
+      setMessage("Conta apagada com sucesso!");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
+      handleCloseModal();
 
     } catch (error) {
       console.error("Erro ao excluir a conta:", error);
@@ -125,11 +126,15 @@ const Pagamentos = () => {
     navigate("/pagamentos/pagar/" + contaId);
   };
 
+  const handleAddPagamentos = () => {
+    navigate("/pagamentos/adicionar");
+  };
+
   const columns = [
     "ID",
     "Empresa",
-    "Data de Pagamento",
     "Valor",
+    "Data de Pagamento",
     "Vencimento",
     "Status",
   ];
@@ -142,58 +147,46 @@ const Pagamentos = () => {
 
   return (
     <C.Container>
-      <C.Content>
-        <C.Title>Lista de Contas</C.Title>
-        {message && <Message type={messageType}>{message}</Message>}
-        <SearchBar input={searchQuery} setInput={setSearchQuery} />
-
+      <C.Header>
+        <C.Title>Lista de Pagamentos</C.Title>
         {permissoes.includes("POST") && (
-          <button
-            onClick={() => navigate("/pagamentos/adicionar")}
-            style={{
-              position: "absolute",
-              top: "20px",
-              right: "20px",
-              padding: "10px 20px",
-              backgroundColor: "#007bff",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-            }}
-          >
-            Adicionar Conta
-          </button>
+          <C.AddButtonWrapper>
+            <Button Text="Adicionar" onClick={handleAddPagamentos} />
+          </C.AddButtonWrapper>
         )}
+      </C.Header>
 
-        {contas.length === 0 ? (
-          <p>Nenhuma conta encontrada.</p>
-        ) : (
-          <Grid
-            data={filterContas()}
-            columns={columns}
-            columnMap={{
-              ID: "idContaControleContas",
-              Empresa: "fornecedor.nomeSocialFornecedor",
-              "Data de Pagamento": "dtPagamentoControleContas",
-              Valor: "valorControleContas",
-              Vencimento: "dtVencimentoControleContas",
-              Status: "statusControleContas",
-            }}
-            idKey="idContaControleContas"
-            handleEdit={handlePagarConta}
-            handleDelete={handleDeleteConta}
-            handlePay={handlePayConta}
-            actions={actions}
-          />
-        )}
+      {message && <Message type={messageType}>{message}</Message>}
 
-        <ModalExcluir
-          open={openModalExcluir}
-          onClose={handleCloseModal}
-          onConfirm={handleConfirmDelete}
+      <SearchBar input={searchQuery} setInput={setSearchQuery} />
+
+      {contas.length === 0 ? (
+        <p>Nenhuma conta encontrada.</p>
+      ) : (
+        <Grid
+          data={filterContas()}
+          columns={columns}
+          columnMap={{
+            ID: "idContaControleContas",
+            Empresa: "fornecedor.nomeSocialFornecedor",
+            Valor: "valorControleContas",
+            "Data de Pagamento": "dtPagamentoControleContas",
+            Vencimento: "dtVencimentoControleContas",
+            Status: "statusControleContas",
+          }}
+          idKey="idContaControleContas"
+          handleEdit={handlePagarConta}
+          handleDelete={handleDeleteConta}
+          handlePay={handlePayConta}
+          actions={actions}
         />
-      </C.Content>
+      )}
+
+      <ModalExcluir
+        open={openModalExcluir}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmDelete}
+      />
     </C.Container>
   );
 };

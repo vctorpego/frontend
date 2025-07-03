@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
-import { Container, Title, Form, Input, Button } from './styles';
-import { Message } from "../EditUsuario/styles";
+import { Container, Title, Form, Input, Button, Message } from './styles';
 
 const CadastroTela = () => {
   const [nomeTela, setNomeTela] = useState("");
@@ -129,7 +128,6 @@ const CadastroTela = () => {
       }
     } catch (error) {
       console.error("Erro ao cadastrar tela ou associar permissões:", error);
-      alert("Erro ao cadastrar tela ou associar permissões.");
       setMessageType("error");
       setMessage("Erro ao cadastrar tela!");
       setTimeout(() => {

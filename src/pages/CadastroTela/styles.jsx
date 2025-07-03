@@ -91,3 +91,18 @@ export const Button = styled.button`
     font-size: 12px;
   }
 `;
+
+export const Message = styled.div`
+  align-self: center;
+  width: fit-content;
+  max-width: 80%;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background-color: ${({ type }) =>
+    type === "success" ? "#d4edda" : "#f8d7da"};
+  color: ${({ type }) => (type === "success" ? "#155724" : "#721c24")};
+`;

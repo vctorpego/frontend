@@ -2,26 +2,28 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import jwtDecode from "jwt-decode";
+import { ArrowLeft } from 'lucide-react';
 import {
   Container,
   Title,
   Form,
   Input,
   Button,
+  BackButton,
   Label,
-  Message, // importe o Message
+  Message,
 } from '../EditFornecedor/styles';
 
 const EditFornecedor = () => {
-  const { idFornecedor } = useParams(); // Alterado para 'idFornecedor'
+  const { idFornecedor } = useParams(); 
   const [cnpjFornecedor, setCnpjFornecedor] = useState("");
   const [nomeSocialFornecedor, setNomeSocialFornecedor] = useState("");
   const [celularFornecedor, setCelularFornecedor] = useState("");
   const [emailFornecedor, setEmailFornecedor] = useState("");
   const [chavePixFornecedor, setChavePixFornecedor] = useState("");
-  const [message, setMessage] = useState("");      // mensagem a exibir
-  const [hasPermission, setHasPermission] = useState(false);  // Verificação de permissão
-  const [messageType, setMessageType] = useState(""); // tipo da mensagem: error, success, info
+  const [message, setMessage] = useState("");
+  const [hasPermission, setHasPermission] = useState(false);
+  const [messageType, setMessageType] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,7 +38,7 @@ const EditFornecedor = () => {
       }
 
       const decoded = jwtDecode(token);
-      const userLogin = decoded.sub; // Extraindo ID do usuário do token
+      const userLogin = decoded.sub;
 
       const getRequestConfig = () => ({
         headers: {
@@ -45,7 +47,6 @@ const EditFornecedor = () => {
       });
 
       try {
-        // Requisição para buscar as permissões do usuário
         const response = await axios.get(
           `http://localhost:8080/usuario/id/${userLogin}`,
           getRequestConfig()
@@ -57,7 +58,6 @@ const EditFornecedor = () => {
           getRequestConfig()
         );
 
-        // Verifica se o usuário tem permissão para "PUT" na tela de "Tela de Fornecedores"
         const permissoesTela = permissionsResponse.data.find(
           (perm) => perm.tela === "Tela de Fornecedores"
         );
@@ -67,7 +67,6 @@ const EditFornecedor = () => {
 
         setHasPermission(hasPutPermission);
 
-        // Caso não tenha permissão, redireciona para página de acesso negado
         if (!hasPutPermission) {
           navigate("/nao-autorizado");
         }
@@ -173,13 +172,15 @@ const EditFornecedor = () => {
     }
   };
 
-  // Exibe a tela de edição apenas se o usuário tiver permissão
   if (!hasPermission) {
     return <p>Você não tem permissão para editar fornecedores.</p>;
   }
 
   return (
     <Container>
+      <BackButton onClick={() => navigate("/fornecedores")}>
+        <ArrowLeft size={20} /> Voltar
+      </BackButton>
       <Title>Editar Fornecedor</Title>
       {message && <Message type={messageType}>{message}</Message>}
       <Form onSubmit={handleSubmit}>
