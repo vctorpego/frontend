@@ -17,7 +17,6 @@ const EditUsuario = () => {
   const { id } = useParams();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
   const [telefone, setTelefone] = useState("");
   const [login, setLogin] = useState("");
   const [permissoes, setPermissoes] = useState({});
@@ -224,7 +223,6 @@ const EditUsuario = () => {
         {
           nomeUsuario: nome,
           emailUsuario: email,
-          senhaUsuario: senha || undefined,
           telefoneUsuario: telefone,
           login,
           isAdm: adminChecked,
@@ -314,7 +312,7 @@ const EditUsuario = () => {
           </C.InputGroup>
         </C.InputsRow>
 
-        <C.InputsRow columns={3}>
+        <C.InputsRow columns={2}>
           <C.InputGroup>
             <C.Label htmlFor="telefone">Telefone</C.Label>
             <C.Input
@@ -337,16 +335,6 @@ const EditUsuario = () => {
               placeholder="Nome de usuário"
               value={login}
               onChange={(e) => setLogin(e.target.value)}
-            />
-          </C.InputGroup>
-          <C.InputGroup>
-            <C.Label htmlFor="senha">Senha</C.Label>
-            <C.Input
-              id="senha"
-              type="password"
-              placeholder="Nova senha"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
             />
           </C.InputGroup>
         </C.InputsRow>
