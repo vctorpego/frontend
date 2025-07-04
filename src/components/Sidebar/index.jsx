@@ -100,7 +100,7 @@ const Sidebar = () => {
           ))}
 
         <C.MenuItem onClick={logout}>
-          Logout
+          Sair
         </C.MenuItem>
       </C.Menu>
 

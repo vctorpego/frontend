@@ -107,7 +107,7 @@ export const ComandaInfo = styled(CardBase)`
   }
 
   @media (max-width: 768px) {
-    text-align: center;
+    text-align: start;
     padding: 15px;
   }
 `;

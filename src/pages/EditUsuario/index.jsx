@@ -17,6 +17,7 @@ const EditUsuario = () => {
   const { id } = useParams();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
   const [telefone, setTelefone] = useState("");
   const [login, setLogin] = useState("");
   const [permissoes, setPermissoes] = useState({});
@@ -223,6 +224,7 @@ const EditUsuario = () => {
         {
           nomeUsuario: nome,
           emailUsuario: email,
+          senhaUsuario: senha || undefined,
           telefoneUsuario: telefone,
           login,
           isAdm: adminChecked,
@@ -288,8 +290,6 @@ const EditUsuario = () => {
       </C.BackButton>
       <C.Title>Editar Usuário</C.Title>
 
-      {message && <C.Message type={messageType}>{message}</C.Message>}
-
       <C.Form onSubmit={handleSubmit}>
         <C.InputsRow columns={2}>
           <C.InputGroup>
@@ -322,7 +322,11 @@ const EditUsuario = () => {
               type="tel"
               placeholder="(XX) XXXX-XXXX"
               value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
+              onChange={(e) => {
+                const onlyNums = e.target.value.replace(/\D/g, "");
+                setTelefone(onlyNums);
+              }}
+
             />
           </C.InputGroup>
           <C.InputGroup>
@@ -333,6 +337,16 @@ const EditUsuario = () => {
               placeholder="Nome de usuário"
               value={login}
               onChange={(e) => setLogin(e.target.value)}
+            />
+          </C.InputGroup>
+          <C.InputGroup>
+            <C.Label htmlFor="senha">Senha</C.Label>
+            <C.Input
+              id="senha"
+              type="password"
+              placeholder="Nova senha"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
             />
           </C.InputGroup>
         </C.InputsRow>
@@ -378,7 +392,7 @@ const EditUsuario = () => {
         </C.PermissionsSection>
 
         {message && <C.Message type={messageType}>{message}</C.Message>}
-        
+
         <C.AddButtonWrapper>
           <Button Text="Salvar Alterações" onClick={handleSubmit} />
         </C.AddButtonWrapper>

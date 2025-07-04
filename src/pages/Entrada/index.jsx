@@ -190,8 +190,8 @@ const EntradaCliente = () => {
               R$ {cliente.saldoCliente?.toFixed(2) || "0.00"}
             </SaldoValue>
             <SaldoText>Limite:</SaldoText>{" "}
-            <SaldoValue saldo={cliente.limiteCliente}>
-              R$ {cliente.limiteCliente?.toFixed(2) || "0.00"}
+            <SaldoValue saldo={cliente.faturaCliente}>
+              R$ {cliente.faturaCliente?.toFixed(2) || "0.00"}
             </SaldoValue>
           </SaldoCard>
         </Card>

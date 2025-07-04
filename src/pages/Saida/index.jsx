@@ -199,8 +199,8 @@ const SaidaCliente = () => {
             </div>
             <div>
               <SaldoText>Limite:</SaldoText>{" "}
-              <SaldoValue limite={cliente.limiteCliente}>
-                R$ {cliente.limiteCliente?.toFixed(2)}
+              <SaldoValue saldo={cliente.faturaCliente}>
+                R$ {cliente.faturaCliente?.toFixed(2) || "0.00"}
               </SaldoValue>
             </div>
           </SaldoCard>
@@ -213,7 +213,7 @@ const SaidaCliente = () => {
           <p><strong>ID:</strong> {comanda.idCompraComanda}</p>
           <p><strong>Entrada:</strong> {comanda.horaEntradaComanda}</p>
           <p><strong>Saída:</strong> {comanda.horaSaidaComanda}</p>
-          <p><strong>Total:</strong> <span style={{ fontWeight: 'bold'}}>R$ {comanda.valorTotalComanda?.toFixed(2)}</span></p>
+          <p><strong>Total:</strong> <span style={{ fontWeight: 'bold' }}>R$ {comanda.valorTotalComanda?.toFixed(2)}</span></p>
 
           {produtosDetalhados.length > 0 && (
             <>

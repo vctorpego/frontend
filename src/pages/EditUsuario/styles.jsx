@@ -31,6 +31,10 @@ export const BackButton = styled.button`
     color: #007bff;
   }
 
+  @media (max-width: 1024px) {
+    left: 10px;
+  }
+
   @media (max-width: 768px) {
     position: static;
     margin-bottom: 20px;

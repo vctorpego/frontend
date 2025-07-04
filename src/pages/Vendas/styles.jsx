@@ -59,6 +59,7 @@ export const Mensagem = styled.div`
   box-shadow: 0 2px 8px rgba(245, 195, 66, 0.3);
 `;
 
+
 export const InfoGroup = styled.div`
   display: flex;
   justify-content: space-between;

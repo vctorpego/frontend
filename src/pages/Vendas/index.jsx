@@ -172,7 +172,6 @@ function Vendas() {
       setPesoGramas("");
       setClienteCartao("");
       exibirMensagem("Venda finalizada com sucesso!");
-      exibirMensagem("Venda finalizada com sucesso!");
     } catch (error) {
       if (error.response) {
         if (error.response.status === 409) {
@@ -243,8 +242,8 @@ function Vendas() {
       handleScan(data);
     }
   });
-
-  /*
+  
+/*
   const obterPesoDaBalanca = async () => {
     console.log("Entrou na função")
     try {

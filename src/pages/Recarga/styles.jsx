@@ -71,7 +71,7 @@ export const Form = styled.form`
     }
 
     div {
-        margin-top: 8px;
+        margin-top: 5px;
         padding: 10px;
         background-color: #f9f9f9;
         border-radius: 4px;

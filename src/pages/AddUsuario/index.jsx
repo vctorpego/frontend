@@ -304,16 +304,6 @@ const AddUsuario = () => {
             />
           </C.InputGroup>
           <C.InputGroup>
-            <C.Label htmlFor="senha">Senha</C.Label>
-            <C.Input
-              id="senha"
-              type="password"
-              placeholder="Senha segura"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-            />
-          </C.InputGroup>
-          <C.InputGroup>
             <C.Label htmlFor="login">Login</C.Label>
             <C.Input
               id="login"
@@ -321,6 +311,16 @@ const AddUsuario = () => {
               placeholder="Nome de usuário"
               value={login}
               onChange={(e) => setLogin(e.target.value)}
+            />
+          </C.InputGroup>
+          <C.InputGroup>
+            <C.Label htmlFor="senha">Senha</C.Label>
+            <C.Input
+              id="senha"
+              type="password"
+              placeholder="Senha segura"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
             />
           </C.InputGroup>
         </C.InputsRow>
